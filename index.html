@@ -53,45 +53,67 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             padding: 15px;
             border-radius: 24px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
             max-width: 100%;
+            position: relative;
+            z-index: 1;
+            overflow: visible;
+        }
+
+        #game-container::before,
+        #side-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            z-index: -1;
+            pointer-events: none;
         }
 
         #side-panel {
             display: flex;
             flex-direction: column;
             gap: 15px;
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
             padding: 20px;
             border-radius: 24px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
             width: 280px;
             min-height: 810px;
+            position: relative;
+            z-index: 1;
         }
 
         .tool-btn {
             background-color: #6366f1;
             color: white;
             border: none;
-            padding: 15px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 10px;
+            width: 64px;
+            height: 64px;
+            aspect-ratio: 1/1;
+            /* Ensure perfect circle */
+            flex-shrink: 0;
+            /* Prevent horizontal stretching/oval look */
+            border-radius: 50%;
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 4px 0 #4f46e5;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            justify-content: center;
+            gap: 2px;
+            position: relative;
+            z-index: 10;
         }
 
         .tool-btn.active {
@@ -101,9 +123,8 @@
         }
 
         .tool-btn:hover:not(.disabled) {
-            background-color: #818cf8;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 0 #4f46e5;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 0 #4f46e5;
         }
 
         .tool-btn:active:not(.disabled) {
@@ -118,8 +139,35 @@
             opacity: 0.5;
         }
 
+        #tool-snake {
+            background-color: #059669;
+            box-shadow: 0 4px 0 #047857;
+        }
+
+        #tool-snake.active {
+            background-color: #f59e0b;
+            box-shadow: 0 2px 0 #d97706;
+        }
+
         .tool-icon {
             font-size: 24px;
+            line-height: 1;
+        }
+
+        .tool-btn small {
+            position: absolute;
+            bottom: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #94a3b8;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        .tool-btn span:not(.tool-icon) {
+            display: none;
+            /* Hide text label on button, use icon only */
         }
 
         #stats-panel {
@@ -210,11 +258,23 @@
         }
 
         #bottom-bar {
-            margin-top: 25px;
+            margin-top: 35px;
             width: 100%;
             max-width: 600px;
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .tools-row {
+            display: flex;
             justify-content: center;
+            gap: 20px;
+            width: 100%;
+            padding: 10px 0 25px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
         }
 
         button {
@@ -385,6 +445,7 @@
             #main-wrapper {
                 flex-direction: column;
                 align-items: center;
+                gap: 15px;
                 padding-bottom: 50px;
             }
 
@@ -396,6 +457,7 @@
                 flex-wrap: wrap;
                 justify-content: center;
                 height: auto;
+                padding: 15px;
             }
 
             #side-panel>* {
@@ -411,42 +473,84 @@
             #difficulty-selector {
                 flex: 1 1 45%;
             }
-        }
-
-        @media (max-width: 650px) {
-            #top-bar {
-                justify-content: space-between;
-                flex-wrap: nowrap;
-                gap: 5px;
-                padding: 0;
-            }
-
-            .stat {
-                min-width: 0;
-                flex: 1;
-                padding: 8px 5px;
-            }
-
-            .stat span {
-                font-size: 16px;
-            }
-
-            .stat small {
-                font-size: 9px;
-            }
-
-            #side-panel {
-                padding: 15px;
-            }
-
-            .tool-btn {
-                padding: 10px;
-                font-size: 13px;
-                flex: 1 1 45%;
-            }
 
             #game-container {
                 padding: 10px;
+            }
+
+            .tools-row {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: flex-end;
+                gap: 12px;
+                padding: 15px 10px 45px 10px;
+                background: rgba(15, 23, 42, 0.95);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                z-index: 99999;
+                box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
+            }
+
+            #bottom-bar {
+                padding-bottom: 100px;
+            }
+
+            .tool-btn {
+                width: 44px !important;
+                height: 44px !important;
+                min-width: 44px !important;
+                flex: 0 0 44px !important;
+                aspect-ratio: 1/1 !important;
+                padding: 0;
+            }
+
+            .tool-btn .tool-icon {
+                font-size: 20px;
+            }
+
+            .tool-btn small {
+                font-size: 8px;
+                bottom: -20px;
+            }
+
+            @media (max-width: 400px) {
+                #top-bar {
+                    justify-content: space-between;
+                    flex-wrap: nowrap;
+                    gap: 5px;
+                    padding: 0;
+                }
+
+                .stat {
+                    min-width: 0;
+                    flex: 1;
+                    padding: 8px 5px;
+                }
+
+                .stat span {
+                    font-size: 16px;
+                }
+
+                .stat small {
+                    font-size: 9px;
+                }
+
+                .tools-row {
+                    gap: 8px;
+                    padding-bottom: 40px;
+                }
+
+                .tool-btn {
+                    width: 40px !important;
+                    height: 40px !important;
+                    min-width: 40px !important;
+                    flex: 0 0 40px !important;
+                }
             }
         }
     </style>
@@ -485,26 +589,6 @@
                 </div>
             </div>
 
-            <button class="tool-btn" id="tool-swap">
-                <span class="tool-icon">🔄</span>
-                <span>Yer Değiştir</span>
-                <small>(1 Hamle)</small>
-            </button>
-            <button class="tool-btn" id="tool-row">
-                <span class="tool-icon">💥</span>
-                <span>Satır Patlat</span>
-                <small>(2 Hamle)</small>
-            </button>
-            <button class="tool-btn" id="tool-col">
-                <span class="tool-icon">🧨</span>
-                <span>Sütun Patlat</span>
-                <small>(2 Hamle)</small>
-            </button>
-            <button class="tool-btn" id="tool-cell">
-                <span class="tool-icon">🎯</span>
-                <span>Hücre Patlat</span>
-                <small>(1 Hamle)</small>
-            </button>
 
             <div id="stats-panel">
                 <h3>Kelime Analizi</h3>
@@ -515,844 +599,943 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
-    <script src="words.js"></script>
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreEl = document.getElementById('score');
-        const levelEl = document.getElementById('level');
-        const movesEl = document.getElementById('moves');
-        const shuffleBtn = document.getElementById('shuffle-btn');
-        const energyEl = document.getElementById('energy');
-        const energyTimerEl = document.getElementById('energy-timer');
-        const soundToggle = document.getElementById('sound-toggle');
-        const diffButtons = document.querySelectorAll('.diff-btn');
+        <div class="tools-row">
+            <button class="tool-btn" id="tool-swap">
+                <span class="tool-icon">🔄</span>
+                <span class="tool-label">Yer Değiştir</span>
+                <small>(2 Adet)</small>
+            </button>
+            <button class="tool-btn" id="tool-row">
+                <span class="tool-icon">↔️</span>
+                <span class="tool-label">Satır Patlat</span>
+                <small>(1 Adet)</small>
+            </button>
+            <button class="tool-btn" id="tool-col">
+                <span class="tool-icon">↕️</span>
+                <span class="tool-label">Sütun Patlat</span>
+                <small>(1 Adet)</small>
+            </button>
+            <button class="tool-btn" id="tool-cell">
+                <span class="tool-icon">🎯</span>
+                <span class="tool-label">Hücre Patlat</span>
+                <small>(3 Adet)</small>
+            </button>
+            <button class="tool-btn" id="tool-snake">
+                <span class="tool-icon">🐍</span>
+                <span class="tool-label">Yılan</span>
+                <small>(1 Adet)</small>
+            </button>
+        </div>
 
-        let ROWS = 10;
-        let COLS = 10;
-        let CELL_SIZE = 60; // Default, will be recalculated
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+        <script src="words.js"></script>
+        <script>
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreEl = document.getElementById('score');
+            const levelEl = document.getElementById('level');
+            const movesEl = document.getElementById('moves');
+            const shuffleBtn = document.getElementById('shuffle-btn');
+            const energyEl = document.getElementById('energy');
+            const energyTimerEl = document.getElementById('energy-timer');
+            const soundToggle = document.getElementById('sound-toggle');
+            const diffButtons = document.querySelectorAll('.diff-btn');
 
-        function gridShake(intensity = 5) {
-            gsap.fromTo(canvas,
-                { x: -intensity },
-                { x: intensity, duration: 0.05, repeat: 5, yoyo: true, onComplete: () => gsap.set(canvas, { x: 0 }) }
-            );
-        }
+            let ROWS = 10;
+            let COLS = 10;
+            let CELL_SIZE = 60; // Default, will be recalculated
 
-        // Difficulty Settings
-        const DIFFICULTY_SETTINGS = {
-            easy: {
-                moves: 30,
-                scoreTarget: 200,
-                vowelBonus: 1.5,
-                rows: 12,
-                cols: 12,
-                label: 'Kolay'
-            },
-            normal: {
-                moves: 20,
-                scoreTarget: 300,
-                vowelBonus: 1.0,
-                rows: 10,
-                cols: 10,
-                label: 'Zor'
-            },
-            pro: {
-                moves: 15,
-                scoreTarget: 500,
-                vowelBonus: 0.7,
-                rows: 9,
-                cols: 9,
-                label: 'Profesör'
-            }
-        };
-
-        let currentDifficulty = localStorage.getItem('kelimeCrushDifficulty') || 'normal';
-
-        // Sound System (Howler.js)
-        class SoundManager {
-            constructor() {
-                this.muted = localStorage.getItem('kelimeCrushMuted') === 'true';
-                this.sounds = {
-                    select: new Howl({ src: ['https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'], volume: 0.3 }),
-                    match: new Howl({ src: ['https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3'], volume: 0.5 }),
-                    blast: new Howl({ src: ['https://assets.mixkit.co/active_storage/sfx/2625/2625-preview.mp3'], volume: 0.6 }),
-                    levelup: new Howl({ src: ['https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'], volume: 0.7 }),
-                    error: new Howl({ src: ['https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3'], volume: 0.3 })
-                };
-                Howler.mute(this.muted);
-                this.updateUI();
+            function gridShake(intensity = 5) {
+                gsap.fromTo(canvas,
+                    { x: -intensity },
+                    { x: intensity, duration: 0.05, repeat: 5, yoyo: true, onComplete: () => gsap.set(canvas, { x: 0 }) }
+                );
             }
 
-            toggle() {
-                this.muted = !this.muted;
-                localStorage.setItem('kelimeCrushMuted', this.muted);
-                Howler.mute(this.muted);
-                this.updateUI();
-            }
+            // Difficulty Settings
+            const DIFFICULTY_SETTINGS = {
+                easy: {
+                    moves: 30,
+                    scoreTarget: 200,
+                    vowelBonus: 1.5,
+                    rows: 12,
+                    cols: 12,
+                    label: 'Kolay'
+                },
+                normal: {
+                    moves: 20,
+                    scoreTarget: 300,
+                    vowelBonus: 1.0,
+                    rows: 10,
+                    cols: 10,
+                    label: 'Zor'
+                },
+                pro: {
+                    moves: 15,
+                    scoreTarget: 500,
+                    vowelBonus: 0.7,
+                    rows: 9,
+                    cols: 9,
+                    label: 'Profesör'
+                }
+            };
 
-            updateUI() {
-                if (this.muted) soundToggle.classList.add('muted');
-                else soundToggle.classList.remove('muted');
-            }
+            let currentDifficulty = localStorage.getItem('kelimeCrushDifficulty') || 'normal';
 
-            play(type) {
-                if (this.sounds[type]) {
-                    this.sounds[type].play();
+            // Sound System (Howler.js)
+            class SoundManager {
+                constructor() {
+                    this.muted = localStorage.getItem('kelimeCrushMuted') === 'true';
+                    this.sounds = {
+                        select: new Howl({ src: ['sesler/snake.mp3'], volume: 0.1 }),
+                        match: new Howl({ src: ['sesler/tek-patlama.mp3'], volume: 0.5 }),
+                        blast: new Howl({ src: ['sesler/buyuk-patlama.mp3'], volume: 0.6 }),
+                        levelup: new Howl({ src: ['sesler/buyuk-patlama.mp3'], volume: 0.7 }),
+                        error: new Howl({ src: ['sesler/hatali.mp3'], volume: 0.3 }),
+                        snake_select: new Howl({ src: ['sesler/snake.mp3'], volume: 0.4 }),
+                        snake_blast: new Howl({ src: ['sesler/snake-patlama.mp3'], volume: 0.6 }),
+                        bomb_blast: new Howl({ src: ['sesler/kucuk-patlama.mp3'], volume: 0.6 }),
+                        cell_blast: new Howl({ src: ['sesler/tek-patlama.mp3'], volume: 0.6 }),
+                        swap_sound: new Howl({ src: ['sesler/switch.mp3'], volume: 0.5 }),
+                        row_col_blast: new Howl({ src: ['sesler/row-colun.mp3'], volume: 0.6 }),
+                        bomb_created: new Howl({ src: ['sesler/5-bomba.mp3'], volume: 0.5 }),
+                        background: new Howl({ src: ['sesler/background.mp3'], volume: 0.2, loop: true })
+                    };
+                    Howler.mute(this.muted);
+                    this.updateUI();
+                }
+
+                toggle() {
+                    this.muted = !this.muted;
+                    localStorage.setItem('kelimeCrushMuted', this.muted);
+                    Howler.mute(this.muted);
+                    this.updateUI();
+                }
+
+                updateUI() {
+                    if (this.muted) soundToggle.classList.add('muted');
+                    else soundToggle.classList.remove('muted');
+                }
+
+                play(type) {
+                    if (Howler.ctx && Howler.ctx.state === 'suspended') {
+                        Howler.ctx.resume();
+                    }
+                    if (this.sounds[type]) {
+                        if (type === 'background' && this.sounds[type].playing()) return;
+                        this.sounds[type].play();
+                    }
+                }
+
+                stop(type) {
+                    if (this.sounds[type]) {
+                        this.sounds[type].stop();
+                    }
                 }
             }
-        }
 
-        const soundManager = new SoundManager();
-        soundToggle.addEventListener('click', () => {
-            soundManager.toggle();
-        });
+            const soundManager = new SoundManager();
 
-        // Difficulty Logic
-        function setDifficulty(diff) {
-            if (gameStarted && moves < DIFFICULTY_SETTINGS[currentDifficulty].moves) {
-                // Game already in progress with moves spent
-                console.log("Oyun sırasında zorluk değiştirilemez.");
-                return;
-            }
+            // Mobile Autoplay Unlock - Explicitly resume on various first interactions
+            const unlockAudio = () => {
+                if (Howler.ctx && Howler.ctx.state === 'suspended') {
+                    Howler.ctx.resume().then(() => {
+                        console.log("AudioContext resumed successfully.");
+                        soundManager.play('background');
+                    });
+                } else {
+                    soundManager.play('background');
+                }
 
-            currentDifficulty = diff;
-            localStorage.setItem('kelimeCrushDifficulty', diff);
+                // Remove listeners after first successful interaction
+                ['mousedown', 'touchstart', 'keydown'].forEach(evt => {
+                    window.removeEventListener(evt, unlockAudio);
+                });
+            };
 
-            // Update UI
-            diffButtons.forEach(btn => {
-                if (btn.dataset.diff === diff) btn.classList.add('active');
-                else btn.classList.remove('active');
+            ['mousedown', 'touchstart', 'keydown'].forEach(evt => {
+                window.addEventListener(evt, unlockAudio);
             });
 
-            // Update grid dimensions BEFORE calculations
-            ROWS = DIFFICULTY_SETTINGS[diff].rows;
-            COLS = DIFFICULTY_SETTINGS[diff].cols;
-            CELL_SIZE = GRID_SIZE / COLS;
+            soundToggle.addEventListener('click', () => {
+                soundManager.toggle();
+            });
 
-            // Update game params
-            moves = DIFFICULTY_SETTINGS[diff].moves;
-            movesEl.innerText = moves;
-
-            // Rebuild letter pool
-            buildLetterPool();
-
-            // Reset grid if game hasn't really "started" (moves still at max)
-            if (!gameStarted || moves === DIFFICULTY_SETTINGS[diff].moves) {
-                initGrid();
-            }
-        }
-
-        diffButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
+            // Difficulty Logic
+            function setDifficulty(diff) {
                 if (gameStarted && moves < DIFFICULTY_SETTINGS[currentDifficulty].moves) {
-                    alert("Devam eden bir oyun varken zorluk seviyesini değiştiremezsiniz.");
+                    // Game already in progress with moves spent
+                    console.log("Oyun sırasında zorluk değiştirilemez.");
                     return;
                 }
-                setDifficulty(btn.dataset.diff);
+
+                currentDifficulty = diff;
+                localStorage.setItem('kelimeCrushDifficulty', diff);
+
+                // Update UI
+                diffButtons.forEach(btn => {
+                    if (btn.dataset.diff === diff) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                });
+
+                // Update grid dimensions BEFORE calculations
+                ROWS = DIFFICULTY_SETTINGS[diff].rows;
+                COLS = DIFFICULTY_SETTINGS[diff].cols;
+                CELL_SIZE = GRID_SIZE / COLS;
+
+                // Update game params
+                moves = DIFFICULTY_SETTINGS[diff].moves;
+                movesEl.innerText = moves;
+
+                // Rebuild letter pool
+                buildLetterPool();
+
+                // Reset grid if game hasn't really "started" (moves still at max)
+                if (!gameStarted || moves === DIFFICULTY_SETTINGS[diff].moves) {
+                    initGrid();
+                }
+            }
+
+            diffButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (gameStarted && moves < DIFFICULTY_SETTINGS[currentDifficulty].moves) {
+                        alert("Devam eden bir oyun varken zorluk seviyesini değiştiremezsiniz.");
+                        return;
+                    }
+                    setDifficulty(btn.dataset.diff);
+                });
             });
-        });
 
-        // Letter weights based on difficulty
-        const baseLetterWeights = {
-            'A': 25, 'E': 22, 'İ': 18, 'I': 12, 'O': 10, 'Ö': 8, 'U': 10, 'Ü': 8,
-            'K': 12, 'L': 12, 'M': 10, 'N': 12, 'R': 12, 'S': 10, 'T': 10, 'Y': 10,
-            'B': 6, 'C': 5, 'Ç': 5, 'D': 8, 'G': 5, 'Ğ': 3, 'H': 5, 'P': 5, 'Ş': 5, 'V': 4, 'Z': 5,
-            'F': 2, 'J': 1
-        };
+            // Letter weights based on difficulty
+            const baseLetterWeights = {
+                'A': 25, 'E': 22, 'İ': 18, 'I': 12, 'O': 10, 'Ö': 8, 'U': 10, 'Ü': 8,
+                'K': 12, 'L': 12, 'M': 10, 'N': 12, 'R': 12, 'S': 10, 'T': 10, 'Y': 10,
+                'B': 6, 'C': 5, 'Ç': 5, 'D': 8, 'G': 5, 'Ğ': 3, 'H': 5, 'P': 5, 'Ş': 5, 'V': 4, 'Z': 5,
+                'F': 2, 'J': 1
+            };
 
-        const LETTER_POINTS = {
-            'A': 1, 'E': 1, 'İ': 1, 'K': 1, 'L': 1, 'M': 1, 'N': 1, 'R': 1, 'S': 1, 'T': 1,
-            'B': 2, 'D': 2, 'O': 2, 'U': 2,
-            'G': 3, 'Ş': 3, 'Z': 3, 'I': 3,
-            'Ç': 4, 'P': 4, 'V': 4,
-            'Ö': 5, 'Ü': 5, 'H': 5,
-            'C': 7,
-            'F': 8,
-            'J': 10, 'Ğ': 10
-        };
+            const LETTER_POINTS = {
+                'A': 1, 'E': 1, 'İ': 1, 'K': 1, 'L': 1, 'M': 1, 'N': 1, 'R': 1, 'S': 1, 'T': 1,
+                'B': 2, 'D': 2, 'O': 2, 'U': 2,
+                'G': 3, 'Ş': 3, 'Z': 3, 'I': 3,
+                'Ç': 4, 'P': 4, 'V': 4,
+                'Ö': 5, 'Ü': 5, 'H': 5,
+                'C': 7,
+                'F': 8,
+                'J': 10, 'Ğ': 10
+            };
 
-        const vowels = ['A', 'E', 'İ', 'I', 'O', 'Ö', 'U', 'Ü'];
-        let weightedPool = [];
+            const vowels = ['A', 'E', 'İ', 'I', 'O', 'Ö', 'U', 'Ü'];
+            let weightedPool = [];
 
-        function buildLetterPool() {
-            weightedPool = [];
-            const settings = DIFFICULTY_SETTINGS[currentDifficulty];
+            function buildLetterPool() {
+                weightedPool = [];
+                const settings = DIFFICULTY_SETTINGS[currentDifficulty];
 
-            for (let char in baseLetterWeights) {
-                let weight = baseLetterWeights[char];
+                for (let char in baseLetterWeights) {
+                    let weight = baseLetterWeights[char];
 
-                // Adjust vowels based on difficulty
-                if (vowels.includes(char)) {
-                    weight = Math.round(weight * settings.vowelBonus);
-                } else if (settings.vowelBonus < 1.0) {
-                    // In Pro mode, increase rare letters slightly relative to vowels
-                    if (['F', 'J', 'Ğ', 'P', 'V'].includes(char)) weight += 2;
+                    // Adjust vowels based on difficulty
+                    if (vowels.includes(char)) {
+                        weight = Math.round(weight * settings.vowelBonus);
+                    } else if (settings.vowelBonus < 1.0) {
+                        // In Pro mode, increase rare letters slightly relative to vowels
+                        if (['F', 'J', 'Ğ', 'P', 'V'].includes(char)) weight += 2;
+                    }
+
+                    for (let i = 0; i < weight; i++) {
+                        weightedPool.push(char);
+                    }
                 }
-
-                for (let i = 0; i < weight; i++) {
-                    weightedPool.push(char);
-                }
-            }
-        }
-
-        buildLetterPool();
-        const MAX_ENERGY = 5;
-        const ENERGY_REGEN_TIME = 20 * 60 * 1000; // 20 dakika
-        let energy = 5;
-        let lastEnergyTime = Date.now();
-        let gameStarted = false;
-
-        // Canvas consists of a top area for the matching word and the grid
-        const GRID_SIZE = 600;
-        const WORD_AREA_HEIGHT = 100;
-        CELL_SIZE = GRID_SIZE / COLS; // Recalculated by diff
-
-        function getRandomLetter() {
-            return weightedPool[Math.floor(Math.random() * weightedPool.length)];
-        }
-
-        let grid = [];
-        let score = 0;
-        let level = 1;
-        let moves = DIFFICULTY_SETTINGS[currentDifficulty].moves;
-
-        // Tools state
-        let activeTool = null; // 'swap', 'row', 'col', 'cell'
-        let swapFirstCell = null;
-
-        // Word Stats
-        let wordStats = {}; // { length: count }
-
-        let isDragging = false;
-        let selectedPath = []; // Array of objects {r, c}
-        let particles = [];
-        let floatingTexts = [];
-
-        // Colors
-        const COLOR_CELL_BG = 'rgba(51, 65, 85, 0.8)';
-        const COLOR_CELL_BORDER = 'rgba(255, 255, 255, 0.1)';
-        const COLOR_CELL_TEXT = '#f1f5f9';
-        const COLOR_CELL_SELECTED = 'rgba(14, 165, 233, 0.6)';
-        const COLOR_CELL_TOOL_SELECTED = 'rgba(245, 158, 11, 0.6)';
-        const COLOR_LINE = 'rgba(56, 189, 248, 0.5)';
-
-        // Energy Functions
-        function loadEnergy() {
-            const savedEnergy = localStorage.getItem('kelimeCrushEnergy');
-            const savedTime = localStorage.getItem('kelimeCrushLastTime');
-
-            if (savedEnergy !== null) {
-                energy = parseInt(savedEnergy);
-                lastEnergyTime = parseInt(savedTime);
-                regenEnergy();
-            } else {
-                energy = MAX_ENERGY;
-                lastEnergyTime = Date.now();
-                saveEnergy();
-            }
-        }
-
-        function saveEnergy() {
-            localStorage.setItem('kelimeCrushEnergy', energy);
-            localStorage.setItem('kelimeCrushLastTime', lastEnergyTime);
-        }
-
-        function regenEnergy() {
-            if (energy >= MAX_ENERGY) {
-                lastEnergyTime = Date.now();
-                return;
             }
 
-            const now = Date.now();
-            const elapsed = now - lastEnergyTime;
-            const regained = Math.floor(elapsed / ENERGY_REGEN_TIME);
+            buildLetterPool();
+            const MAX_ENERGY = 5;
+            const ENERGY_REGEN_TIME = 20 * 60 * 1000; // 20 dakika
+            let energy = 5;
+            let lastEnergyTime = Date.now();
+            let gameStarted = false;
 
-            if (regained > 0) {
-                energy = Math.min(MAX_ENERGY, energy + regained);
-                lastEnergyTime += regained * ENERGY_REGEN_TIME;
-                saveEnergy();
+            // Canvas consists of a top area for the matching word and the grid
+            const GRID_SIZE = 600;
+            const WORD_AREA_HEIGHT = 100;
+            CELL_SIZE = GRID_SIZE / COLS; // Recalculated by diff
+
+            function getRandomLetter() {
+                return weightedPool[Math.floor(Math.random() * weightedPool.length)];
             }
-        }
 
-        function updateEnergyUI() {
-            energyEl.innerText = `${energy}/${MAX_ENERGY}`;
+            let grid = [];
+            let score = 0;
+            let level = 1;
+            let moves = DIFFICULTY_SETTINGS[currentDifficulty].moves;
 
-            if (energy >= MAX_ENERGY) {
-                energyTimerEl.innerText = 'Tam';
-            } else {
-                const nextRegen = lastEnergyTime + ENERGY_REGEN_TIME;
-                const remaining = nextRegen - Date.now();
-                if (remaining <= 0) {
+            // Tools state
+            let activeTool = null;
+            let swapFirstCell = null;
+
+            // Word Stats
+            let wordStats = {}; // { length: count }
+
+            let isDragging = false;
+            let selectedPath = []; // Array of objects {r, c}
+            let particles = [];
+            let floatingTexts = [];
+
+            // Colors
+            const COLOR_CELL_BG = 'rgba(51, 65, 85, 0.8)';
+            const COLOR_CELL_BORDER = 'rgba(255, 255, 255, 0.1)';
+            const COLOR_CELL_TEXT = '#f1f5f9';
+            const COLOR_CELL_SELECTED = 'rgba(14, 165, 233, 0.6)';
+            const COLOR_CELL_TOOL_SELECTED = 'rgba(245, 158, 11, 0.6)';
+            const COLOR_LINE = 'rgba(56, 189, 248, 0.5)';
+
+            // Energy Functions
+            function loadEnergy() {
+                const savedEnergy = localStorage.getItem('kelimeCrushEnergy');
+                const savedTime = localStorage.getItem('kelimeCrushLastTime');
+
+                if (savedEnergy !== null) {
+                    energy = parseInt(savedEnergy);
+                    lastEnergyTime = parseInt(savedTime);
                     regenEnergy();
                 } else {
-                    const mins = Math.floor(remaining / 60000);
-                    const secs = Math.floor((remaining % 60000) / 1000);
-                    energyTimerEl.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-                }
-            }
-        }
-
-        // Timer for energy regen UI
-        setInterval(() => {
-            updateEnergyUI();
-        }, 1000);
-
-        // Initialize energy
-        loadEnergy();
-
-        function tryStartGame() {
-            if (gameStarted) return true;
-            if (energy > 0) {
-                // If it was max energy, the timer starts now
-                if (energy === MAX_ENERGY) {
+                    energy = MAX_ENERGY;
                     lastEnergyTime = Date.now();
-                }
-                energy--;
-                saveEnergy();
-                gameStarted = true;
-                updateEnergyUI();
-                return true;
-            } else {
-                updateEnergyUI();
-                alert('Enerjiniz bitti! Yeni oyun hakkı için 20 dakika beklemeniz gerekiyor.');
-                return false;
-            }
-        }
-
-
-        class Cell {
-            constructor(r, c, letter, type = 'normal') {
-                this.r = r;
-                this.c = c;
-                this.letter = letter;
-                this.type = type;
-
-                this.x = c * CELL_SIZE;
-                this.targetY = WORD_AREA_HEIGHT + r * CELL_SIZE;
-
-                // GSAP targets these properties
-                this.y = this.targetY - CELL_SIZE * 2;
-                this.opacity = 0;
-                this.scale = 0;
-                this.selected = false;
-                this.removing = false;
-                this.pulse = 0;
-
-                // Initial spawn animation
-                gsap.to(this, {
-                    y: this.targetY,
-                    opacity: 1,
-                    scale: 1,
-                    duration: 0.6,
-                    ease: "back.out(1.7)"
-                });
-            }
-
-            update() {
-                // GSAP handles the property updates now
-                // Manual updates only for temporary selection scale
-                if (!this.removing) {
-                    if (this.selected) {
-                        this.scale = 0.9;
-                    } else {
-                        // Let GSAP return to 1 if not selected, unless already 1
-                        if (this.scale < 1 && !gsap.isTweening(this)) this.scale = 1;
-                    }
+                    saveEnergy();
                 }
             }
 
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = this.opacity;
-                ctx.translate(this.x + CELL_SIZE / 2, this.y + CELL_SIZE / 2);
-                ctx.scale(this.scale, this.scale);
-
-                // Pulse effect for special cells
-                if (this.type !== 'normal') {
-                    this.pulse += 0.05;
-                    let pulseScale = 1 + Math.sin(this.pulse) * 0.05;
-                    ctx.scale(pulseScale, pulseScale);
-                }
-
-                // Shadow / Glow
-                ctx.shadowBlur = this.selected ? 20 : 10;
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-                if (this.selected) ctx.shadowColor = 'rgba(56, 189, 248, 0.8)';
-
-                // Background Gradient
-                let gradient = ctx.createLinearGradient(-CELL_SIZE / 2, -CELL_SIZE / 2, CELL_SIZE / 2, CELL_SIZE / 2);
-                if (activeTool && this.selected) {
-                    gradient.addColorStop(0, '#f59e0b');
-                    gradient.addColorStop(1, '#d97706');
-                } else if (this.type === 'row_blast') {
-                    gradient.addColorStop(0, '#ef4444');
-                    gradient.addColorStop(1, '#991b1b');
-                    ctx.shadowColor = 'rgba(239, 68, 68, 0.6)';
-                } else if (this.type === 'col_blast') {
-                    gradient.addColorStop(0, '#22c55e');
-                    gradient.addColorStop(1, '#166534');
-                    ctx.shadowColor = 'rgba(34, 197, 94, 0.6)';
-                } else if (this.type === 'bomb') {
-                    gradient.addColorStop(0, '#a855f7');
-                    gradient.addColorStop(1, '#6b21a8');
-                    ctx.shadowColor = 'rgba(168, 85, 247, 0.6)';
-                } else {
-                    if (this.selected) {
-                        gradient.addColorStop(0, '#0ea5e9');
-                        gradient.addColorStop(1, '#0284c7');
-                    } else {
-                        gradient.addColorStop(0, '#475569');
-                        gradient.addColorStop(1, '#1e293b');
-                    }
-                }
-
-                ctx.fillStyle = gradient;
-                ctx.beginPath();
-                ctx.roundRect(-CELL_SIZE / 2 + 5, -CELL_SIZE / 2 + 5, CELL_SIZE - 10, CELL_SIZE - 10, 14);
-                ctx.fill();
-
-                // Highlight/Bevel
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                // Inner Shine
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-                ctx.beginPath();
-                ctx.roundRect(-CELL_SIZE / 2 + 8, -CELL_SIZE / 2 + 8, CELL_SIZE - 16, (CELL_SIZE - 16) / 2, [10, 10, 0, 0]);
-                ctx.fill();
-
-                // Special Icon
-                if (this.type !== 'normal') {
-                    ctx.fillStyle = 'white';
-                    ctx.font = `bold ${Math.floor(CELL_SIZE * 0.2)}px "Outfit", sans-serif`;
-                    let icon = '';
-                    if (this.type === 'row_blast') icon = '↔️';
-                    if (this.type === 'col_blast') icon = '↕️';
-                    if (this.type === 'bomb') icon = '💣';
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = 'white';
-                    ctx.fillText(icon, 0, -CELL_SIZE * 0.3);
-                    ctx.shadowBlur = 0;
-                }
-
-                // Text
-                ctx.fillStyle = COLOR_CELL_TEXT;
-                ctx.font = `800 ${Math.floor(CELL_SIZE * 0.55)}px "Outfit", sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.shadowBlur = 4;
-                ctx.shadowColor = 'rgba(0,0,0,0.3)';
-                ctx.fillText(this.letter, 0, (this.type === 'normal' ? 2 : CELL_SIZE * 0.1));
-
-                // Letter Point (Bottom Left)
-                if (this.scale > 0.8) {
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                    ctx.font = `bold ${Math.floor(CELL_SIZE * 0.18)}px "Outfit", sans-serif`;
-                    ctx.textAlign = 'left';
-                    const point = LETTER_POINTS[this.letter] || 1;
-                    ctx.fillText(point, -CELL_SIZE / 2 + 12, CELL_SIZE / 2 - 12);
-                }
-
-                ctx.restore();
-            }
-        }
-
-        function initGrid() {
-            grid = [];
-            for (let r = 0; r < ROWS; r++) {
-                grid[r] = [];
-                for (let c = 0; c < COLS; c++) {
-                    grid[r][c] = new Cell(r, c, getRandomLetter());
-                }
-            }
-        }
-
-        function createParticles(x, y, color = '#38bdf8') {
-            for (let i = 0; i < 15; i++) {
-                const p = {
-                    x: x,
-                    y: y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10,
-                    life: 1,
-                    size: Math.random() * 6 + 2,
-                    color: color
-                };
-                particles.push(p);
-
-                gsap.to(p, {
-                    x: p.x + p.vx * 15,
-                    y: p.y + p.vy * 15 + 30, // add some gravity look
-                    life: 0,
-                    duration: 0.8,
-                    ease: "power2.out",
-                    onComplete: () => {
-                        const idx = particles.indexOf(p);
-                        if (idx > -1) particles.splice(idx, 1);
-                    }
-                });
-            }
-        }
-
-        function updateParticles() {
-            // GSAP handles individual particle properties
-        }
-
-        function drawParticles() {
-            for (let p of particles) {
-                ctx.fillStyle = p.color;
-                ctx.globalAlpha = p.life;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.globalAlpha = 1;
-            }
-        }
-
-        function drawLines() {
-            if (selectedPath.length > 1) {
-                ctx.strokeStyle = COLOR_LINE;
-                ctx.lineWidth = 20;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.beginPath();
-
-                let firstCell = grid[selectedPath[0].r][selectedPath[0].c];
-                ctx.moveTo(firstCell.x + CELL_SIZE / 2, firstCell.y + CELL_SIZE / 2);
-
-                for (let i = 1; i < selectedPath.length; i++) {
-                    let cell = grid[selectedPath[i].r][selectedPath[i].c];
-                    ctx.lineTo(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
-                }
-                ctx.stroke();
-            }
-        }
-
-        function createFloatingText(x, y, text, color = '#38bdf8') {
-            const ft = {
-                x: x,
-                y: y,
-                text: text,
-                color: color,
-                opacity: 1
-            };
-            floatingTexts.push(ft);
-
-            gsap.to(ft, {
-                y: y - 80,
-                opacity: 0,
-                duration: 1.2,
-                ease: "power2.out",
-                onComplete: () => {
-                    const idx = floatingTexts.indexOf(ft);
-                    if (idx > -1) floatingTexts.splice(idx, 1);
-                }
-            });
-        }
-
-        function drawFloatingTexts() {
-            ctx.save();
-            ctx.font = 'bold 28px "Outfit", sans-serif';
-            ctx.textAlign = 'center';
-
-            for (let ft of floatingTexts) {
-                ctx.globalAlpha = ft.opacity;
-                ctx.fillStyle = ft.color;
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = ft.color;
-                ctx.fillText(ft.text, ft.x, ft.y);
-            }
-            ctx.restore();
-        }
-
-        function drawCurrentWord() {
-            let word = selectedPath.map(p => grid[p.r][p.c].letter).join('');
-
-            ctx.fillStyle = '#1e293b';
-            ctx.beginPath();
-            ctx.roundRect(20, 20, canvas.width - 40, 60, 15);
-            ctx.fill();
-
-            if (word.length > 0) {
-                ctx.fillStyle = '#f8fafc';
-                ctx.font = 'bold 36px "Segoe UI", sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-
-                // Highlight valid length and valid word from WORD_SET
-                const isValid = word.length >= 3 && typeof WORD_SET !== 'undefined' && WORD_SET.has(word);
-
-                if (isValid) {
-                    ctx.fillStyle = '#38bdf8';
-                } else if (word.length >= 3) {
-                    ctx.fillStyle = '#f59e0b'; // color it orange if length is ok but not in dictionary
-                } else {
-                    ctx.fillStyle = '#94a3b8';
-                }
-
-                ctx.fillText(word, canvas.width / 2, 50);
-            } else {
-                ctx.fillStyle = '#64748b';
-                ctx.font = '24px "Segoe UI", sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText("En az 3 harften oluşan bir kelime oluştur", canvas.width / 2, 50);
-            }
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            drawCurrentWord();
-            drawLines();
-
-            for (let r = 0; r < ROWS; r++) {
-                for (let c = 0; c < COLS; c++) {
-                    if (grid[r] && grid[r][c]) {
-                        grid[r][c].update();
-                        grid[r][c].draw();
-                    }
-                }
+            function saveEnergy() {
+                localStorage.setItem('kelimeCrushEnergy', energy);
+                localStorage.setItem('kelimeCrushLastTime', lastEnergyTime);
             }
 
-            updateParticles();
-            drawParticles();
-            drawFloatingTexts();
-
-            requestAnimationFrame(draw);
-        }
-
-        // Interaction Logic
-        function getCellIndices(x, y) {
-            if (y < WORD_AREA_HEIGHT || y >= WORD_AREA_HEIGHT + GRID_SIZE || x < 0 || x >= GRID_SIZE) return null;
-            let c = Math.floor(x / CELL_SIZE);
-            let r = Math.floor((y - WORD_AREA_HEIGHT) / CELL_SIZE);
-            if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
-                return { r, c };
-            }
-            return null;
-        }
-
-        function areAdjacent(c1, c2) {
-            let dr = Math.abs(c1.r - c2.r);
-            let dc = Math.abs(c1.c - c2.c);
-            return (dr <= 1 && dc <= 1) && !(dr === 0 && dc === 0);
-        }
-
-        function checkPath(r, c) {
-            if (!selectedPath) return;
-
-            // If it's the cell before the last one, allow backtracking
-            if (selectedPath.length > 1) {
-                let prev = selectedPath[selectedPath.length - 2];
-                if (prev.r === r && prev.c === c) {
-                    let removed = selectedPath.pop();
-                    grid[removed.r][removed.c].selected = false;
+            function regenEnergy() {
+                if (energy >= MAX_ENERGY) {
+                    lastEnergyTime = Date.now();
                     return;
                 }
-            }
 
-            // Check if already in path
-            if (selectedPath.some(p => p.r === r && p.c === c)) return;
+                const now = Date.now();
+                const elapsed = now - lastEnergyTime;
+                const regained = Math.floor(elapsed / ENERGY_REGEN_TIME);
 
-            // Check if adjacent to the last one
-            if (selectedPath.length > 0) {
-                let last = selectedPath[selectedPath.length - 1];
-                if (!areAdjacent(last, { r, c })) return;
-            }
-
-            selectedPath.push({ r, c });
-            grid[r][c].selected = true;
-        }
-
-        canvas.addEventListener('mousedown', (e) => {
-            if (moves <= 0) return;
-            if (!tryStartGame()) return;
-            soundManager.play('select');
-            let rect = canvas.getBoundingClientRect();
-            let scaleX = canvas.width / rect.width;
-            let scaleY = canvas.height / rect.height;
-            let x = (e.clientX - rect.left) * scaleX;
-            let y = (e.clientY - rect.top) * scaleY;
-
-            let cell = getCellIndices(x, y);
-            if (cell) {
-                if (activeTool) {
-                    handleToolUse(cell.r, cell.c);
-                } else {
-                    isDragging = true;
-                    checkPath(cell.r, cell.c);
+                if (regained > 0) {
+                    energy = Math.min(MAX_ENERGY, energy + regained);
+                    lastEnergyTime += regained * ENERGY_REGEN_TIME;
+                    saveEnergy();
                 }
             }
-        });
 
-        canvas.addEventListener('mousemove', (e) => {
-            if (!isDragging || activeTool) return;
-            let rect = canvas.getBoundingClientRect();
-            let scaleX = canvas.width / rect.width;
-            let scaleY = canvas.height / rect.height;
-            let x = (e.clientX - rect.left) * scaleX;
-            let y = (e.clientY - rect.top) * scaleY;
+            function updateEnergyUI() {
+                energyEl.innerText = `${energy}/${MAX_ENERGY}`;
 
-            let cell = getCellIndices(x, y);
-            if (cell) {
-                checkPath(cell.r, cell.c);
-            }
-        });
-
-        window.addEventListener('mouseup', () => {
-            if (isDragging && !activeTool) {
-                finishDrag();
-            }
-        });
-
-        canvas.addEventListener('touchstart', (e) => {
-            if (moves <= 0) return;
-            if (!tryStartGame()) return;
-            e.preventDefault();
-            let rect = canvas.getBoundingClientRect();
-            let scaleX = canvas.width / rect.width;
-            let scaleY = canvas.height / rect.height;
-            let x = (e.touches[0].clientX - rect.left) * scaleX;
-            let y = (e.touches[0].clientY - rect.top) * scaleY;
-
-            let cell = getCellIndices(x, y);
-            if (cell) {
-                if (activeTool) {
-                    handleToolUse(cell.r, cell.c);
+                if (energy >= MAX_ENERGY) {
+                    energyTimerEl.innerText = 'Tam';
                 } else {
-                    isDragging = true;
-                    checkPath(cell.r, cell.c);
-                }
-            }
-        }, { passive: false });
-
-        canvas.addEventListener('touchmove', (e) => {
-            if (!isDragging || activeTool) return;
-            e.preventDefault();
-            let rect = canvas.getBoundingClientRect();
-            let scaleX = canvas.width / rect.width;
-            let scaleY = canvas.height / rect.height;
-            let x = (e.touches[0].clientX - rect.left) * scaleX;
-            let y = (e.touches[0].clientY - rect.top) * scaleY;
-
-            let cell = getCellIndices(x, y);
-            if (cell) {
-                checkPath(cell.r, cell.c);
-            }
-        }, { passive: false });
-
-        window.addEventListener('touchend', () => {
-            if (isDragging && !activeTool) {
-                finishDrag();
-            }
-        });
-
-        function handleToolUse(r, c) {
-            const tool = tools.find(t => t.id === activeTool);
-            if (!tool || tool.count <= 0) return;
-
-            if (activeTool === 'swap') {
-                if (!swapFirstCell) {
-                    swapFirstCell = { r, c };
-                    grid[r][c].selected = true;
-                } else {
-                    // Check if adjacent
-                    if (areAdjacent(swapFirstCell, { r, c })) {
-                        // Swap
-                        let temp = grid[swapFirstCell.r][swapFirstCell.c].letter;
-                        let tempType = grid[swapFirstCell.r][swapFirstCell.c].type;
-
-                        grid[swapFirstCell.r][swapFirstCell.c].letter = grid[r][c].letter;
-                        grid[swapFirstCell.r][swapFirstCell.c].type = grid[r][c].type;
-
-                        grid[r][c].letter = temp;
-                        grid[r][c].type = tempType;
-
-                        grid[swapFirstCell.r][swapFirstCell.c].selected = false;
-
-                        // Deduct count
-                        tool.count--;
-
-                        // Reset tool
-                        activeTool = null;
-                        swapFirstCell = null;
-                        updateToolsUI();
+                    const nextRegen = lastEnergyTime + ENERGY_REGEN_TIME;
+                    const remaining = nextRegen - Date.now();
+                    if (remaining <= 0) {
+                        regenEnergy();
                     } else {
-                        // Not adjacent, switch selection
-                        grid[swapFirstCell.r][swapFirstCell.c].selected = false;
-                        swapFirstCell = { r, c };
-                        grid[r][c].selected = true;
+                        const mins = Math.floor(remaining / 60000);
+                        const secs = Math.floor((remaining % 60000) / 1000);
+                        energyTimerEl.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
                     }
                 }
-            } else if (activeTool === 'row') {
-                for (let i = 0; i < COLS; i++) {
-                    let cell = grid[r][i];
-                    if (cell && !cell.removing) {
-                        cell.removing = true;
-                        if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
-                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 10);
-                        gsap.to(cell, {
-                            scale: 0,
-                            opacity: 0,
-                            duration: 0.3,
-                            ease: "power2.in"
-                        });
+            }
+
+            // Timer for energy regen UI
+            setInterval(() => {
+                updateEnergyUI();
+            }, 1000);
+
+            // Initialize energy
+            loadEnergy();
+
+            function tryStartGame() {
+                if (gameStarted) return true;
+                if (energy > 0) {
+                    // If it was max energy, the timer starts now
+                    if (energy === MAX_ENERGY) {
+                        lastEnergyTime = Date.now();
                     }
+                    energy--;
+                    saveEnergy();
+                    gameStarted = true;
+                    updateEnergyUI();
+                    return true;
+                } else {
+                    updateEnergyUI();
+                    alert('Enerjiniz bitti! Yeni oyun hakkı için 20 dakika beklemeniz gerekiyor.');
+                    return false;
                 }
-                score += COLS * 5;
-                scoreEl.innerText = score;
-                tool.count--;
-                activeTool = null;
-                updateToolsUI();
-                setTimeout(applyGravity, 300);
-            } else if (activeTool === 'col') {
-                for (let i = 0; i < ROWS; i++) {
-                    let cell = grid[i][c];
-                    if (cell && !cell.removing) {
-                        cell.removing = true;
-                        if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
-                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 10);
-                        gsap.to(cell, {
-                            scale: 0,
-                            opacity: 0,
-                            duration: 0.3,
-                            ease: "power2.in"
-                        });
-                    }
-                }
-                score += ROWS * 5;
-                scoreEl.innerText = score;
-                tool.count--;
-                activeTool = null;
-                updateToolsUI();
-                setTimeout(applyGravity, 300);
-            } else if (activeTool === 'cell') {
-                let cell = grid[r][c];
-                if (cell && !cell.removing) {
-                    cell.removing = true;
-                    if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
-                    createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 15);
-                    gsap.to(cell, {
-                        scale: 0,
-                        opacity: 0,
-                        duration: 0.3,
-                        ease: "power2.in"
+            }
+
+
+            class Cell {
+                constructor(r, c, letter, type = 'normal') {
+                    this.r = r;
+                    this.c = c;
+                    this.letter = letter;
+                    this.type = type;
+
+                    this.x = c * CELL_SIZE;
+                    this.targetY = WORD_AREA_HEIGHT + r * CELL_SIZE;
+
+                    // GSAP targets these properties
+                    this.y = this.targetY - CELL_SIZE * 2;
+                    this.opacity = 0;
+                    this.scale = 0;
+                    this.selected = false;
+                    this.removing = false;
+                    this.pulse = 0;
+
+                    // Initial spawn animation
+                    gsap.to(this, {
+                        y: this.targetY,
+                        opacity: 1,
+                        scale: 1,
+                        duration: 0.6,
+                        ease: "back.out(1.7)"
                     });
                 }
-                score += 5;
-                scoreEl.innerText = score;
-                tool.count--;
-                activeTool = null;
-                updateToolsUI();
-                setTimeout(applyGravity, 300);
+
+                update() {
+                    // GSAP handles the property updates now
+                    // Manual updates only for temporary selection scale
+                    if (!this.removing) {
+                        if (this.selected) {
+                            this.scale = 0.9;
+                        } else {
+                            // Let GSAP return to 1 if not selected, unless already 1
+                            if (this.scale < 1 && !gsap.isTweening(this)) this.scale = 1;
+                        }
+                    }
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.globalAlpha = this.opacity;
+                    ctx.translate(this.x + CELL_SIZE / 2, this.y + CELL_SIZE / 2);
+                    ctx.scale(this.scale, this.scale);
+
+                    // Pulse effect for special cells
+                    if (this.type !== 'normal') {
+                        this.pulse += 0.05;
+                        let pulseScale = 1 + Math.sin(this.pulse) * 0.05;
+                        ctx.scale(pulseScale, pulseScale);
+                    }
+
+                    // Shadow / Glow
+                    ctx.shadowBlur = this.selected ? 20 : 10;
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    if (this.selected) ctx.shadowColor = 'rgba(56, 189, 248, 0.8)';
+
+                    // Background Gradient
+                    let gradient = ctx.createLinearGradient(-CELL_SIZE / 2, -CELL_SIZE / 2, CELL_SIZE / 2, CELL_SIZE / 2);
+                    if (activeTool && this.selected) {
+                        gradient.addColorStop(0, '#f59e0b');
+                        gradient.addColorStop(1, '#d97706');
+                    } else if (this.type === 'row_blast') {
+                        gradient.addColorStop(0, '#ef4444');
+                        gradient.addColorStop(1, '#991b1b');
+                        ctx.shadowColor = 'rgba(239, 68, 68, 0.6)';
+                    } else if (this.type === 'col_blast') {
+                        gradient.addColorStop(0, '#22c55e');
+                        gradient.addColorStop(1, '#166534');
+                        ctx.shadowColor = 'rgba(34, 197, 94, 0.6)';
+                    } else if (this.type === 'bomb') {
+                        gradient.addColorStop(0, '#a855f7');
+                        gradient.addColorStop(1, '#6b21a8');
+                        ctx.shadowColor = 'rgba(168, 85, 247, 0.6)';
+                    } else {
+                        if (this.selected) {
+                            gradient.addColorStop(0, '#0ea5e9');
+                            gradient.addColorStop(1, '#0284c7');
+                        } else {
+                            gradient.addColorStop(0, '#475569');
+                            gradient.addColorStop(1, '#1e293b');
+                        }
+                    }
+
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.roundRect(-CELL_SIZE / 2 + 5, -CELL_SIZE / 2 + 5, CELL_SIZE - 10, CELL_SIZE - 10, 14);
+                    ctx.fill();
+
+                    // Highlight/Bevel
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Inner Shine
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                    ctx.beginPath();
+                    ctx.roundRect(-CELL_SIZE / 2 + 8, -CELL_SIZE / 2 + 8, CELL_SIZE - 16, (CELL_SIZE - 16) / 2, [10, 10, 0, 0]);
+                    ctx.fill();
+
+                    // Special Icon
+                    if (this.type !== 'normal') {
+                        ctx.fillStyle = 'white';
+                        ctx.font = `bold ${Math.floor(CELL_SIZE * 0.2)}px "Outfit", sans-serif`;
+                        let icon = '';
+                        if (this.type === 'row_blast') icon = '↔️';
+                        if (this.type === 'col_blast') icon = '↕️';
+                        if (this.type === 'bomb') icon = '💣';
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = 'white';
+                        ctx.fillText(icon, 0, -CELL_SIZE * 0.3);
+                        ctx.shadowBlur = 0;
+                    }
+
+                    // Text
+                    ctx.fillStyle = COLOR_CELL_TEXT;
+                    ctx.font = `800 ${Math.floor(CELL_SIZE * 0.55)}px "Outfit", sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowBlur = 4;
+                    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                    ctx.fillText(this.letter, 0, (this.type === 'normal' ? 2 : CELL_SIZE * 0.1));
+
+                    // Letter Point (Bottom Left)
+                    if (this.scale > 0.8) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                        ctx.font = `bold ${Math.floor(CELL_SIZE * 0.18)}px "Outfit", sans-serif`;
+                        ctx.textAlign = 'left';
+                        const point = LETTER_POINTS[this.letter] || 1;
+                        ctx.fillText(point, -CELL_SIZE / 2 + 12, CELL_SIZE / 2 - 12);
+                    }
+
+                    ctx.restore();
+                }
+            }
+
+            function initGrid() {
+                grid = [];
+                for (let r = 0; r < ROWS; r++) {
+                    grid[r] = [];
+                    for (let c = 0; c < COLS; c++) {
+                        grid[r][c] = new Cell(r, c, getRandomLetter());
+                    }
+                }
+            }
+
+            function createParticles(x, y, color = '#38bdf8') {
+                for (let i = 0; i < 15; i++) {
+                    const p = {
+                        x: x,
+                        y: y,
+                        vx: (Math.random() - 0.5) * 10,
+                        vy: (Math.random() - 0.5) * 10,
+                        life: 1,
+                        size: Math.random() * 6 + 2,
+                        color: color
+                    };
+                    particles.push(p);
+
+                    gsap.to(p, {
+                        x: p.x + p.vx * 15,
+                        y: p.y + p.vy * 15 + 30, // add some gravity look
+                        life: 0,
+                        duration: 0.8,
+                        ease: "power2.out",
+                        onComplete: () => {
+                            const idx = particles.indexOf(p);
+                            if (idx > -1) particles.splice(idx, 1);
+                        }
+                    });
+                }
+            }
+
+            function updateParticles() {
+                // GSAP handles individual particle properties
+            }
+
+            function drawParticles() {
+                for (let p of particles) {
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.life;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+            }
+
+            function drawLines() {
+                if (selectedPath.length > 1) {
+                    ctx.strokeStyle = COLOR_LINE;
+                    ctx.lineWidth = 20;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.beginPath();
+
+                    let firstCell = grid[selectedPath[0].r][selectedPath[0].c];
+                    ctx.moveTo(firstCell.x + CELL_SIZE / 2, firstCell.y + CELL_SIZE / 2);
+
+                    for (let i = 1; i < selectedPath.length; i++) {
+                        let cell = grid[selectedPath[i].r][selectedPath[i].c];
+                        ctx.lineTo(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
+                    }
+                    ctx.stroke();
+                }
+            }
+
+            function createFloatingText(x, y, text, color = '#38bdf8') {
+                const ft = {
+                    x: x,
+                    y: y,
+                    text: text,
+                    color: color,
+                    opacity: 1
+                };
+                floatingTexts.push(ft);
+
+                gsap.to(ft, {
+                    y: y - 80,
+                    opacity: 0,
+                    duration: 1.2,
+                    ease: "power2.out",
+                    onComplete: () => {
+                        const idx = floatingTexts.indexOf(ft);
+                        if (idx > -1) floatingTexts.splice(idx, 1);
+                    }
+                });
+            }
+
+            function drawFloatingTexts() {
+                ctx.save();
+                ctx.font = 'bold 28px "Outfit", sans-serif';
+                ctx.textAlign = 'center';
+
+                for (let ft of floatingTexts) {
+                    ctx.globalAlpha = ft.opacity;
+                    ctx.fillStyle = ft.color;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = ft.color;
+                    ctx.fillText(ft.text, ft.x, ft.y);
+                }
+                ctx.restore();
+            }
+
+            function drawCurrentWord() {
+                let word = selectedPath.map(p => grid[p.r][p.c].letter).join('');
+
+                ctx.fillStyle = '#1e293b';
+                ctx.beginPath();
+                ctx.roundRect(20, 20, canvas.width - 40, 60, 15);
+                ctx.fill();
+
+                if (word.length > 0) {
+                    ctx.fillStyle = '#f8fafc';
+                    ctx.font = 'bold 36px "Segoe UI", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    // Highlight valid length and valid word from WORD_SET
+                    const isValid = word.length >= 3 && typeof WORD_SET !== 'undefined' && WORD_SET.has(word);
+
+                    if (isValid) {
+                        ctx.fillStyle = '#38bdf8';
+                    } else if (word.length >= 3) {
+                        ctx.fillStyle = '#f59e0b'; // color it orange if length is ok but not in dictionary
+                    } else {
+                        ctx.fillStyle = '#94a3b8';
+                    }
+
+                    ctx.fillText(word, canvas.width / 2, 50);
+                } else {
+                    ctx.fillStyle = '#64748b';
+                    ctx.font = '24px "Segoe UI", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText("En az 3 harften oluşan bir kelime oluştur", canvas.width / 2, 50);
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                drawCurrentWord();
+                drawLines();
+
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        if (grid[r] && grid[r][c]) {
+                            grid[r][c].update();
+                            grid[r][c].draw();
+                        }
+                    }
+                }
+
+                updateParticles();
+                drawParticles();
+                drawFloatingTexts();
+
+                requestAnimationFrame(draw);
+            }
+
+            // Interaction Logic
+            function getCellIndices(x, y) {
+                if (y < WORD_AREA_HEIGHT || y >= WORD_AREA_HEIGHT + GRID_SIZE || x < 0 || x >= GRID_SIZE) return null;
+                let c = Math.floor(x / CELL_SIZE);
+                let r = Math.floor((y - WORD_AREA_HEIGHT) / CELL_SIZE);
+                if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+                    return { r, c };
+                }
+                return null;
+            }
+
+            function areAdjacent(c1, c2) {
+                let dr = Math.abs(c1.r - c2.r);
+                let dc = Math.abs(c1.c - c2.c);
+                return (dr <= 1 && dc <= 1) && !(dr === 0 && dc === 0);
+            }
+
+            function checkPath(r, c) {
+                if (!selectedPath) return;
+
+                // If it's the cell before the last one, allow backtracking
+                if (selectedPath.length > 1) {
+                    let prev = selectedPath[selectedPath.length - 2];
+                    if (prev.r === r && prev.c === c) {
+                        let removed = selectedPath.pop();
+                        grid[removed.r][removed.c].selected = false;
+                        return;
+                    }
+                }
+
+                // Check if already in path
+                if (selectedPath.some(p => p.r === r && p.c === c)) return;
+
+                // Check if adjacent to the last one
+                if (selectedPath.length > 0) {
+                    let last = selectedPath[selectedPath.length - 1];
+                    if (!areAdjacent(last, { r, c })) return;
+                }
+
+                selectedPath.push({ r, c });
+                grid[r][c].selected = true;
+            }
+
+            canvas.addEventListener('mousedown', (e) => {
+                if (moves <= 0) return;
+                if (!tryStartGame()) return;
+                soundManager.play('select');
+                let rect = canvas.getBoundingClientRect();
+                let scaleX = canvas.width / rect.width;
+                let scaleY = canvas.height / rect.height;
+                let x = (e.clientX - rect.left) * scaleX;
+                let y = (e.clientY - rect.top) * scaleY;
+
+                let cell = getCellIndices(x, y);
+                if (cell) {
+                    if (activeTool) {
+                        handleToolUse(cell.r, cell.c);
+                    } else {
+                        isDragging = true;
+                        checkPath(cell.r, cell.c);
+                    }
+                }
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDragging || activeTool) return;
+                let rect = canvas.getBoundingClientRect();
+                let scaleX = canvas.width / rect.width;
+                let scaleY = canvas.height / rect.height;
+                let x = (e.clientX - rect.left) * scaleX;
+                let y = (e.clientY - rect.top) * scaleY;
+
+                let cell = getCellIndices(x, y);
+                if (cell) {
+                    checkPath(cell.r, cell.c);
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDragging && !activeTool) {
+                    finishDrag();
+                }
+            });
+
+            canvas.addEventListener('touchstart', (e) => {
+                if (moves <= 0) return;
+                if (!tryStartGame()) return;
+                e.preventDefault();
+                let rect = canvas.getBoundingClientRect();
+                let scaleX = canvas.width / rect.width;
+                let scaleY = canvas.height / rect.height;
+                let x = (e.touches[0].clientX - rect.left) * scaleX;
+                let y = (e.touches[0].clientY - rect.top) * scaleY;
+
+                let cell = getCellIndices(x, y);
+                if (cell) {
+                    if (activeTool) {
+                        handleToolUse(cell.r, cell.c);
+                    } else {
+                        isDragging = true;
+                        checkPath(cell.r, cell.c);
+                    }
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (!isDragging || activeTool) return;
+                e.preventDefault();
+                let rect = canvas.getBoundingClientRect();
+                let scaleX = canvas.width / rect.width;
+                let scaleY = canvas.height / rect.height;
+                let x = (e.touches[0].clientX - rect.left) * scaleX;
+                let y = (e.touches[0].clientY - rect.top) * scaleY;
+
+                let cell = getCellIndices(x, y);
+                if (cell) {
+                    checkPath(cell.r, cell.c);
+                }
+            }, { passive: false });
+
+            window.addEventListener('touchend', () => {
+                if (isDragging && !activeTool) {
+                    finishDrag();
+                }
+            });
+
+            function handleToolUse(r, c) {
+                const tool = tools.find(t => t.id === activeTool);
+                if (!tool || tool.count <= 0) return;
+
+                if (activeTool === 'snake') {
+                    // Check if already in path
+                    if (selectedPath.some(p => p.r === r && p.c === c)) return;
+
+                    // Check adjacency if not first cell
+                    if (selectedPath.length > 0) {
+                        let last = selectedPath[selectedPath.length - 1];
+                        if (!areAdjacent(last, { r, c })) return;
+                    }
+
+                    // Max length is COLS
+                    if (selectedPath.length < COLS) {
+                        selectedPath.push({ r, c });
+                        grid[r][c].selected = true;
+                        soundManager.play('snake_select');
+
+                        // If reached max length, auto-trigger
+                        if (selectedPath.length === COLS) {
+                            finishSnake();
+                        }
+                    }
+                    return;
+                }
+
+                if (activeTool === 'swap') {
+                    if (!swapFirstCell) {
+                        // First cell selection
+                        swapFirstCell = { r, c };
+                        grid[r][c].selected = true;
+                        soundManager.play('select');
+                        return;
+                    }
+
+                    // Second cell selection
+                    if (swapFirstCell.r === r && swapFirstCell.c === c) {
+                        // Same cell clicked, deselect
+                        grid[r][c].selected = false;
+                        swapFirstCell = null;
+                        return;
+                    }
+
+                    // Perform swap
+                    let temp = grid[swapFirstCell.r][swapFirstCell.c].letter;
+                    let tempType = grid[swapFirstCell.r][swapFirstCell.c].type;
+
+                    grid[swapFirstCell.r][swapFirstCell.c].letter = grid[r][c].letter;
+                    grid[swapFirstCell.r][swapFirstCell.c].type = grid[r][c].type;
+
+                    grid[r][c].letter = temp;
+                    grid[r][c].type = tempType;
+
+                    grid[swapFirstCell.r][swapFirstCell.c].selected = false;
+
+                    // Deduct count
+                    tool.count--;
+                    soundManager.play('swap_sound');
+
+                    // Reset tool
+                    activeTool = null;
+                    swapFirstCell = null;
+                    updateToolsUI();
+                } else if (activeTool === 'row') {
+                    soundManager.play('row_col_blast');
+                    for (let i = 0; i < COLS; i++) {
+                        let cell = grid[r][i];
+                        if (cell && !cell.removing) {
+                            cell.removing = true;
+                            if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
+                            createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 10);
+                            gsap.to(cell, {
+                                scale: 0,
+                                opacity: 0,
+                                duration: 0.3,
+                                ease: "power2.in"
+                            });
+                        }
+                    }
+                    score += COLS * 5;
+                    scoreEl.innerText = score;
+                    tool.count--;
+                    activeTool = null;
+                    updateToolsUI();
+                    setTimeout(applyGravity, 300);
+                } else if (activeTool === 'col') {
+                    soundManager.play('row_col_blast');
+                    for (let i = 0; i < ROWS; i++) {
+                        let cell = grid[i][c];
+                        if (cell && !cell.removing) {
+                            cell.removing = true;
+                            if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
+                            createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 10);
+                            gsap.to(cell, {
+                                scale: 0,
+                                opacity: 0,
+                                duration: 0.3,
+                                ease: "power2.in"
+                            });
+                        }
+                    }
+                    score += ROWS * 5;
+                    scoreEl.innerText = score;
+                    tool.count--;
+                    activeTool = null;
+                    updateToolsUI();
+                    setTimeout(applyGravity, 300);
+                } else if (activeTool === 'cell') {
+                    soundManager.play('cell_blast');
+                    let cell = grid[r][c];
+                    if (cell && !cell.removing) {
+                        cell.removing = true;
+                        if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
+                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 15);
+                        gsap.to(cell, {
+                            scale: 0,
+                            opacity: 0,
+                            duration: 0.3,
+                            ease: "power2.in"
+                        });
+                    }
+                    score += 5;
+                    scoreEl.innerText = score;
+                    tool.count--;
+                    activeTool = null;
+                    updateToolsUI();
+                    setTimeout(applyGravity, 300);
+                }
             }
 
             if (moves <= 0) {
@@ -1362,385 +1545,439 @@
                     alert('Oyun Bitti! Skorunuz: ' + score + '\nYeniden başlamak için sayfayı yenileyin.');
                 }, 500);
             }
-        }
 
 
-        function finishDrag() {
-            isDragging = false;
+            function finishDrag() {
+                isDragging = false;
 
-            let word = selectedPath.map(p => grid[p.r][p.c].letter).join('');
-            const isValidInDict = typeof WORD_SET !== 'undefined' && WORD_SET.has(word);
-            const isValidLength = word.length >= 3;
+                let word = selectedPath.map(p => grid[p.r][p.c].letter).join('');
+                const isValidInDict = typeof WORD_SET !== 'undefined' && WORD_SET.has(word);
+                const isValidLength = word.length >= 3;
 
-            // Sözlükte varsa tam puan, sözlükte yok ama en az 3 harfliyse düşük puan (teselli)
-            // (Ayrıca test için kelimenin kendisinin console üzerinde görülmesi faydalı olabilir)
-            console.log("Girilen kelime:", word, "Sözlükte var mı:", isValidInDict);
+                // Sözlükte varsa tam puan, sözlükte yok ama en az 3 harfliyse düşük puan (teselli)
+                // (Ayrıca test için kelimenin kendisinin console üzerinde görülmesi faydalı olabilir)
+                console.log("Girilen kelime:", word, "Sözlükte var mı:", isValidInDict);
 
-            if (selectedPath.length === 1) {
-                let p = selectedPath[0];
-                let cell = grid[p.r][p.c];
-                if (cell.type !== 'normal') {
-                    if (moves > 0) {
-                        soundManager.play('blast');
-                        triggerSpecialCell(p.r, p.c, cell.type);
-                        cell.removing = true;
-                        moves--;
-                        movesEl.innerText = moves;
-                        setTimeout(applyGravity, 300);
-                        selectedPath = [];
-                        return;
-                    } else {
-                        alert('Hamleniz bitti!');
+                if (selectedPath.length === 1) {
+                    let p = selectedPath[0];
+                    let cell = grid[p.r][p.c];
+                    if (cell.type !== 'normal') {
+                        if (moves > 0) {
+                            soundManager.play('blast');
+                            triggerSpecialCell(p.r, p.c, cell.type);
+                            cell.removing = true;
+                            moves--;
+                            movesEl.innerText = moves;
+                            setTimeout(applyGravity, 300);
+                            selectedPath = [];
+                            return;
+                        } else {
+                            alert('Hamleniz bitti!');
+                        }
                     }
                 }
-            }
 
-            if (isValidInDict) {
-                soundManager.play('match');
-                // Valid word matched
-                let wordLength = selectedPath.length;
+                if (isValidInDict) {
+                    soundManager.play('match');
+                    // Valid word matched
+                    let wordLength = selectedPath.length;
 
-                // Harf puanlarını topla
-                let letterPointsSum = selectedPath.reduce((sum, p) => {
-                    return sum + (LETTER_POINTS[grid[p.r][p.c].letter] || 1);
-                }, 0);
+                    // Harf puanlarını topla
+                    let letterPointsSum = selectedPath.reduce((sum, p) => {
+                        return sum + (LETTER_POINTS[grid[p.r][p.c].letter] || 1);
+                    }, 0);
 
-                // Uzunluk çarpanı (Multiplier)
-                let multiplier = 1;
-                if (wordLength === 4) multiplier = 1.5;
-                if (wordLength === 5) multiplier = 2;
-                if (wordLength >= 6) multiplier = 3;
+                    // Uzunluk çarpanı (Multiplier)
+                    let multiplier = 1;
+                    if (wordLength === 4) multiplier = 1.5;
+                    if (wordLength === 5) multiplier = 2;
+                    if (wordLength >= 6) multiplier = 3;
 
-                let points = Math.floor(letterPointsSum * multiplier);
+                    let points = Math.floor(letterPointsSum * multiplier);
 
-                // Kayıt altına al (stats için)
-                addWordStat(wordLength);
+                    // Kayıt altına al (stats için)
+                    addWordStat(wordLength);
 
-                score += points;
-                scoreEl.innerText = score;
+                    score += points;
+                    scoreEl.innerText = score;
 
-                function removeCellWithAnim(cell) {
-                    if (cell.removing) return;
-                    cell.removing = true;
-                    gsap.to(cell, {
-                        scale: 0,
-                        opacity: 0,
-                        duration: 0.3,
-                        ease: "power2.in"
-                    });
-                }
+                    function removeCellWithAnim(cell) {
+                        if (cell.removing) return;
+                        cell.removing = true;
+                        gsap.to(cell, {
+                            scale: 0,
+                            opacity: 0,
+                            duration: 0.3,
+                            ease: "power2.in"
+                        });
+                    }
 
-                // Trigger explosion and handle special cells
-                selectedPath.forEach((p, index) => {
-                    let cell = grid[p.r][p.c];
+                    // Trigger explosion and handle special cells
+                    selectedPath.forEach((p, index) => {
+                        let cell = grid[p.r][p.c];
 
-                    // Create Special Cell logic
-                    if (index === 0) { // Place special cell at the first selected position
-                        if (wordLength === 4) {
-                            cell.type = Math.random() > 0.5 ? 'row_blast' : 'col_blast';
-                            cell.removing = false;
-                            cell.selected = false;
-                            gsap.from(cell, { scale: 1.5, duration: 0.4, ease: "elastic.out(1, 0.3)" });
-                        } else if (wordLength >= 5) {
-                            cell.type = 'bomb';
-                            cell.removing = false;
-                            cell.selected = false;
-                            gsap.from(cell, { scale: 1.8, duration: 0.5, ease: "elastic.out(1, 0.3)" });
+                        // Create Special Cell logic
+                        if (index === 0) { // Place special cell at the first selected position
+                            if (wordLength === 4) {
+                                cell.type = Math.random() > 0.5 ? 'row_blast' : 'col_blast';
+                                cell.removing = false;
+                                cell.selected = false;
+                                gsap.from(cell, { scale: 1.5, duration: 0.4, ease: "elastic.out(1, 0.3)" });
+                            } else if (wordLength >= 5) {
+                                cell.type = 'bomb';
+                                soundManager.play('bomb_created');
+                                cell.removing = false;
+                                cell.selected = false;
+                                gsap.from(cell, { scale: 1.8, duration: 0.5, ease: "elastic.out(1, 0.3)" });
+                            } else {
+                                createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
+                                removeCellWithAnim(cell);
+                            }
                         } else {
+                            if (cell.type !== 'normal') {
+                                triggerSpecialCell(cell.r, cell.c, cell.type);
+                            }
                             createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
                             removeCellWithAnim(cell);
                         }
-                    } else {
-                        if (cell.type !== 'normal') {
-                            triggerSpecialCell(cell.r, cell.c, cell.type);
-                        }
-                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
-                        removeCellWithAnim(cell);
+                    });
+
+                    // Check level up and tool awarding
+                    const target = DIFFICULTY_SETTINGS[currentDifficulty].scoreTarget;
+                    if (score >= level * target) {
+                        level++;
+                        soundManager.play('levelup');
+                        levelEl.innerText = level;
+                        moves += 5;
+                        movesEl.innerText = moves;
                     }
-                });
 
-                // Check level up and tool awarding
-                const target = DIFFICULTY_SETTINGS[currentDifficulty].scoreTarget;
-                if (score >= level * target) {
-                    level++;
-                    soundManager.play('levelup');
-                    levelEl.innerText = level;
-                    moves += 5;
-                    movesEl.innerText = moves;
+                    // Award tool every 500 points
+                    if (score >= lastAwardedScore + 500) {
+                        lastAwardedScore = Math.floor(score / 500) * 500;
+                        awardRandomTool();
+                    }
+
+                    // Extra tool for long words
+                    if (wordLength >= 6) {
+                        awardRandomTool();
+                    }
+
+                    // Let the removal animation play, then apply gravity
+                    setTimeout(applyGravity, 300);
+
+                } else {
+                    // Invalid - just deselect
+                    selectedPath.forEach(p => {
+                        grid[p.r][p.c].selected = false;
+                    });
                 }
 
-                // Award tool every 500 points
-                if (score >= lastAwardedScore + 500) {
-                    lastAwardedScore = Math.floor(score / 500) * 500;
-                    awardRandomTool();
+                selectedPath = [];
+
+                // Check Game Over
+                if (moves <= 0) {
+                    setTimeout(() => {
+                        shuffleBtn.disabled = true;
+                        gameStarted = false; // Reset game state on game over
+                        alert('Oyun Bitti! Skorunuz: ' + score + '\nYeniden oynamak için 1 enerji gereklidir.');
+                    }, 500);
                 }
-
-                // Extra tool for long words
-                if (wordLength >= 6) {
-                    awardRandomTool();
-                }
-
-                // Let the removal animation play, then apply gravity
-                setTimeout(applyGravity, 300);
-
-            } else {
-                // Invalid - just deselect
-                selectedPath.forEach(p => {
-                    grid[p.r][p.c].selected = false;
-                });
             }
 
-            selectedPath = [];
+            function applyGravity() {
+                for (let c = 0; c < COLS; c++) {
+                    let writeR = ROWS - 1;
+                    let empties = 0;
 
-            // Check Game Over
-            if (moves <= 0) {
-                setTimeout(() => {
-                    shuffleBtn.disabled = true;
-                    gameStarted = false; // Reset game state on game over
-                    alert('Oyun Bitti! Skorunuz: ' + score + '\nYeniden oynamak için 1 enerji gereklidir.');
-                }, 500);
+                    // Shift blocks down
+                    for (let r = ROWS - 1; r >= 0; r--) {
+                        let cell = grid[r][c];
+                        if (!cell.removing) {
+                            if (writeR !== r) {
+                                grid[writeR][c] = cell;
+                                cell.r = writeR;
+                                const newTargetY = WORD_AREA_HEIGHT + writeR * CELL_SIZE;
+                                cell.targetY = newTargetY;
+
+                                gsap.to(cell, {
+                                    y: newTargetY,
+                                    duration: 0.5,
+                                    ease: "bounce.out"
+                                });
+                            }
+                            writeR--;
+                        } else {
+                            empties++;
+                        }
+                    }
+
+                    // Fill top with new blocks
+                    for (let i = 0; i < empties; i++) {
+                        let newCell = new Cell(writeR, c, getRandomLetter());
+                        newCell.y = WORD_AREA_HEIGHT + (writeR - 2) * CELL_SIZE;
+                        grid[writeR][c] = newCell;
+                        writeR--;
+                    }
+                }
             }
-        }
 
-        function applyGravity() {
-            for (let c = 0; c < COLS; c++) {
-                let writeR = ROWS - 1;
-                let empties = 0;
+            function updateStatsUI() {
+                const container = document.getElementById('word-stats-container');
+                container.innerHTML = '';
 
-                // Shift blocks down
-                for (let r = ROWS - 1; r >= 0; r--) {
-                    let cell = grid[r][c];
-                    if (!cell.removing) {
-                        if (writeR !== r) {
-                            grid[writeR][c] = cell;
-                            cell.r = writeR;
-                            const newTargetY = WORD_AREA_HEIGHT + writeR * CELL_SIZE;
-                            cell.targetY = newTargetY;
+                let hasStats = false;
+                // Sort lengths
+                const lengths = Object.keys(wordStats).sort((a, b) => parseInt(b) - parseInt(a));
+
+                lengths.forEach(len => {
+                    hasStats = true;
+                    const row = document.createElement('div');
+                    row.className = 'stat-row';
+                    row.innerHTML = `<span>${len} Harf</span><span>${wordStats[len]} Adet</span>`;
+                    container.appendChild(row);
+                });
+
+                if (!hasStats) {
+                    const row = document.createElement('div');
+                    row.className = 'stat-row';
+                    row.innerHTML = `<span>Henüz kelime bulunmadı</span>`;
+                    container.appendChild(row);
+                }
+            }
+
+            function addWordStat(length) {
+                if (wordStats[length]) {
+                    wordStats[length]++;
+                } else {
+                    wordStats[length] = 1;
+                }
+                updateStatsUI();
+            }
+
+            // --- TOOLS LOGIC ---
+            const toolSwap = document.getElementById('tool-swap');
+            const toolRow = document.getElementById('tool-row');
+            const toolCol = document.getElementById('tool-col');
+            const toolCell = document.getElementById('tool-cell');
+
+            let lastAwardedScore = 0;
+
+            const tools = [
+                { id: 'swap', el: document.getElementById('tool-swap'), count: 2, label: 'Yer Değiştir' },
+                { id: 'row', el: document.getElementById('tool-row'), count: 1, label: 'Satır Patlat' },
+                { id: 'col', el: document.getElementById('tool-col'), count: 1, label: 'Sütun Patlat' },
+                { id: 'cell', el: document.getElementById('tool-cell'), count: 3, label: 'Hücre Patlat' },
+                { id: 'snake', el: document.getElementById('tool-snake'), count: 1, label: 'Yılan' }
+            ];
+
+            function gridShake(intensity = 5) {
+                gsap.fromTo(canvas,
+                    { x: -intensity },
+                    { x: intensity, duration: 0.05, repeat: 5, yoyo: true, onComplete: () => gsap.set(canvas, { x: 0 }) }
+                );
+            }
+
+            function triggerSpecialCell(r, c, type) {
+                let coreCell = grid[r][c];
+                if (!coreCell || coreCell.removing) return;
+
+                if (type === 'bomb') soundManager.play('bomb_blast');
+                else soundManager.play('blast');
+
+                gridShake(type === 'bomb' ? 10 : 5);
+
+                if (type === 'row_blast') {
+                    for (let i = 0; i < COLS; i++) {
+                        let cell = grid[r][i];
+                        if (cell && !cell.removing) {
+                            cell.removing = true;
+                            createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 5); // Optimized particle count
 
                             gsap.to(cell, {
-                                y: newTargetY,
-                                duration: 0.5,
-                                ease: "bounce.out"
+                                scale: 0,
+                                opacity: 0,
+                                duration: 0.3,
+                                ease: "power2.in"
                             });
+
+                            if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
                         }
-                        writeR--;
-                    } else {
-                        empties++;
                     }
-                }
+                } else if (type === 'col_blast') {
+                    for (let i = 0; i < ROWS; i++) {
+                        let cell = grid[i][c];
+                        if (cell && !cell.removing) {
+                            cell.removing = true;
+                            createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 5);
 
-                // Fill top with new blocks
-                for (let i = 0; i < empties; i++) {
-                    let newCell = new Cell(writeR, c, getRandomLetter());
-                    newCell.y = WORD_AREA_HEIGHT + (writeR - 2) * CELL_SIZE;
-                    grid[writeR][c] = newCell;
-                    writeR--;
-                }
-            }
-        }
-
-        function updateStatsUI() {
-            const container = document.getElementById('word-stats-container');
-            container.innerHTML = '';
-
-            let hasStats = false;
-            // Sort lengths
-            const lengths = Object.keys(wordStats).sort((a, b) => parseInt(b) - parseInt(a));
-
-            lengths.forEach(len => {
-                hasStats = true;
-                const row = document.createElement('div');
-                row.className = 'stat-row';
-                row.innerHTML = `<span>${len} Harf</span><span>${wordStats[len]} Adet</span>`;
-                container.appendChild(row);
-            });
-
-            if (!hasStats) {
-                const row = document.createElement('div');
-                row.className = 'stat-row';
-                row.innerHTML = `<span>Henüz kelime bulunmadı</span>`;
-                container.appendChild(row);
-            }
-        }
-
-        function addWordStat(length) {
-            if (wordStats[length]) {
-                wordStats[length]++;
-            } else {
-                wordStats[length] = 1;
-            }
-            updateStatsUI();
-        }
-
-        // --- TOOLS LOGIC ---
-        const toolSwap = document.getElementById('tool-swap');
-        const toolRow = document.getElementById('tool-row');
-        const toolCol = document.getElementById('tool-col');
-        const toolCell = document.getElementById('tool-cell');
-
-        let lastAwardedScore = 0;
-
-        const tools = [
-            { id: 'swap', el: toolSwap, count: 2, label: 'Yer Değiştir' },
-            { id: 'row', el: toolRow, count: 1, label: 'Satır Patlat' },
-            { id: 'col', el: toolCol, count: 1, label: 'Sütun Patlat' },
-            { id: 'cell', el: toolCell, count: 3, label: 'Hücre Patlat' }
-        ];
-
-        function gridShake(intensity = 5) {
-            gsap.fromTo(canvas,
-                { x: -intensity },
-                { x: intensity, duration: 0.05, repeat: 5, yoyo: true, onComplete: () => gsap.set(canvas, { x: 0 }) }
-            );
-        }
-
-        function triggerSpecialCell(r, c, type) {
-            let coreCell = grid[r][c];
-            if (!coreCell || coreCell.removing) return;
-
-            soundManager.play('blast');
-            gridShake(type === 'bomb' ? 10 : 5);
-
-            if (type === 'row_blast') {
-                for (let i = 0; i < COLS; i++) {
-                    let cell = grid[r][i];
-                    if (cell && !cell.removing) {
-                        cell.removing = true;
-                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 5); // Optimized particle count
-
-                        gsap.to(cell, {
-                            scale: 0,
-                            opacity: 0,
-                            duration: 0.3,
-                            ease: "power2.in"
-                        });
-
-                        if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
+                            gsap.to(cell, {
+                                scale: 0,
+                                opacity: 0,
+                                duration: 0.3,
+                                ease: "power2.in"
+                            });
+                            if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
+                        }
                     }
-                }
-            } else if (type === 'col_blast') {
-                for (let i = 0; i < ROWS; i++) {
-                    let cell = grid[i][c];
-                    if (cell && !cell.removing) {
-                        cell.removing = true;
-                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 5);
-
-                        gsap.to(cell, {
-                            scale: 0,
-                            opacity: 0,
-                            duration: 0.3,
-                            ease: "power2.in"
-                        });
-                        if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
-                    }
-                }
-            } else if (type === 'bomb') {
-                for (let r2 = r - 1; r2 <= r + 1; r2++) {
-                    for (let c2 = c - 1; c2 <= c + 1; c2++) {
-                        if (r2 >= 0 && r2 < ROWS && c2 >= 0 && c2 < COLS) {
-                            let cell = grid[r2][c2];
-                            if (cell && !cell.removing) {
-                                cell.removing = true;
-                                createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, '#a855f7', 8);
-                                gsap.to(cell, {
-                                    scale: 0,
-                                    opacity: 0,
-                                    duration: 0.4,
-                                    ease: "back.in(1.7)"
-                                });
-                                if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
+                } else if (type === 'bomb') {
+                    for (let r2 = r - 1; r2 <= r + 1; r2++) {
+                        for (let c2 = c - 1; c2 <= c + 1; c2++) {
+                            if (r2 >= 0 && r2 < ROWS && c2 >= 0 && c2 < COLS) {
+                                let cell = grid[r2][c2];
+                                if (cell && !cell.removing) {
+                                    cell.removing = true;
+                                    createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, '#a855f7', 8);
+                                    gsap.to(cell, {
+                                        scale: 0,
+                                        opacity: 0,
+                                        duration: 0.4,
+                                        ease: "back.in(1.7)"
+                                    });
+                                    if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        function awardRandomTool() {
-            const randIdx = Math.floor(Math.random() * tools.length);
-            tools[randIdx].count++;
-            soundManager.play('match'); // Play succes sound for new tool
-            console.log("Yeni araç kazanıldı:", tools[randIdx].label);
-            updateToolsUI();
-        }
-
-        tools.forEach(tool => {
-            tool.el.addEventListener('click', () => {
-                if (tool.count <= 0) {
-                    alert(`Bu araçtan kalmadı! Uzun kelimeler türeterek kazanabilirsin.`);
-                    return;
-                }
-
-                // If same tool clicked, deselect
-                if (activeTool === tool.id) {
+            function finishSnake() {
+                if (selectedPath.length < 2) {
+                    // Canceled or not enough cells
                     activeTool = null;
-                    swapFirstCell = null;
+                    selectedPath.forEach(p => grid[p.r][p.c].selected = false);
+                    selectedPath = [];
                     updateToolsUI();
                     return;
                 }
 
-                // Select tool
-                activeTool = tool.id;
-                swapFirstCell = null;
+                const tool = tools.find(t => t.id === 'snake');
+                if (tool && tool.count > 0) {
+                    tool.count--;
+                    soundManager.play('snake_blast');
+                    gridShake(15);
 
-                // Clear any ongoing drag or selection
-                isDragging = false;
-                selectedPath.forEach(p => {
-                    if (grid[p.r] && grid[p.r][p.c]) {
-                        grid[p.r][p.c].selected = false;
-                    }
-                });
-                selectedPath = [];
+                    selectedPath.forEach(p => {
+                        let cell = grid[p.r][p.c];
+                        if (cell && !cell.removing) {
+                            cell.removing = true;
+                            createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, '#10b981', 12);
+                            gsap.to(cell, {
+                                scale: 0,
+                                opacity: 0,
+                                duration: 0.4,
+                                ease: "back.in(1.7)"
+                            });
+                        }
+                    });
 
-                updateToolsUI();
-            });
-        });
-
-        function updateToolsUI() {
-            tools.forEach(tool => {
-                tool.el.classList.remove('active');
-                if (tool.count <= 0) {
-                    tool.el.classList.add('disabled');
-                } else {
-                    tool.el.classList.remove('disabled');
-                }
-
-                if (activeTool === tool.id) {
-                    tool.el.classList.add('active');
-                }
-
-                // Update count labels
-                const small = tool.el.querySelector('small');
-                if (small) {
-                    small.innerText = `(${tool.count} Adet)`;
-                }
-            });
-        }
-
-        shuffleBtn.addEventListener('click', () => {
-            if (activeTool) return; // Prevent shuffle while using tool
-
-            if (moves > 0) {
-                soundManager.play('select');
-                moves--;
-                movesEl.innerText = moves;
-                initGrid();
-                updateToolsUI();
-
-                if (moves <= 0) {
                     setTimeout(() => {
-                        shuffleBtn.disabled = true;
-                        alert('Oyun Bitti! Skorunuz: ' + score + '\nYeniden başlamak için sayfayı yenileyin.');
+                        applyGravity();
                     }, 500);
+
+                    activeTool = null;
+                    selectedPath = [];
+                    updateToolsUI();
                 }
             }
-        });
 
-        // Initialize with default or saved difficulty
-        setDifficulty(currentDifficulty);
-        updateToolsUI();
-        requestAnimationFrame(draw);
-    </script>
+            function awardRandomTool() {
+                const randIdx = Math.floor(Math.random() * tools.length);
+                tools[randIdx].count++;
+                soundManager.play('match'); // Play succes sound for new tool
+                console.log("Yeni araç kazanıldı:", tools[randIdx].label);
+                updateToolsUI();
+            }
+
+            tools.forEach(tool => {
+                if (tool.el) {
+                    tool.el.addEventListener('click', () => {
+                        if (tool.count <= 0) {
+                            alert(`Bu araçtan kalmadı! Uzun kelimeler türeterek kazanabilirsin.`);
+                            return;
+                        }
+
+                        // If same tool clicked, deselect
+                        if (activeTool === tool.id) {
+                            if (activeTool === 'snake' && selectedPath.length > 0) {
+                                finishSnake();
+                                return;
+                            }
+                            activeTool = null;
+                            swapFirstCell = null;
+                            selectedPath.forEach(p => grid[p.r][p.c].selected = false);
+                            selectedPath = [];
+                            updateToolsUI();
+                            return;
+                        }
+
+                        // Select tool
+                        activeTool = tool.id;
+                        swapFirstCell = null;
+
+                        // Clear any ongoing drag or selection
+                        isDragging = false;
+                        selectedPath.forEach(p => {
+                            if (grid[p.r] && grid[p.r][p.c]) {
+                                grid[p.r][p.c].selected = false;
+                            }
+                        });
+                        selectedPath = [];
+
+                        updateToolsUI();
+                    });
+                }
+            });
+
+            function updateToolsUI() {
+                tools.forEach(tool => {
+                    if (tool.el) {
+                        tool.el.classList.remove('active');
+                        if (tool.count <= 0) {
+                            tool.el.classList.add('disabled');
+                        } else {
+                            tool.el.classList.remove('disabled');
+                        }
+
+                        if (activeTool === tool.id) {
+                            tool.el.classList.add('active');
+                        }
+
+                        const small = tool.el.querySelector('small');
+                        if (small) {
+                            small.innerText = `(${tool.count})`;
+                        }
+                    }
+                });
+            }
+
+            shuffleBtn.addEventListener('click', () => {
+                if (activeTool) return; // Prevent shuffle while using tool
+
+                if (moves > 0) {
+                    soundManager.play('select');
+                    moves--;
+                    movesEl.innerText = moves;
+                    initGrid();
+                    updateToolsUI();
+
+                    if (moves <= 0) {
+                        setTimeout(() => {
+                            shuffleBtn.disabled = true;
+                            alert('Oyun Bitti! Skorunuz: ' + score + '\nYeniden başlamak için sayfayı yenileyin.');
+                        }, 500);
+                    }
+                }
+            });
+
+            // Initialize with default or saved difficulty
+            setDifficulty(currentDifficulty);
+            updateToolsUI();
+            requestAnimationFrame(draw);
+        </script>
+
+    </div>
 
 </body>
 

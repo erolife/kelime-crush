@@ -18,6 +18,19 @@
 - **26 Şubat 2026**: Satır/Sütun ve Bomba patlatma (özel yetenekler) sırasında oluşan sonsuz döngü ve tarayıcı çökme sorunu giderildi. `triggerSpecialCell` fonksiyonunda senkron işaretleme mantığına geçildi ve partikül efektleri performans için optimize edildi.
 - **26 Şubat 2026**: DB Altyapısı ve Mobil Yol Haritası belirlendi. `proje_schema.sql` oluşturuldu. `users`, `scores`, `tournaments` ve `tournament_entries` tabloları tanımlandı.
 - **26 Şubat 2026**: Oyun **Responsive** hale getirildi. Mobil ve tablet cihazlar için Media Query'ler eklendi, yan panel dikey düzene (column layout) uyumlu hale getirildi ve dokunmatik kontroller optimize edildi.
+- **26 Şubat 2026**: Yardımcı araçlar (swap, blast) yan panelden alınarak oyun alanının altına (**footer**) dairesel butonlar olarak taşındı. Bu sayede mobil cihazlarda ve dar ekranlarda kullanım kolaylığı sağlandı, oyuncunun oyundan kopmadan araç seçebilmesi sağlandı.
+- **26 Şubat 2026**: Mobil cihazlarda sayfa yenilendiğinde sesin çıkmama sorunu (Autoplay Policy) giderildi. Sayfadaki ilk etkileşimde ses motoru otomatik olarak uyandırılıyor.
+- **26 Şubat 2026**: Yardımcı araçların konumu ekran boyutuna göre ayrıştırıldı. Masaüstünde oyun alanı içinde doğal akışta, mobilde ise ekranın altında sabit (`fixed`) olarak kalması sağlandı. `backdrop-filter` kaynaklı `fixed` sorunu `::before` pseudo-elementi ile çözüldü.
+- **26 Şubat 2026**: Yeni yardımcı araç **"Yılan" (Snake)** eklendi. Yeşil temalı bu araç, grid kolon sayısı kadar birbirine komşu (her yöne) harfi serbestçe seçip patlatma imkanı sunuyor.
+- **26 Şubat 2026**: 5 aracın dar mobil ekranlarda sağa taşma sorunu giderildi. Kademeli `gap` azaltma ve 400px altı ekranlar için ultra-küçük buton ayarları yapıldı.
+- **26 Şubat 2026**: Oyunun yüklenememesi hatası (`TypeError: addEventListener on null`) giderildi. HTML elemanlarının script'ten önce tanımlanması sağlandı ve araç butonları için null-safe kontroller eklendi. CSS media query sözdizimi hataları temizlendi.
+- **26 Şubat 2026**: 403 Forbidden hatası veren Mixkit ses dosyaları yerine kullanıcı tarafından sağlanan yerel ses dosyaları (`sesler/`) entegre edildi. Yılan Seçimi (`snake.mp3`), Yılan Patlama (`snake-patlama.mp3`), Bomba Patlama (`kucuk-patlama.mp3`), Tek Harf Patlama (`tek-patlama.mp3`), Harf Değiştirme (`switch.mp3`) ve Satır/Sütun Patlama (`row-colun.mp3`) sesleri ilgili aksiyonlara özelleştirildi.
+- **26 Şubat 2026**: Arka plan müziği (`background.mp3`) sisteme dahil edildi ve ilk etkileşimle başlaması sağlandı. Sürükleme sesi kullanıcıyı yormayacak şekilde optimize edildi.
+- **26 Şubat 2026**: Yılan aracı kullanıldıktan sonra harflerin düşmeme sorunu `finishSnake` içinde `applyGravity` çağrılarak giderildi.
+- **26 Şubat 2026**: Yer değiştirme (Swap) aracının iki aşamalı seçim mantığı (ilk seçim vurgulama, ikinci seçim takas) uygulanarak işlevselliği onarıldı.
+- **26 Şubat 2026**: Oyuna çapraz (diagonal) harf seçme desteği tam olarak entegre edildi/doğrulandı.
+- **26 Şubat 2026**: İngilizce oyun sürümü hazırlığı kapsamında `dwyl/english-words` kaynağından 3 harf ve üzeri 369.647 kelime filtrelenerek `english_words.json` dosyasına yedeklendi.
+- **26 Şubat 2026**: Ses motoru (`SoundManager`) sınıfı ve araç çubuğu (`updateToolsUI`) mantığı baştan yazılarak kararlı hale getirildi.
 
 ## Gelecek Planlar (Roadmap)
 - **Turnuva Sistemi**: Belirli zaman aralıklarında rekabetçi liderlik tabloları.
