@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelime Crush</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #0f172a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #f1f5f9;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #main-wrapper {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #1e293b;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        #side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: #1e293b;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            width: 250px;
+            height: 785px;
+            /* to match game container approximately */
+        }
+
+        .tool-btn {
+            background-color: #6366f1;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 #4f46e5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tool-btn.active {
+            background-color: #f59e0b;
+            box-shadow: 0 2px 0 #d97706;
+            transform: translateY(2px);
+        }
+
+        .tool-btn:hover:not(.disabled) {
+            background-color: #818cf8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #4f46e5;
+        }
+
+        .tool-btn:active:not(.disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #4f46e5;
+        }
+
+        .tool-btn.disabled {
+            background-color: #475569;
+            box-shadow: 0 4px 0 #334155;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .tool-icon {
+            font-size: 24px;
+        }
+
+        #stats-panel {
+            margin-top: auto;
+            background-color: #334155;
+            padding: 15px;
+            border-radius: 12px;
+            color: #f8fafc;
+        }
+
+        #stats-panel h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            text-align: center;
+            color: #38bdf8;
+            border-bottom: 1px solid #475569;
+            padding-bottom: 8px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 15px;
+            padding: 4px 0;
+            border-bottom: 1px dashed #475569;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        #top-bar {
+            display: flex;
+            justify-content: space-between;
+            width: 600px;
+            margin-bottom: 20px;
+            font-size: 22px;
+            font-weight: 600;
+            padding: 0 10px;
+            color: #cbd5e1;
+        }
+
+        .stat {
+            background-color: #334155;
+            padding: 8px 16px;
+            border-radius: 8px;
+            min-width: 140px;
+            text-align: center;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat span {
+            color: #38bdf8;
+            font-weight: bold;
+            display: block;
+            margin-top: 4px;
+            font-size: 24px;
+        }
+
+        canvas {
+            background-color: #0c1222;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.5);
+            touch-action: none;
+        }
+
+        #bottom-bar {
+            margin-top: 25px;
+            width: 600px;
+            display: flex;
+            justify-content: center;
+        }
+
+        button {
+            background-color: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 #0284c7;
+        }
+
+        button.shuffle-btn:hover {
+            background-color: #38bdf8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #0284c7;
+        }
+
+        button.shuffle-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #0284c7;
+        }
+
+        button.shuffle-btn:disabled {
+            background-color: #475569;
+            box-shadow: 0 4px 0 #334155;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="main-wrapper">
+        <div id="game-container">
+            <div id="top-bar">
+                <div class="stat">Skor<span id="score">0</span></div>
+                <div class="stat">Seviye<span id="level">1</span></div>
+                <div class="stat">Hamle<span id="moves">20</span></div>
+            </div>
+
+            <canvas id="gameCanvas" width="600" height="700"></canvas>
+
+            <div id="bottom-bar">
+                <button id="shuffle-btn" class="shuffle-btn">Karıştır (Shuffle)</button>
+            </div>
+        </div>
+
+        <div id="side-panel">
+            <button class="tool-btn" id="tool-swap">
+                <span class="tool-icon">🔄</span>
+                <span>Yer Değiştir</span>
+                <small>(1 Hamle)</small>
+            </button>
+            <button class="tool-btn" id="tool-row">
+                <span class="tool-icon">💥</span>
+                <span>Satır Patlat</span>
+                <small>(2 Hamle)</small>
+            </button>
+            <button class="tool-btn" id="tool-col">
+                <span class="tool-icon">🧨</span>
+                <span>Sütun Patlat</span>
+                <small>(2 Hamle)</small>
+            </button>
+            <button class="tool-btn" id="tool-cell">
+                <span class="tool-icon">🎯</span>
+                <span>Hücre Patlat</span>
+                <small>(1 Hamle)</small>
+            </button>
+
+            <div id="stats-panel">
+                <h3>Kelime Analizi</h3>
+                <div id="word-stats-container">
+                    <div class="stat-row">
+                        <span>Henüz kelime bulunmadı</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="words.js"></script>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const movesEl = document.getElementById('moves');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+
+        const ROWS = 10;
+        const COLS = 10;
+
+        // Canvas consists of a top area for the matching word and the grid
+        const GRID_SIZE = 600;
+        const WORD_AREA_HEIGHT = 100;
+        const CELL_SIZE = GRID_SIZE / COLS; // 75px
+
+        const letterWeights = {
+            'A': 25, 'E': 22, 'İ': 18, 'I': 12, 'O': 10, 'Ö': 8, 'U': 10, 'Ü': 8, // Sesliler (Vowels) çok artırıldı
+            'K': 12, 'L': 12, 'M': 10, 'N': 12, 'R': 12, 'S': 10, 'T': 10, 'Y': 10, // Sık kullanılan sessizler artırıldı
+            'B': 6, 'C': 5, 'Ç': 5, 'D': 8, 'G': 5, 'Ğ': 3, 'H': 5, 'P': 5, 'Ş': 5, 'V': 4, 'Z': 5, // Orta kullanılansessizler
+            'F': 2, 'J': 1 // Nadirler
+        };
+
+        let weightedPool = [];
+        for (let char in letterWeights) {
+            for (let i = 0; i < letterWeights[char]; i++) {
+                weightedPool.push(char);
+            }
+        }
+
+        function getRandomLetter() {
+            return weightedPool[Math.floor(Math.random() * weightedPool.length)];
+        }
+
+        let grid = [];
+        let score = 0;
+        let level = 1;
+        let moves = 20;
+
+        // Tools state
+        let activeTool = null; // 'swap', 'row', 'col', 'cell'
+        let swapFirstCell = null;
+
+        // Word Stats
+        let wordStats = {}; // { length: count }
+
+        let isDragging = false;
+        let selectedPath = []; // Array of objects {r, c}
+        let particles = [];
+
+        // Colors
+        const COLOR_CELL_BG = '#334155';
+        const COLOR_CELL_BORDER = '#1e293b';
+        const COLOR_CELL_TEXT = '#f8fafc';
+        const COLOR_CELL_SELECTED = '#0ea5e9';
+        const COLOR_CELL_TOOL_SELECTED = '#f59e0b';
+        const COLOR_LINE = 'rgba(14, 165, 233, 0.4)';
+
+        class Cell {
+            constructor(r, c, letter) {
+                this.r = r;
+                this.c = c;
+                this.letter = letter;
+
+                this.x = c * CELL_SIZE;
+                this.targetY = WORD_AREA_HEIGHT + r * CELL_SIZE;
+                this.y = this.targetY - GRID_SIZE - Math.random() * 200; // spawn animation slightly above
+
+                this.selected = false;
+                this.removing = false;
+                this.scale = 1;
+            }
+
+            update() {
+                // Drop animation
+                if (this.y < this.targetY) {
+                    this.y += 15;
+                    if (this.y > this.targetY) this.y = this.targetY;
+                }
+
+                // Remove animation
+                if (this.removing) {
+                    this.scale -= 0.15;
+                    if (this.scale <= 0) this.scale = 0;
+                } else if (this.selected) {
+                    this.scale = 0.9; // shrink slightly when selected
+                } else {
+                    this.scale = 1;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + CELL_SIZE / 2, this.y + CELL_SIZE / 2);
+                ctx.scale(this.scale, this.scale);
+
+                // Block Background
+                if (activeTool && this.selected) {
+                    ctx.fillStyle = COLOR_CELL_TOOL_SELECTED;
+                } else {
+                    ctx.fillStyle = this.selected ? COLOR_CELL_SELECTED : COLOR_CELL_BG;
+                }
+                ctx.beginPath();
+                ctx.roundRect(-CELL_SIZE / 2 + 4, -CELL_SIZE / 2 + 4, CELL_SIZE - 8, CELL_SIZE - 8, 12);
+                ctx.fill();
+
+                // Inner styling / bevel
+                if (activeTool && this.selected) {
+                    ctx.fillStyle = '#d97706';
+                } else {
+                    ctx.fillStyle = this.selected ? '#0284c7' : '#475569';
+                }
+                ctx.beginPath();
+                ctx.roundRect(-CELL_SIZE / 2 + 4, -CELL_SIZE / 2 + CELL_SIZE - 14, CELL_SIZE - 8, 6, [0, 0, 10, 10]);
+                ctx.fill();
+
+                // Text
+                ctx.fillStyle = COLOR_CELL_TEXT;
+                ctx.font = 'bold 32px "Segoe UI", Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.letter, 0, 2); // Slight offset downwards to center visually
+
+                ctx.restore();
+            }
+        }
+
+        function initGrid() {
+            grid = [];
+            for (let r = 0; r < ROWS; r++) {
+                grid[r] = [];
+                for (let c = 0; c < COLS; c++) {
+                    grid[r][c] = new Cell(r, c, getRandomLetter());
+                }
+            }
+        }
+
+        function createParticles(x, y) {
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    life: 1,
+                    decay: Math.random() * 0.05 + 0.02,
+                    size: Math.random() * 6 + 2,
+                    color: '#38bdf8'
+                });
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.2; // gravity
+                p.life -= p.decay;
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawParticles() {
+            for (let p of particles) {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function drawLines() {
+            if (selectedPath.length > 1) {
+                ctx.strokeStyle = COLOR_LINE;
+                ctx.lineWidth = 20;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+
+                let firstCell = grid[selectedPath[0].r][selectedPath[0].c];
+                ctx.moveTo(firstCell.x + CELL_SIZE / 2, firstCell.y + CELL_SIZE / 2);
+
+                for (let i = 1; i < selectedPath.length; i++) {
+                    let cell = grid[selectedPath[i].r][selectedPath[i].c];
+                    ctx.lineTo(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
+                }
+                ctx.stroke();
+            }
+        }
+
+        function drawCurrentWord() {
+            let word = selectedPath.map(p => grid[p.r][p.c].letter).join('');
+
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.roundRect(20, 20, canvas.width - 40, 60, 15);
+            ctx.fill();
+
+            if (word.length > 0) {
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = 'bold 36px "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // Highlight valid length and valid word from WORD_SET
+                const isValid = word.length >= 3 && typeof WORD_SET !== 'undefined' && WORD_SET.has(word);
+
+                if (isValid) {
+                    ctx.fillStyle = '#38bdf8';
+                } else if (word.length >= 3) {
+                    ctx.fillStyle = '#f59e0b'; // color it orange if length is ok but not in dictionary
+                } else {
+                    ctx.fillStyle = '#94a3b8';
+                }
+
+                ctx.fillText(word, canvas.width / 2, 50);
+            } else {
+                ctx.fillStyle = '#64748b';
+                ctx.font = '24px "Segoe UI", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText("Harfleri birbirine bağla", canvas.width / 2, 50);
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawCurrentWord();
+            drawLines();
+
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (grid[r] && grid[r][c]) {
+                        grid[r][c].update();
+                        grid[r][c].draw();
+                    }
+                }
+            }
+
+            updateParticles();
+            drawParticles();
+
+            requestAnimationFrame(draw);
+        }
+
+        // Interaction Logic
+        function getCellIndices(x, y) {
+            if (y < WORD_AREA_HEIGHT || y >= WORD_AREA_HEIGHT + GRID_SIZE || x < 0 || x >= GRID_SIZE) return null;
+            let c = Math.floor(x / CELL_SIZE);
+            let r = Math.floor((y - WORD_AREA_HEIGHT) / CELL_SIZE);
+            if (r >= 0 && r < ROWS && c >= 0 && c < COLS) {
+                return { r, c };
+            }
+            return null;
+        }
+
+        function areAdjacent(c1, c2) {
+            let dr = Math.abs(c1.r - c2.r);
+            let dc = Math.abs(c1.c - c2.c);
+            return (dr <= 1 && dc <= 1) && !(dr === 0 && dc === 0);
+        }
+
+        function checkPath(r, c) {
+            if (!selectedPath) return;
+
+            // If it's the cell before the last one, allow backtracking
+            if (selectedPath.length > 1) {
+                let prev = selectedPath[selectedPath.length - 2];
+                if (prev.r === r && prev.c === c) {
+                    let removed = selectedPath.pop();
+                    grid[removed.r][removed.c].selected = false;
+                    return;
+                }
+            }
+
+            // Check if already in path
+            if (selectedPath.some(p => p.r === r && p.c === c)) return;
+
+            // Check if adjacent to the last one
+            if (selectedPath.length > 0) {
+                let last = selectedPath[selectedPath.length - 1];
+                if (!areAdjacent(last, { r, c })) return;
+            }
+
+            selectedPath.push({ r, c });
+            grid[r][c].selected = true;
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (moves <= 0) return;
+            let rect = canvas.getBoundingClientRect();
+            let scaleX = canvas.width / rect.width;
+            let scaleY = canvas.height / rect.height;
+            let x = (e.clientX - rect.left) * scaleX;
+            let y = (e.clientY - rect.top) * scaleY;
+
+            let cell = getCellIndices(x, y);
+            if (cell) {
+                if (activeTool) {
+                    handleToolUse(cell.r, cell.c);
+                } else {
+                    isDragging = true;
+                    checkPath(cell.r, cell.c);
+                }
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging || activeTool) return;
+            let rect = canvas.getBoundingClientRect();
+            let scaleX = canvas.width / rect.width;
+            let scaleY = canvas.height / rect.height;
+            let x = (e.clientX - rect.left) * scaleX;
+            let y = (e.clientY - rect.top) * scaleY;
+
+            let cell = getCellIndices(x, y);
+            if (cell) {
+                checkPath(cell.r, cell.c);
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDragging && !activeTool) {
+                finishDrag();
+            }
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (moves <= 0) return;
+            e.preventDefault();
+            let rect = canvas.getBoundingClientRect();
+            let scaleX = canvas.width / rect.width;
+            let scaleY = canvas.height / rect.height;
+            let x = (e.touches[0].clientX - rect.left) * scaleX;
+            let y = (e.touches[0].clientY - rect.top) * scaleY;
+
+            let cell = getCellIndices(x, y);
+            if (cell) {
+                if (activeTool) {
+                    handleToolUse(cell.r, cell.c);
+                } else {
+                    isDragging = true;
+                    checkPath(cell.r, cell.c);
+                }
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDragging || activeTool) return;
+            e.preventDefault();
+            let rect = canvas.getBoundingClientRect();
+            let scaleX = canvas.width / rect.width;
+            let scaleY = canvas.height / rect.height;
+            let x = (e.touches[0].clientX - rect.left) * scaleX;
+            let y = (e.touches[0].clientY - rect.top) * scaleY;
+
+            let cell = getCellIndices(x, y);
+            if (cell) {
+                checkPath(cell.r, cell.c);
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchend', () => {
+            if (isDragging && !activeTool) {
+                finishDrag();
+            }
+        });
+
+        function handleToolUse(r, c) {
+            const tool = tools.find(t => t.id === activeTool);
+            if (!tool || moves < tool.cost) return;
+
+            if (activeTool === 'swap') {
+                if (!swapFirstCell) {
+                    swapFirstCell = { r, c };
+                    grid[r][c].selected = true;
+                } else {
+                    // Check if adjacent
+                    if (areAdjacent(swapFirstCell, { r, c })) {
+                        // Swap
+                        let temp = grid[swapFirstCell.r][swapFirstCell.c].letter;
+                        grid[swapFirstCell.r][swapFirstCell.c].letter = grid[r][c].letter;
+                        grid[r][c].letter = temp;
+
+                        grid[swapFirstCell.r][swapFirstCell.c].selected = false;
+
+                        // Deduct move
+                        moves -= tool.cost;
+                        movesEl.innerText = moves;
+
+                        // Reset tool
+                        activeTool = null;
+                        swapFirstCell = null;
+                        updateToolsUI();
+                    } else {
+                        // Not adjacent, switch selection
+                        grid[swapFirstCell.r][swapFirstCell.c].selected = false;
+                        swapFirstCell = { r, c };
+                        grid[r][c].selected = true;
+                    }
+                }
+            } else if (activeTool === 'row') {
+                for (let i = 0; i < COLS; i++) {
+                    let cell = grid[r][i];
+                    createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
+                    cell.removing = true;
+                }
+                score += COLS * 5;
+                scoreEl.innerText = score;
+                moves -= tool.cost;
+                movesEl.innerText = moves;
+                activeTool = null;
+                updateToolsUI();
+                setTimeout(applyGravity, 300);
+            } else if (activeTool === 'col') {
+                for (let i = 0; i < ROWS; i++) {
+                    let cell = grid[i][c];
+                    createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
+                    cell.removing = true;
+                }
+                score += ROWS * 5;
+                scoreEl.innerText = score;
+                moves -= tool.cost;
+                movesEl.innerText = moves;
+                activeTool = null;
+                updateToolsUI();
+                setTimeout(applyGravity, 300);
+            } else if (activeTool === 'cell') {
+                let cell = grid[r][c];
+                createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
+                cell.removing = true;
+                score += 5;
+                scoreEl.innerText = score;
+                moves -= tool.cost;
+                movesEl.innerText = moves;
+                activeTool = null;
+                updateToolsUI();
+                setTimeout(applyGravity, 300);
+            }
+
+            if (moves <= 0) {
+                setTimeout(() => {
+                    shuffleBtn.disabled = true;
+                    updateToolsUI();
+                    alert('Oyun Bitti! Skorunuz: ' + score + '\nYeniden başlamak için sayfayı yenileyin.');
+                }, 500);
+            }
+        }
+
+
+        function finishDrag() {
+            isDragging = false;
+
+            let word = selectedPath.map(p => grid[p.r][p.c].letter).join('');
+            const isValidInDict = typeof WORD_SET !== 'undefined' && WORD_SET.has(word);
+            const isValidLength = word.length >= 3;
+
+            // Sözlükte varsa tam puan, sözlükte yok ama en az 3 harfliyse düşük puan (teselli)
+            // (Ayrıca test için kelimenin kendisinin console üzerinde görülmesi faydalı olabilir)
+            console.log("Girilen kelime:", word, "Sözlükte var mı:", isValidInDict);
+
+            if (isValidLength) {
+                // Valid word matched
+                let wordLength = selectedPath.length;
+
+                // Kayıt altına al (stats için)
+                if (isValidInDict) {
+                    addWordStat(wordLength);
+                }
+
+                // Calculate points: Normal puan veya Teselli Puanı
+                let points = 0;
+                if (isValidInDict) {
+                    points = wordLength * 10 + (wordLength - 3) * 15; // Yüksek puan
+                } else {
+                    points = wordLength * 2; // Düşük puan
+                }
+
+                score += points;
+                scoreEl.innerText = score;
+
+                // Use move (Eğer kelime bulunursa hamle azalmasın veya sadece sözlükteki kelimelere hamle iadesi mi yapalım?
+                // Daha kolay olması için her başarılı eşleştirmede hamle harcıyoruz ama puan artıyor)
+                moves--;
+                movesEl.innerText = moves;
+
+                // Trigger explosion
+                selectedPath.forEach(p => {
+                    let cell = grid[p.r][p.c];
+                    createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
+                    cell.removing = true;
+                });
+
+                // Check level up (e.g. 300 pts per level)
+                if (score >= level * 300) {
+                    level++;
+                    levelEl.innerText = level;
+                    moves += 5; // bonus moves for leveling up
+                    movesEl.innerText = moves;
+                }
+
+                // Let the removal animation play, then apply gravity
+                setTimeout(applyGravity, 300);
+
+            } else {
+                // Invalid - just deselect
+                selectedPath.forEach(p => {
+                    grid[p.r][p.c].selected = false;
+                });
+            }
+
+            selectedPath = [];
+
+            // Check Game Over
+            if (moves <= 0) {
+                setTimeout(() => {
+                    shuffleBtn.disabled = true;
+                    alert('Oyun Bitti! Skorunuz: ' + score + '\nYeniden başlamak için sayfayı yenileyin.');
+                }, 500);
+            }
+        }
+
+        function applyGravity() {
+            for (let c = 0; c < COLS; c++) {
+                let writeR = ROWS - 1;
+                let empties = 0;
+
+                // Shift blocks down
+                for (let r = ROWS - 1; r >= 0; r--) {
+                    let cell = grid[r][c];
+                    if (!cell.removing) {
+                        if (writeR !== r) {
+                            grid[writeR][c] = cell;
+                            cell.r = writeR;
+                            cell.targetY = WORD_AREA_HEIGHT + writeR * CELL_SIZE;
+                        }
+                        writeR--;
+                    } else {
+                        empties++;
+                    }
+                }
+
+                // Fill top with new blocks
+                for (let i = 0; i < empties; i++) {
+                    let newCell = new Cell(writeR, c, getRandomLetter());
+                    // spawn way up
+                    newCell.y = WORD_AREA_HEIGHT - (empties - i) * CELL_SIZE - Math.random() * 100;
+                    grid[writeR][c] = newCell;
+                    writeR--;
+                }
+            }
+        }
+
+        function updateStatsUI() {
+            const container = document.getElementById('word-stats-container');
+            container.innerHTML = '';
+
+            let hasStats = false;
+            // Sort lengths
+            const lengths = Object.keys(wordStats).sort((a, b) => parseInt(b) - parseInt(a));
+
+            lengths.forEach(len => {
+                hasStats = true;
+                const row = document.createElement('div');
+                row.className = 'stat-row';
+                row.innerHTML = `<span>${len} Harf</span><span>${wordStats[len]} Adet</span>`;
+                container.appendChild(row);
+            });
+
+            if (!hasStats) {
+                const row = document.createElement('div');
+                row.className = 'stat-row';
+                row.innerHTML = `<span>Henüz kelime bulunmadı</span>`;
+                container.appendChild(row);
+            }
+        }
+
+        function addWordStat(length) {
+            if (wordStats[length]) {
+                wordStats[length]++;
+            } else {
+                wordStats[length] = 1;
+            }
+            updateStatsUI();
+        }
+
+        // --- TOOLS LOGIC ---
+        const toolSwap = document.getElementById('tool-swap');
+        const toolRow = document.getElementById('tool-row');
+        const toolCol = document.getElementById('tool-col');
+        const toolCell = document.getElementById('tool-cell');
+
+        const tools = [
+            { id: 'swap', el: toolSwap, cost: 1 },
+            { id: 'row', el: toolRow, cost: 2 },
+            { id: 'col', el: toolCol, cost: 2 },
+            { id: 'cell', el: toolCell, cost: 1 }
+        ];
+
+        tools.forEach(tool => {
+            tool.el.addEventListener('click', () => {
+                if (moves < tool.cost) {
+                    alert(`Bu araç için ${tool.cost} hamle gerekli!`);
+                    return;
+                }
+
+                // If same tool clicked, deselect
+                if (activeTool === tool.id) {
+                    activeTool = null;
+                    swapFirstCell = null;
+                    updateToolsUI();
+                    return;
+                }
+
+                // Select tool
+                activeTool = tool.id;
+                swapFirstCell = null;
+
+                // Clear any ongoing drag or selection
+                isDragging = false;
+                selectedPath.forEach(p => {
+                    if (grid[p.r] && grid[p.r][p.c]) {
+                        grid[p.r][p.c].selected = false;
+                    }
+                });
+                selectedPath = [];
+
+                updateToolsUI();
+            });
+        });
+
+        function updateToolsUI() {
+            tools.forEach(tool => {
+                tool.el.classList.remove('active');
+                if (moves < tool.cost) {
+                    tool.el.classList.add('disabled');
+                } else {
+                    tool.el.classList.remove('disabled');
+                }
+
+                if (activeTool === tool.id) {
+                    tool.el.classList.add('active');
+                }
+            });
+        }
+
+        shuffleBtn.addEventListener('click', () => {
+            if (activeTool) return; // Prevent shuffle while using tool
+
+            if (moves > 0) {
+                moves--;
+                movesEl.innerText = moves;
+                initGrid();
+                updateToolsUI();
+
+                if (moves <= 0) {
+                    setTimeout(() => {
+                        shuffleBtn.disabled = true;
+                        alert('Oyun Bitti! Skorunuz: ' + score + '\nYeniden başlamak için sayfayı yenileyin.');
+                    }, 500);
+                }
+            }
+        });
+
+        // Initialize map
+        initGrid();
+        updateToolsUI();
+        requestAnimationFrame(draw);
+    </script>
+
+</body>
+
+</html>
