@@ -571,6 +571,11 @@
                 else btn.classList.remove('active');
             });
 
+            // Update grid dimensions BEFORE calculations
+            ROWS = DIFFICULTY_SETTINGS[diff].rows;
+            COLS = DIFFICULTY_SETTINGS[diff].cols;
+            CELL_SIZE = GRID_SIZE / COLS;
+
             // Update game params
             moves = DIFFICULTY_SETTINGS[diff].moves;
             movesEl.innerText = moves;
@@ -596,10 +601,21 @@
 
         // Letter weights based on difficulty
         const baseLetterWeights = {
-            'A': 25, 'E': 22, 'İ': 18, 'I': 12, 'O': 10, 'Ö': 8, 'U': 10, 'Ü': 8, // Sesliler
-            'K': 12, 'L': 12, 'M': 10, 'N': 12, 'R': 12, 'S': 10, 'T': 10, 'Y': 10, // Sık kullanılan sessizler
-            'B': 6, 'C': 5, 'Ç': 5, 'D': 8, 'G': 5, 'Ğ': 3, 'H': 5, 'P': 5, 'Ş': 5, 'V': 4, 'Z': 5, // Orta
-            'F': 2, 'J': 1 // Nadir
+            'A': 25, 'E': 22, 'İ': 18, 'I': 12, 'O': 10, 'Ö': 8, 'U': 10, 'Ü': 8,
+            'K': 12, 'L': 12, 'M': 10, 'N': 12, 'R': 12, 'S': 10, 'T': 10, 'Y': 10,
+            'B': 6, 'C': 5, 'Ç': 5, 'D': 8, 'G': 5, 'Ğ': 3, 'H': 5, 'P': 5, 'Ş': 5, 'V': 4, 'Z': 5,
+            'F': 2, 'J': 1
+        };
+
+        const LETTER_POINTS = {
+            'A': 1, 'E': 1, 'İ': 1, 'K': 1, 'L': 1, 'M': 1, 'N': 1, 'R': 1, 'S': 1, 'T': 1,
+            'B': 2, 'D': 2, 'O': 2, 'U': 2,
+            'G': 3, 'Ş': 3, 'Z': 3, 'I': 3,
+            'Ç': 4, 'P': 4, 'V': 4,
+            'Ö': 5, 'Ü': 5, 'H': 5,
+            'C': 7,
+            'F': 8,
+            'J': 10, 'Ğ': 10
         };
 
         const vowels = ['A', 'E', 'İ', 'I', 'O', 'Ö', 'U', 'Ü'];
@@ -760,7 +776,11 @@
 
                 this.x = c * CELL_SIZE;
                 this.targetY = WORD_AREA_HEIGHT + r * CELL_SIZE;
-                this.y = this.targetY - GRID_SIZE - Math.random() * 200; // spawn animation slightly above
+
+                // Spawn higher for grid init, lower for gravity refills
+                this.y = this.targetY - CELL_SIZE * 2;
+                this.vy = 0;
+                this.opacity = 0;
 
                 this.selected = false;
                 this.removing = false;
@@ -769,10 +789,20 @@
             }
 
             update() {
-                // Drop animation
+                // Drop animation with acceleration (Gravity)
                 if (this.y < this.targetY) {
-                    this.y += 15;
-                    if (this.y > this.targetY) this.y = this.targetY;
+                    this.vy += 0.8; // Acceleration
+                    this.y += this.vy;
+                    if (this.y >= this.targetY) {
+                        this.y = this.targetY;
+                        this.vy = 0;
+                    }
+                }
+
+                // Smooth Fade-in
+                if (this.opacity < 1) {
+                    this.opacity += 0.05;
+                    if (this.opacity > 1) this.opacity = 1;
                 }
 
                 // Remove animation
@@ -788,6 +818,7 @@
 
             draw() {
                 ctx.save();
+                ctx.globalAlpha = this.opacity;
                 ctx.translate(this.x + CELL_SIZE / 2, this.y + CELL_SIZE / 2);
                 ctx.scale(this.scale, this.scale);
 
@@ -850,25 +881,34 @@
                 // Special Icon
                 if (this.type !== 'normal') {
                     ctx.fillStyle = 'white';
-                    ctx.font = 'bold 16px "Outfit", sans-serif';
+                    ctx.font = `bold ${Math.floor(CELL_SIZE * 0.2)}px "Outfit", sans-serif`;
                     let icon = '';
                     if (this.type === 'row_blast') icon = '↔️';
                     if (this.type === 'col_blast') icon = '↕️';
                     if (this.type === 'bomb') icon = '💣';
                     ctx.shadowBlur = 10;
                     ctx.shadowColor = 'white';
-                    ctx.fillText(icon, 0, -22);
+                    ctx.fillText(icon, 0, -CELL_SIZE * 0.3);
                     ctx.shadowBlur = 0;
                 }
 
                 // Text
                 ctx.fillStyle = COLOR_CELL_TEXT;
-                ctx.font = '800 36px "Outfit", sans-serif';
+                ctx.font = `800 ${Math.floor(CELL_SIZE * 0.55)}px "Outfit", sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.shadowBlur = 4;
                 ctx.shadowColor = 'rgba(0,0,0,0.3)';
-                ctx.fillText(this.letter, 0, (this.type === 'normal' ? 2 : 8));
+                ctx.fillText(this.letter, 0, (this.type === 'normal' ? 2 : CELL_SIZE * 0.1));
+
+                // Letter Point (Bottom Left)
+                if (this.scale > 0.8) {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.font = `bold ${Math.floor(CELL_SIZE * 0.18)}px "Outfit", sans-serif`;
+                    ctx.textAlign = 'left';
+                    const point = LETTER_POINTS[this.letter] || 1;
+                    ctx.fillText(point, -CELL_SIZE / 2 + 12, CELL_SIZE / 2 - 12);
+                }
 
                 ctx.restore();
             }
@@ -1282,11 +1322,21 @@
                 // Valid word matched
                 let wordLength = selectedPath.length;
 
+                // Harf puanlarını topla
+                let letterPointsSum = selectedPath.reduce((sum, p) => {
+                    return sum + (LETTER_POINTS[grid[p.r][p.c].letter] || 1);
+                }, 0);
+
+                // Uzunluk çarpanı (Multiplier)
+                let multiplier = 1;
+                if (wordLength === 4) multiplier = 1.5;
+                if (wordLength === 5) multiplier = 2;
+                if (wordLength >= 6) multiplier = 3;
+
+                let points = Math.floor(letterPointsSum * multiplier);
+
                 // Kayıt altına al (stats için)
                 addWordStat(wordLength);
-
-                // Calculate points
-                let points = wordLength * 10 + (wordLength - 3) * 15; // Yüksek puan
 
                 score += points;
                 scoreEl.innerText = score;
@@ -1393,8 +1443,8 @@
                 // Fill top with new blocks
                 for (let i = 0; i < empties; i++) {
                     let newCell = new Cell(writeR, c, getRandomLetter());
-                    // spawn way up
-                    newCell.y = WORD_AREA_HEIGHT - (empties - i) * CELL_SIZE - Math.random() * 100;
+                    // spawn just above its target to minimize wait
+                    newCell.y = WORD_AREA_HEIGHT + (writeR - 2) * CELL_SIZE;
                     grid[writeR][c] = newCell;
                     writeR--;
                 }
