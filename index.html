@@ -437,6 +437,8 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
     <script src="words.js"></script>
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -453,6 +455,13 @@
         let ROWS = 10;
         let COLS = 10;
         let CELL_SIZE = 60; // Default, will be recalculated
+
+        function gridShake(intensity = 5) {
+            gsap.fromTo(canvas,
+                { x: -intensity },
+                { x: intensity, duration: 0.05, repeat: 5, yoyo: true, onComplete: () => gsap.set(canvas, { x: 0 }) }
+            );
+        }
 
         // Difficulty Settings
         const DIFFICULTY_SETTINGS = {
@@ -484,23 +493,25 @@
 
         let currentDifficulty = localStorage.getItem('kelimeCrushDifficulty') || 'normal';
 
-        // Sound System
+        // Sound System (Howler.js)
         class SoundManager {
             constructor() {
-                this.ctx = null;
                 this.muted = localStorage.getItem('kelimeCrushMuted') === 'true';
+                this.sounds = {
+                    select: new Howl({ src: ['https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'], volume: 0.3 }),
+                    match: new Howl({ src: ['https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3'], volume: 0.5 }),
+                    blast: new Howl({ src: ['https://assets.mixkit.co/active_storage/sfx/2625/2625-preview.mp3'], volume: 0.6 }),
+                    levelup: new Howl({ src: ['https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'], volume: 0.7 }),
+                    error: new Howl({ src: ['https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3'], volume: 0.3 })
+                };
+                Howler.mute(this.muted);
                 this.updateUI();
-            }
-
-            init() {
-                if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                }
             }
 
             toggle() {
                 this.muted = !this.muted;
                 localStorage.setItem('kelimeCrushMuted', this.muted);
+                Howler.mute(this.muted);
                 this.updateUI();
             }
 
@@ -510,47 +521,14 @@
             }
 
             play(type) {
-                if (this.muted) return;
-                this.init();
-                if (this.ctx.state === 'suspended') this.ctx.resume();
-
-                switch (type) {
-                    case 'select': this.playSound(440, 0.1, 'sine', 0.05); break;
-                    case 'match': this.playSound(880, 0.3, 'triangle', 0.1, 1.5); break;
-                    case 'blast': this.playSound(150, 0.5, 'sawtooth', 0.2, 0.5); break;
-                    case 'levelup': this.playComplexSound([523, 659, 783, 1046], 0.5); break;
-                    case 'error': this.playSound(220, 0.2, 'square', 0.05); break;
+                if (this.sounds[type]) {
+                    this.sounds[type].play();
                 }
-            }
-
-            playSound(freq, duration, type, vol, slide = 1) {
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(freq * slide, this.ctx.currentTime + duration);
-
-                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
-
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-
-                osc.start();
-                osc.stop(this.ctx.currentTime + duration);
-            }
-
-            playComplexSound(notes, duration) {
-                notes.forEach((note, i) => {
-                    setTimeout(() => this.playSound(note, duration / notes.length, 'sine', 0.1), i * 100);
-                });
             }
         }
 
         const soundManager = new SoundManager();
         soundToggle.addEventListener('click', () => {
-            soundManager.init(); // Init on first user interaction
             soundManager.toggle();
         });
 
@@ -772,47 +750,39 @@
                 this.r = r;
                 this.c = c;
                 this.letter = letter;
-                this.type = type; // 'normal', 'row_blast', 'col_blast', 'bomb'
+                this.type = type;
 
                 this.x = c * CELL_SIZE;
                 this.targetY = WORD_AREA_HEIGHT + r * CELL_SIZE;
 
-                // Spawn higher for grid init, lower for gravity refills
+                // GSAP targets these properties
                 this.y = this.targetY - CELL_SIZE * 2;
-                this.vy = 0;
                 this.opacity = 0;
-
+                this.scale = 0;
                 this.selected = false;
                 this.removing = false;
-                this.scale = 1;
                 this.pulse = 0;
+
+                // Initial spawn animation
+                gsap.to(this, {
+                    y: this.targetY,
+                    opacity: 1,
+                    scale: 1,
+                    duration: 0.6,
+                    ease: "back.out(1.7)"
+                });
             }
 
             update() {
-                // Drop animation with acceleration (Gravity)
-                if (this.y < this.targetY) {
-                    this.vy += 0.8; // Acceleration
-                    this.y += this.vy;
-                    if (this.y >= this.targetY) {
-                        this.y = this.targetY;
-                        this.vy = 0;
+                // GSAP handles the property updates now
+                // Manual updates only for temporary selection scale
+                if (!this.removing) {
+                    if (this.selected) {
+                        this.scale = 0.9;
+                    } else {
+                        // Let GSAP return to 1 if not selected, unless already 1
+                        if (this.scale < 1 && !gsap.isTweening(this)) this.scale = 1;
                     }
-                }
-
-                // Smooth Fade-in
-                if (this.opacity < 1) {
-                    this.opacity += 0.05;
-                    if (this.opacity > 1) this.opacity = 1;
-                }
-
-                // Remove animation
-                if (this.removing) {
-                    this.scale -= 0.15;
-                    if (this.scale <= 0) this.scale = 0;
-                } else if (this.selected) {
-                    this.scale = 0.9; // shrink slightly when selected
-                } else {
-                    this.scale = 1;
                 }
             }
 
@@ -925,31 +895,34 @@
         }
 
         function createParticles(x, y, color = '#38bdf8') {
-            for (let i = 0; i < 20; i++) {
-                particles.push({
+            for (let i = 0; i < 15; i++) {
+                const p = {
                     x: x,
                     y: y,
-                    vx: (Math.random() - 0.5) * 12,
-                    vy: (Math.random() - 0.5) * 12,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
                     life: 1,
-                    decay: Math.random() * 0.03 + 0.015,
-                    size: Math.random() * 8 + 3,
+                    size: Math.random() * 6 + 2,
                     color: color
+                };
+                particles.push(p);
+
+                gsap.to(p, {
+                    x: p.x + p.vx * 15,
+                    y: p.y + p.vy * 15 + 30, // add some gravity look
+                    life: 0,
+                    duration: 0.8,
+                    ease: "power2.out",
+                    onComplete: () => {
+                        const idx = particles.indexOf(p);
+                        if (idx > -1) particles.splice(idx, 1);
+                    }
                 });
             }
         }
 
         function updateParticles() {
-            for (let i = particles.length - 1; i >= 0; i--) {
-                let p = particles[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.2; // gravity
-                p.life -= p.decay;
-                if (p.life <= 0) {
-                    particles.splice(i, 1);
-                }
-            }
+            // GSAP handles individual particle properties
         }
 
         function drawParticles() {
@@ -983,13 +956,24 @@
         }
 
         function createFloatingText(x, y, text, color = '#38bdf8') {
-            floatingTexts.push({
+            const ft = {
                 x: x,
                 y: y,
                 text: text,
                 color: color,
-                opacity: 1,
-                life: 60
+                opacity: 1
+            };
+            floatingTexts.push(ft);
+
+            gsap.to(ft, {
+                y: y - 80,
+                opacity: 0,
+                duration: 1.2,
+                ease: "power2.out",
+                onComplete: () => {
+                    const idx = floatingTexts.indexOf(ft);
+                    if (idx > -1) floatingTexts.splice(idx, 1);
+                }
             });
         }
 
@@ -998,22 +982,12 @@
             ctx.font = 'bold 28px "Outfit", sans-serif';
             ctx.textAlign = 'center';
 
-            for (let i = floatingTexts.length - 1; i >= 0; i--) {
-                let ft = floatingTexts[i];
+            for (let ft of floatingTexts) {
                 ctx.globalAlpha = ft.opacity;
                 ctx.fillStyle = ft.color;
-
-                // Glow effect for numbers
                 ctx.shadowBlur = 10;
                 ctx.shadowColor = ft.color;
-
                 ctx.fillText(ft.text, ft.x, ft.y);
-
-                ft.y -= 1.5;
-                ft.opacity -= 1 / ft.life;
-                if (ft.opacity <= 0) {
-                    floatingTexts.splice(i, 1);
-                }
             }
             ctx.restore();
         }
@@ -1341,14 +1315,16 @@
                 score += points;
                 scoreEl.innerText = score;
 
-                // Show floating score
-                let lastCell = grid[selectedPath[selectedPath.length - 1].r][selectedPath[selectedPath.length - 1].c];
-                createFloatingText(lastCell.x + CELL_SIZE / 2, lastCell.y + CELL_SIZE / 2, `+${points}`, '#38bdf8');
-
-                // Use move (Eğer kelime bulunursa hamle azalmasın veya sadece sözlükteki kelimelere hamle iadesi mi yapalım?
-                // Daha kolay olması için her başarılı eşleştirmede hamle harcıyoruz ama puan artıyor)
-                moves--;
-                movesEl.innerText = moves;
+                function removeCellWithAnim(cell) {
+                    if (cell.removing) return;
+                    cell.removing = true;
+                    gsap.to(cell, {
+                        scale: 0,
+                        opacity: 0,
+                        duration: 0.3,
+                        ease: "power2.in"
+                    });
+                }
 
                 // Trigger explosion and handle special cells
                 selectedPath.forEach((p, index) => {
@@ -1358,22 +1334,24 @@
                     if (index === 0) { // Place special cell at the first selected position
                         if (wordLength === 4) {
                             cell.type = Math.random() > 0.5 ? 'row_blast' : 'col_blast';
-                            cell.removing = false; // Don't remove this one, it becomes special
+                            cell.removing = false;
                             cell.selected = false;
+                            gsap.from(cell, { scale: 1.5, duration: 0.4, ease: "elastic.out(1, 0.3)" });
                         } else if (wordLength >= 5) {
                             cell.type = 'bomb';
                             cell.removing = false;
                             cell.selected = false;
+                            gsap.from(cell, { scale: 1.8, duration: 0.5, ease: "elastic.out(1, 0.3)" });
                         } else {
                             createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
-                            cell.removing = true;
+                            removeCellWithAnim(cell);
                         }
                     } else {
                         if (cell.type !== 'normal') {
                             triggerSpecialCell(cell.r, cell.c, cell.type);
                         }
                         createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
-                        cell.removing = true;
+                        removeCellWithAnim(cell);
                     }
                 });
 
@@ -1432,7 +1410,14 @@
                         if (writeR !== r) {
                             grid[writeR][c] = cell;
                             cell.r = writeR;
-                            cell.targetY = WORD_AREA_HEIGHT + writeR * CELL_SIZE;
+                            const newTargetY = WORD_AREA_HEIGHT + writeR * CELL_SIZE;
+                            cell.targetY = newTargetY;
+
+                            gsap.to(cell, {
+                                y: newTargetY,
+                                duration: 0.5,
+                                ease: "bounce.out"
+                            });
                         }
                         writeR--;
                     } else {
@@ -1443,7 +1428,6 @@
                 // Fill top with new blocks
                 for (let i = 0; i < empties; i++) {
                     let newCell = new Cell(writeR, c, getRandomLetter());
-                    // spawn just above its target to minimize wait
                     newCell.y = WORD_AREA_HEIGHT + (writeR - 2) * CELL_SIZE;
                     grid[writeR][c] = newCell;
                     writeR--;
@@ -1499,14 +1483,32 @@
             { id: 'cell', el: toolCell, count: 3, label: 'Hücre Patlat' }
         ];
 
+        function gridShake(intensity = 5) {
+            gsap.fromTo(canvas,
+                { x: -intensity },
+                { x: intensity, duration: 0.05, repeat: 5, yoyo: true, onComplete: () => gsap.set(canvas, { x: 0 }) }
+            );
+        }
+
         function triggerSpecialCell(r, c, type) {
             soundManager.play('blast');
+            gridShake(type === 'bomb' ? 10 : 5);
+
             if (type === 'row_blast') {
                 for (let i = 0; i < COLS; i++) {
                     let cell = grid[r][i];
                     if (cell && !cell.removing) {
                         createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
-                        cell.removing = true;
+
+                        // GSAP remove anim
+                        gsap.to(cell, {
+                            scale: 0,
+                            opacity: 0,
+                            duration: 0.3,
+                            ease: "power2.in",
+                            onStart: () => cell.removing = true
+                        });
+
                         if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
                     }
                 }
@@ -1515,20 +1517,30 @@
                     let cell = grid[i][c];
                     if (cell && !cell.removing) {
                         createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
-                        cell.removing = true;
+                        gsap.to(cell, {
+                            scale: 0,
+                            opacity: 0,
+                            duration: 0.3,
+                            ease: "power2.in",
+                            onStart: () => cell.removing = true
+                        });
                         if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
                     }
                 }
             } else if (type === 'bomb') {
-                for (let dr = -1; dr <= 1; dr++) {
-                    for (let dc = -1; dc <= 1; dc++) {
-                        let nr = r + dr;
-                        let nc = c + dc;
-                        if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
-                            let cell = grid[nr][nc];
+                for (let r2 = r - 1; r2 <= r + 1; r2++) {
+                    for (let c2 = c - 1; c2 <= c + 1; c2++) {
+                        if (r2 >= 0 && r2 < ROWS && c2 >= 0 && c2 < COLS) {
+                            let cell = grid[r2][c2];
                             if (cell && !cell.removing) {
-                                createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
-                                cell.removing = true;
+                                createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, '#a855f7');
+                                gsap.to(cell, {
+                                    scale: 0,
+                                    opacity: 0,
+                                    duration: 0.4,
+                                    ease: "back.in(1.7)",
+                                    onStart: () => cell.removing = true
+                                });
                                 if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
                             }
                         }
