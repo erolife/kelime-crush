@@ -19,12 +19,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
             font-family: 'Outfit', sans-serif;
             color: #f1f5f9;
-            overflow: hidden;
+            overflow-x: hidden;
             user-select: none;
+            padding: 20px 0;
         }
 
         #bg-glow {
@@ -43,6 +44,9 @@
             display: flex;
             gap: 20px;
             align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 100%;
         }
 
         #game-container {
@@ -52,10 +56,11 @@
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            padding: 25px;
+            padding: 15px;
             border-radius: 24px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            max-width: 100%;
         }
 
         #side-panel {
@@ -68,8 +73,8 @@
             border-radius: 24px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            width: 260px;
-            height: 810px;
+            width: 280px;
+            min-height: 810px;
         }
 
         .tool-btn {
@@ -150,12 +155,15 @@
         #top-bar {
             display: flex;
             justify-content: space-between;
-            width: 650px;
+            width: 100%;
+            max-width: 600px;
             margin-bottom: 20px;
             font-size: 18px;
             font-weight: 600;
             padding: 0 10px;
             color: #cbd5e1;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .stat {
@@ -197,11 +205,14 @@
             cursor: pointer;
             box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.5);
             touch-action: none;
+            max-width: 100%;
+            height: auto !important;
         }
 
         #bottom-bar {
             margin-top: 25px;
-            width: 600px;
+            width: 100%;
+            max-width: 600px;
             display: flex;
             justify-content: center;
         }
@@ -368,6 +379,63 @@
 
         #tool-cell:hover {
             background-color: #c084fc;
+        }
+
+        @media (max-width: 1024px) {
+            #main-wrapper {
+                flex-direction: column;
+                align-items: center;
+                padding-bottom: 50px;
+            }
+
+            #side-panel {
+                width: 100%;
+                max-width: 600px;
+                min-height: auto;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                height: auto;
+            }
+
+            #side-panel>* {
+                flex: 1 1 200px;
+            }
+
+            #stats-panel {
+                width: 100%;
+                order: 10;
+            }
+
+            #sound-toggle,
+            #difficulty-selector {
+                flex: 1 1 45%;
+            }
+        }
+
+        @media (max-width: 650px) {
+            #top-bar {
+                justify-content: center;
+            }
+
+            .stat {
+                min-width: calc(50% - 10px);
+                flex: 1;
+            }
+
+            #side-panel {
+                padding: 15px;
+            }
+
+            .tool-btn {
+                padding: 10px;
+                font-size: 13px;
+                flex: 1 1 45%;
+            }
+
+            #game-container {
+                padding: 10px;
+            }
         }
     </style>
 </head>
@@ -1023,7 +1091,7 @@
                 ctx.font = '24px "Segoe UI", sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText("Harfleri birbirine bağla", canvas.width / 2, 50);
+                ctx.fillText("En az 3 harften oluşan bir kelime oluştur", canvas.width / 2, 50);
             }
         }
 
@@ -1215,9 +1283,17 @@
             } else if (activeTool === 'row') {
                 for (let i = 0; i < COLS; i++) {
                     let cell = grid[r][i];
-                    if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
-                    createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
-                    cell.removing = true;
+                    if (cell && !cell.removing) {
+                        cell.removing = true;
+                        if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
+                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 10);
+                        gsap.to(cell, {
+                            scale: 0,
+                            opacity: 0,
+                            duration: 0.3,
+                            ease: "power2.in"
+                        });
+                    }
                 }
                 score += COLS * 5;
                 scoreEl.innerText = score;
@@ -1228,9 +1304,17 @@
             } else if (activeTool === 'col') {
                 for (let i = 0; i < ROWS; i++) {
                     let cell = grid[i][c];
-                    if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
-                    createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
-                    cell.removing = true;
+                    if (cell && !cell.removing) {
+                        cell.removing = true;
+                        if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
+                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 10);
+                        gsap.to(cell, {
+                            scale: 0,
+                            opacity: 0,
+                            duration: 0.3,
+                            ease: "power2.in"
+                        });
+                    }
                 }
                 score += ROWS * 5;
                 scoreEl.innerText = score;
@@ -1240,9 +1324,17 @@
                 setTimeout(applyGravity, 300);
             } else if (activeTool === 'cell') {
                 let cell = grid[r][c];
-                if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
-                createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
-                cell.removing = true;
+                if (cell && !cell.removing) {
+                    cell.removing = true;
+                    if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
+                    createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 15);
+                    gsap.to(cell, {
+                        scale: 0,
+                        opacity: 0,
+                        duration: 0.3,
+                        ease: "power2.in"
+                    });
+                }
                 score += 5;
                 scoreEl.innerText = score;
                 tool.count--;
@@ -1491,6 +1583,9 @@
         }
 
         function triggerSpecialCell(r, c, type) {
+            let coreCell = grid[r][c];
+            if (!coreCell || coreCell.removing) return;
+
             soundManager.play('blast');
             gridShake(type === 'bomb' ? 10 : 5);
 
@@ -1498,15 +1593,14 @@
                 for (let i = 0; i < COLS; i++) {
                     let cell = grid[r][i];
                     if (cell && !cell.removing) {
-                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
+                        cell.removing = true;
+                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 5); // Optimized particle count
 
-                        // GSAP remove anim
                         gsap.to(cell, {
                             scale: 0,
                             opacity: 0,
                             duration: 0.3,
-                            ease: "power2.in",
-                            onStart: () => cell.removing = true
+                            ease: "power2.in"
                         });
 
                         if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
@@ -1516,13 +1610,14 @@
                 for (let i = 0; i < ROWS; i++) {
                     let cell = grid[i][c];
                     if (cell && !cell.removing) {
-                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
+                        cell.removing = true;
+                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, null, 5);
+
                         gsap.to(cell, {
                             scale: 0,
                             opacity: 0,
                             duration: 0.3,
-                            ease: "power2.in",
-                            onStart: () => cell.removing = true
+                            ease: "power2.in"
                         });
                         if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
                     }
@@ -1533,13 +1628,13 @@
                         if (r2 >= 0 && r2 < ROWS && c2 >= 0 && c2 < COLS) {
                             let cell = grid[r2][c2];
                             if (cell && !cell.removing) {
-                                createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, '#a855f7');
+                                cell.removing = true;
+                                createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2, '#a855f7', 8);
                                 gsap.to(cell, {
                                     scale: 0,
                                     opacity: 0,
                                     duration: 0.4,
-                                    ease: "back.in(1.7)",
-                                    onStart: () => cell.removing = true
+                                    ease: "back.in(1.7)"
                                 });
                                 if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
                             }
