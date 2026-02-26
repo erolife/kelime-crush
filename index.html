@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kelime Crush</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -17,11 +20,23 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #0f172a;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            font-family: 'Outfit', sans-serif;
             color: #f1f5f9;
             overflow: hidden;
             user-select: none;
+        }
+
+        #bg-glow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            z-index: -1;
+            pointer-events: none;
         }
 
         #main-wrapper {
@@ -34,23 +49,27 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #1e293b;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 25px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
         }
 
         #side-panel {
             display: flex;
             flex-direction: column;
             gap: 15px;
-            background-color: #1e293b;
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
             padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-            width: 250px;
-            height: 785px;
-            /* to match game container approximately */
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            width: 260px;
+            height: 810px;
         }
 
         .tool-btn {
@@ -131,29 +150,45 @@
         #top-bar {
             display: flex;
             justify-content: space-between;
-            width: 600px;
+            width: 650px;
             margin-bottom: 20px;
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 600;
             padding: 0 10px;
             color: #cbd5e1;
         }
 
         .stat {
-            background-color: #334155;
-            padding: 8px 16px;
-            border-radius: 8px;
-            min-width: 140px;
+            background: rgba(15, 23, 42, 0.5);
+            padding: 10px 15px;
+            border-radius: 12px;
+            min-width: 120px;
             text-align: center;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .stat:hover {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: rgba(56, 189, 248, 0.3);
         }
 
         .stat span {
             color: #38bdf8;
-            font-weight: bold;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+            font-weight: 800;
             display: block;
             margin-top: 4px;
-            font-size: 24px;
+            font-size: 22px;
+        }
+
+        .stat small {
+            font-size: 11px;
+            color: #94a3b8;
+            display: block;
+            margin-top: 2px;
+            font-weight: 400;
         }
 
         canvas {
@@ -197,9 +232,142 @@
 
         button.shuffle-btn:disabled {
             background-color: #475569;
-            box-shadow: 0 4px 0 #334155;
+            box-shadow: none;
             cursor: not-allowed;
             transform: none;
+            opacity: 0.5;
+        }
+
+        #sound-toggle {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            padding: 10px;
+            border-radius: 12px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: none;
+            margin-bottom: 15px;
+        }
+
+        #sound-toggle:hover {
+            background: rgba(15, 23, 42, 0.8);
+            color: #f1f5f9;
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+
+        #sound-toggle.muted .on {
+            display: none;
+        }
+
+        #sound-toggle:not(.muted) .off {
+            display: none;
+        }
+
+        #difficulty-selector {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+
+        .diff-label {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .diff-buttons {
+            display: flex;
+            gap: 5px;
+            justify-content: space-between;
+        }
+
+        .diff-btn {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            padding: 8px 5px;
+            border-radius: 8px;
+            flex: 1;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: none;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .diff-btn:hover:not(.active) {
+            background: rgba(30, 41, 59, 0.8);
+            color: #cbd5e1;
+        }
+
+        .diff-btn.active {
+            background: #0ea5e9;
+            color: white;
+            border-color: #38bdf8;
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
+        }
+
+        #diff-pro.active {
+            background: #ef4444;
+            border-color: #f87171;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+        }
+
+        #diff-easy.active {
+            background: #22c55e;
+            border-color: #4ade80;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+        }
+
+        /* Tool specific colors */
+        #tool-swap {
+            background-color: #6366f1;
+            box-shadow: 0 4px 0 #4338ca;
+        }
+
+        #tool-row {
+            background-color: #ef4444;
+            box-shadow: 0 4px 0 #b91c1c;
+        }
+
+        #tool-col {
+            background-color: #22c55e;
+            box-shadow: 0 4px 0 #15803d;
+        }
+
+        #tool-cell {
+            background-color: #a855f7;
+            box-shadow: 0 4px 0 #7e22ce;
+        }
+
+        #tool-swap:hover {
+            background-color: #818cf8;
+        }
+
+        #tool-row:hover {
+            background-color: #f87171;
+        }
+
+        #tool-col:hover {
+            background-color: #4ade80;
+        }
+
+        #tool-cell:hover {
+            background-color: #c084fc;
         }
     </style>
 </head>
@@ -209,6 +377,7 @@
     <div id="main-wrapper">
         <div id="game-container">
             <div id="top-bar">
+                <div class="stat">Enerji<span id="energy">5/5</span><small id="energy-timer">Full</small></div>
                 <div class="stat">Skor<span id="score">0</span></div>
                 <div class="stat">Seviye<span id="level">1</span></div>
                 <div class="stat">Hamle<span id="moves">20</span></div>
@@ -222,6 +391,20 @@
         </div>
 
         <div id="side-panel">
+            <div id="sound-toggle">
+                <span class="on">🔊 Ses Açık</span>
+                <span class="off">🔇 Ses Kapalı</span>
+            </div>
+
+            <div id="difficulty-selector">
+                <div class="diff-label">Zorluk Seviyesi</div>
+                <div class="diff-buttons">
+                    <button class="diff-btn" id="diff-easy" data-diff="easy">Kolay</button>
+                    <button class="diff-btn active" id="diff-normal" data-diff="normal">Zor</button>
+                    <button class="diff-btn" id="diff-pro" data-diff="pro">Profesör</button>
+                </div>
+            </div>
+
             <button class="tool-btn" id="tool-swap">
                 <span class="tool-icon">🔄</span>
                 <span>Yer Değiştir</span>
@@ -262,28 +445,198 @@
         const levelEl = document.getElementById('level');
         const movesEl = document.getElementById('moves');
         const shuffleBtn = document.getElementById('shuffle-btn');
+        const energyEl = document.getElementById('energy');
+        const energyTimerEl = document.getElementById('energy-timer');
+        const soundToggle = document.getElementById('sound-toggle');
+        const diffButtons = document.querySelectorAll('.diff-btn');
 
-        const ROWS = 10;
-        const COLS = 10;
+        let ROWS = 10;
+        let COLS = 10;
+        let CELL_SIZE = 60; // Default, will be recalculated
+
+        // Difficulty Settings
+        const DIFFICULTY_SETTINGS = {
+            easy: {
+                moves: 30,
+                scoreTarget: 200,
+                vowelBonus: 1.5,
+                rows: 12,
+                cols: 12,
+                label: 'Kolay'
+            },
+            normal: {
+                moves: 20,
+                scoreTarget: 300,
+                vowelBonus: 1.0,
+                rows: 10,
+                cols: 10,
+                label: 'Zor'
+            },
+            pro: {
+                moves: 15,
+                scoreTarget: 500,
+                vowelBonus: 0.7,
+                rows: 9,
+                cols: 9,
+                label: 'Profesör'
+            }
+        };
+
+        let currentDifficulty = localStorage.getItem('kelimeCrushDifficulty') || 'normal';
+
+        // Sound System
+        class SoundManager {
+            constructor() {
+                this.ctx = null;
+                this.muted = localStorage.getItem('kelimeCrushMuted') === 'true';
+                this.updateUI();
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            toggle() {
+                this.muted = !this.muted;
+                localStorage.setItem('kelimeCrushMuted', this.muted);
+                this.updateUI();
+            }
+
+            updateUI() {
+                if (this.muted) soundToggle.classList.add('muted');
+                else soundToggle.classList.remove('muted');
+            }
+
+            play(type) {
+                if (this.muted) return;
+                this.init();
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+
+                switch (type) {
+                    case 'select': this.playSound(440, 0.1, 'sine', 0.05); break;
+                    case 'match': this.playSound(880, 0.3, 'triangle', 0.1, 1.5); break;
+                    case 'blast': this.playSound(150, 0.5, 'sawtooth', 0.2, 0.5); break;
+                    case 'levelup': this.playComplexSound([523, 659, 783, 1046], 0.5); break;
+                    case 'error': this.playSound(220, 0.2, 'square', 0.05); break;
+                }
+            }
+
+            playSound(freq, duration, type, vol, slide = 1) {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(freq * slide, this.ctx.currentTime + duration);
+
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            }
+
+            playComplexSound(notes, duration) {
+                notes.forEach((note, i) => {
+                    setTimeout(() => this.playSound(note, duration / notes.length, 'sine', 0.1), i * 100);
+                });
+            }
+        }
+
+        const soundManager = new SoundManager();
+        soundToggle.addEventListener('click', () => {
+            soundManager.init(); // Init on first user interaction
+            soundManager.toggle();
+        });
+
+        // Difficulty Logic
+        function setDifficulty(diff) {
+            if (gameStarted && moves < DIFFICULTY_SETTINGS[currentDifficulty].moves) {
+                // Game already in progress with moves spent
+                console.log("Oyun sırasında zorluk değiştirilemez.");
+                return;
+            }
+
+            currentDifficulty = diff;
+            localStorage.setItem('kelimeCrushDifficulty', diff);
+
+            // Update UI
+            diffButtons.forEach(btn => {
+                if (btn.dataset.diff === diff) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            // Update game params
+            moves = DIFFICULTY_SETTINGS[diff].moves;
+            movesEl.innerText = moves;
+
+            // Rebuild letter pool
+            buildLetterPool();
+
+            // Reset grid if game hasn't really "started" (moves still at max)
+            if (!gameStarted || moves === DIFFICULTY_SETTINGS[diff].moves) {
+                initGrid();
+            }
+        }
+
+        diffButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (gameStarted && moves < DIFFICULTY_SETTINGS[currentDifficulty].moves) {
+                    alert("Devam eden bir oyun varken zorluk seviyesini değiştiremezsiniz.");
+                    return;
+                }
+                setDifficulty(btn.dataset.diff);
+            });
+        });
+
+        // Letter weights based on difficulty
+        const baseLetterWeights = {
+            'A': 25, 'E': 22, 'İ': 18, 'I': 12, 'O': 10, 'Ö': 8, 'U': 10, 'Ü': 8, // Sesliler
+            'K': 12, 'L': 12, 'M': 10, 'N': 12, 'R': 12, 'S': 10, 'T': 10, 'Y': 10, // Sık kullanılan sessizler
+            'B': 6, 'C': 5, 'Ç': 5, 'D': 8, 'G': 5, 'Ğ': 3, 'H': 5, 'P': 5, 'Ş': 5, 'V': 4, 'Z': 5, // Orta
+            'F': 2, 'J': 1 // Nadir
+        };
+
+        const vowels = ['A', 'E', 'İ', 'I', 'O', 'Ö', 'U', 'Ü'];
+        let weightedPool = [];
+
+        function buildLetterPool() {
+            weightedPool = [];
+            const settings = DIFFICULTY_SETTINGS[currentDifficulty];
+
+            for (let char in baseLetterWeights) {
+                let weight = baseLetterWeights[char];
+
+                // Adjust vowels based on difficulty
+                if (vowels.includes(char)) {
+                    weight = Math.round(weight * settings.vowelBonus);
+                } else if (settings.vowelBonus < 1.0) {
+                    // In Pro mode, increase rare letters slightly relative to vowels
+                    if (['F', 'J', 'Ğ', 'P', 'V'].includes(char)) weight += 2;
+                }
+
+                for (let i = 0; i < weight; i++) {
+                    weightedPool.push(char);
+                }
+            }
+        }
+
+        buildLetterPool();
+        const MAX_ENERGY = 5;
+        const ENERGY_REGEN_TIME = 20 * 60 * 1000; // 20 dakika
+        let energy = 5;
+        let lastEnergyTime = Date.now();
+        let gameStarted = false;
 
         // Canvas consists of a top area for the matching word and the grid
         const GRID_SIZE = 600;
         const WORD_AREA_HEIGHT = 100;
-        const CELL_SIZE = GRID_SIZE / COLS; // 75px
-
-        const letterWeights = {
-            'A': 25, 'E': 22, 'İ': 18, 'I': 12, 'O': 10, 'Ö': 8, 'U': 10, 'Ü': 8, // Sesliler (Vowels) çok artırıldı
-            'K': 12, 'L': 12, 'M': 10, 'N': 12, 'R': 12, 'S': 10, 'T': 10, 'Y': 10, // Sık kullanılan sessizler artırıldı
-            'B': 6, 'C': 5, 'Ç': 5, 'D': 8, 'G': 5, 'Ğ': 3, 'H': 5, 'P': 5, 'Ş': 5, 'V': 4, 'Z': 5, // Orta kullanılansessizler
-            'F': 2, 'J': 1 // Nadirler
-        };
-
-        let weightedPool = [];
-        for (let char in letterWeights) {
-            for (let i = 0; i < letterWeights[char]; i++) {
-                weightedPool.push(char);
-            }
-        }
+        CELL_SIZE = GRID_SIZE / COLS; // Recalculated by diff
 
         function getRandomLetter() {
             return weightedPool[Math.floor(Math.random() * weightedPool.length)];
@@ -292,7 +645,7 @@
         let grid = [];
         let score = 0;
         let level = 1;
-        let moves = 20;
+        let moves = DIFFICULTY_SETTINGS[currentDifficulty].moves;
 
         // Tools state
         let activeTool = null; // 'swap', 'row', 'col', 'cell'
@@ -304,20 +657,106 @@
         let isDragging = false;
         let selectedPath = []; // Array of objects {r, c}
         let particles = [];
+        let floatingTexts = [];
 
         // Colors
-        const COLOR_CELL_BG = '#334155';
-        const COLOR_CELL_BORDER = '#1e293b';
-        const COLOR_CELL_TEXT = '#f8fafc';
-        const COLOR_CELL_SELECTED = '#0ea5e9';
-        const COLOR_CELL_TOOL_SELECTED = '#f59e0b';
-        const COLOR_LINE = 'rgba(14, 165, 233, 0.4)';
+        const COLOR_CELL_BG = 'rgba(51, 65, 85, 0.8)';
+        const COLOR_CELL_BORDER = 'rgba(255, 255, 255, 0.1)';
+        const COLOR_CELL_TEXT = '#f1f5f9';
+        const COLOR_CELL_SELECTED = 'rgba(14, 165, 233, 0.6)';
+        const COLOR_CELL_TOOL_SELECTED = 'rgba(245, 158, 11, 0.6)';
+        const COLOR_LINE = 'rgba(56, 189, 248, 0.5)';
+
+        // Energy Functions
+        function loadEnergy() {
+            const savedEnergy = localStorage.getItem('kelimeCrushEnergy');
+            const savedTime = localStorage.getItem('kelimeCrushLastTime');
+
+            if (savedEnergy !== null) {
+                energy = parseInt(savedEnergy);
+                lastEnergyTime = parseInt(savedTime);
+                regenEnergy();
+            } else {
+                energy = MAX_ENERGY;
+                lastEnergyTime = Date.now();
+                saveEnergy();
+            }
+        }
+
+        function saveEnergy() {
+            localStorage.setItem('kelimeCrushEnergy', energy);
+            localStorage.setItem('kelimeCrushLastTime', lastEnergyTime);
+        }
+
+        function regenEnergy() {
+            if (energy >= MAX_ENERGY) {
+                lastEnergyTime = Date.now();
+                return;
+            }
+
+            const now = Date.now();
+            const elapsed = now - lastEnergyTime;
+            const regained = Math.floor(elapsed / ENERGY_REGEN_TIME);
+
+            if (regained > 0) {
+                energy = Math.min(MAX_ENERGY, energy + regained);
+                lastEnergyTime += regained * ENERGY_REGEN_TIME;
+                saveEnergy();
+            }
+        }
+
+        function updateEnergyUI() {
+            energyEl.innerText = `${energy}/${MAX_ENERGY}`;
+
+            if (energy >= MAX_ENERGY) {
+                energyTimerEl.innerText = 'Tam';
+            } else {
+                const nextRegen = lastEnergyTime + ENERGY_REGEN_TIME;
+                const remaining = nextRegen - Date.now();
+                if (remaining <= 0) {
+                    regenEnergy();
+                } else {
+                    const mins = Math.floor(remaining / 60000);
+                    const secs = Math.floor((remaining % 60000) / 1000);
+                    energyTimerEl.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                }
+            }
+        }
+
+        // Timer for energy regen UI
+        setInterval(() => {
+            updateEnergyUI();
+        }, 1000);
+
+        // Initialize energy
+        loadEnergy();
+
+        function tryStartGame() {
+            if (gameStarted) return true;
+            if (energy > 0) {
+                // If it was max energy, the timer starts now
+                if (energy === MAX_ENERGY) {
+                    lastEnergyTime = Date.now();
+                }
+                energy--;
+                saveEnergy();
+                gameStarted = true;
+                updateEnergyUI();
+                return true;
+            } else {
+                updateEnergyUI();
+                alert('Enerjiniz bitti! Yeni oyun hakkı için 20 dakika beklemeniz gerekiyor.');
+                return false;
+            }
+        }
+
 
         class Cell {
-            constructor(r, c, letter) {
+            constructor(r, c, letter, type = 'normal') {
                 this.r = r;
                 this.c = c;
                 this.letter = letter;
+                this.type = type; // 'normal', 'row_blast', 'col_blast', 'bomb'
 
                 this.x = c * CELL_SIZE;
                 this.targetY = WORD_AREA_HEIGHT + r * CELL_SIZE;
@@ -326,6 +765,7 @@
                 this.selected = false;
                 this.removing = false;
                 this.scale = 1;
+                this.pulse = 0;
             }
 
             update() {
@@ -351,32 +791,84 @@
                 ctx.translate(this.x + CELL_SIZE / 2, this.y + CELL_SIZE / 2);
                 ctx.scale(this.scale, this.scale);
 
-                // Block Background
-                if (activeTool && this.selected) {
-                    ctx.fillStyle = COLOR_CELL_TOOL_SELECTED;
-                } else {
-                    ctx.fillStyle = this.selected ? COLOR_CELL_SELECTED : COLOR_CELL_BG;
+                // Pulse effect for special cells
+                if (this.type !== 'normal') {
+                    this.pulse += 0.05;
+                    let pulseScale = 1 + Math.sin(this.pulse) * 0.05;
+                    ctx.scale(pulseScale, pulseScale);
                 }
+
+                // Shadow / Glow
+                ctx.shadowBlur = this.selected ? 20 : 10;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                if (this.selected) ctx.shadowColor = 'rgba(56, 189, 248, 0.8)';
+
+                // Background Gradient
+                let gradient = ctx.createLinearGradient(-CELL_SIZE / 2, -CELL_SIZE / 2, CELL_SIZE / 2, CELL_SIZE / 2);
+                if (activeTool && this.selected) {
+                    gradient.addColorStop(0, '#f59e0b');
+                    gradient.addColorStop(1, '#d97706');
+                } else if (this.type === 'row_blast') {
+                    gradient.addColorStop(0, '#ef4444');
+                    gradient.addColorStop(1, '#991b1b');
+                    ctx.shadowColor = 'rgba(239, 68, 68, 0.6)';
+                } else if (this.type === 'col_blast') {
+                    gradient.addColorStop(0, '#22c55e');
+                    gradient.addColorStop(1, '#166534');
+                    ctx.shadowColor = 'rgba(34, 197, 94, 0.6)';
+                } else if (this.type === 'bomb') {
+                    gradient.addColorStop(0, '#a855f7');
+                    gradient.addColorStop(1, '#6b21a8');
+                    ctx.shadowColor = 'rgba(168, 85, 247, 0.6)';
+                } else {
+                    if (this.selected) {
+                        gradient.addColorStop(0, '#0ea5e9');
+                        gradient.addColorStop(1, '#0284c7');
+                    } else {
+                        gradient.addColorStop(0, '#475569');
+                        gradient.addColorStop(1, '#1e293b');
+                    }
+                }
+
+                ctx.fillStyle = gradient;
                 ctx.beginPath();
-                ctx.roundRect(-CELL_SIZE / 2 + 4, -CELL_SIZE / 2 + 4, CELL_SIZE - 8, CELL_SIZE - 8, 12);
+                ctx.roundRect(-CELL_SIZE / 2 + 5, -CELL_SIZE / 2 + 5, CELL_SIZE - 10, CELL_SIZE - 10, 14);
                 ctx.fill();
 
-                // Inner styling / bevel
-                if (activeTool && this.selected) {
-                    ctx.fillStyle = '#d97706';
-                } else {
-                    ctx.fillStyle = this.selected ? '#0284c7' : '#475569';
-                }
+                // Highlight/Bevel
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Inner Shine
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
                 ctx.beginPath();
-                ctx.roundRect(-CELL_SIZE / 2 + 4, -CELL_SIZE / 2 + CELL_SIZE - 14, CELL_SIZE - 8, 6, [0, 0, 10, 10]);
+                ctx.roundRect(-CELL_SIZE / 2 + 8, -CELL_SIZE / 2 + 8, CELL_SIZE - 16, (CELL_SIZE - 16) / 2, [10, 10, 0, 0]);
                 ctx.fill();
+
+                // Special Icon
+                if (this.type !== 'normal') {
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 16px "Outfit", sans-serif';
+                    let icon = '';
+                    if (this.type === 'row_blast') icon = '↔️';
+                    if (this.type === 'col_blast') icon = '↕️';
+                    if (this.type === 'bomb') icon = '💣';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = 'white';
+                    ctx.fillText(icon, 0, -22);
+                    ctx.shadowBlur = 0;
+                }
 
                 // Text
                 ctx.fillStyle = COLOR_CELL_TEXT;
-                ctx.font = 'bold 32px "Segoe UI", Arial, sans-serif';
+                ctx.font = '800 36px "Outfit", sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(this.letter, 0, 2); // Slight offset downwards to center visually
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.fillText(this.letter, 0, (this.type === 'normal' ? 2 : 8));
 
                 ctx.restore();
             }
@@ -392,17 +884,17 @@
             }
         }
 
-        function createParticles(x, y) {
-            for (let i = 0; i < 15; i++) {
+        function createParticles(x, y, color = '#38bdf8') {
+            for (let i = 0; i < 20; i++) {
                 particles.push({
                     x: x,
                     y: y,
-                    vx: (Math.random() - 0.5) * 8,
-                    vy: (Math.random() - 0.5) * 8,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: (Math.random() - 0.5) * 12,
                     life: 1,
-                    decay: Math.random() * 0.05 + 0.02,
-                    size: Math.random() * 6 + 2,
-                    color: '#38bdf8'
+                    decay: Math.random() * 0.03 + 0.015,
+                    size: Math.random() * 8 + 3,
+                    color: color
                 });
             }
         }
@@ -448,6 +940,42 @@
                 }
                 ctx.stroke();
             }
+        }
+
+        function createFloatingText(x, y, text, color = '#38bdf8') {
+            floatingTexts.push({
+                x: x,
+                y: y,
+                text: text,
+                color: color,
+                opacity: 1,
+                life: 60
+            });
+        }
+
+        function drawFloatingTexts() {
+            ctx.save();
+            ctx.font = 'bold 28px "Outfit", sans-serif';
+            ctx.textAlign = 'center';
+
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                let ft = floatingTexts[i];
+                ctx.globalAlpha = ft.opacity;
+                ctx.fillStyle = ft.color;
+
+                // Glow effect for numbers
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = ft.color;
+
+                ctx.fillText(ft.text, ft.x, ft.y);
+
+                ft.y -= 1.5;
+                ft.opacity -= 1 / ft.life;
+                if (ft.opacity <= 0) {
+                    floatingTexts.splice(i, 1);
+                }
+            }
+            ctx.restore();
         }
 
         function drawCurrentWord() {
@@ -502,6 +1030,7 @@
 
             updateParticles();
             drawParticles();
+            drawFloatingTexts();
 
             requestAnimationFrame(draw);
         }
@@ -551,6 +1080,8 @@
 
         canvas.addEventListener('mousedown', (e) => {
             if (moves <= 0) return;
+            if (!tryStartGame()) return;
+            soundManager.play('select');
             let rect = canvas.getBoundingClientRect();
             let scaleX = canvas.width / rect.width;
             let scaleY = canvas.height / rect.height;
@@ -590,6 +1121,7 @@
 
         canvas.addEventListener('touchstart', (e) => {
             if (moves <= 0) return;
+            if (!tryStartGame()) return;
             e.preventDefault();
             let rect = canvas.getBoundingClientRect();
             let scaleX = canvas.width / rect.width;
@@ -631,7 +1163,7 @@
 
         function handleToolUse(r, c) {
             const tool = tools.find(t => t.id === activeTool);
-            if (!tool || moves < tool.cost) return;
+            if (!tool || tool.count <= 0) return;
 
             if (activeTool === 'swap') {
                 if (!swapFirstCell) {
@@ -642,14 +1174,18 @@
                     if (areAdjacent(swapFirstCell, { r, c })) {
                         // Swap
                         let temp = grid[swapFirstCell.r][swapFirstCell.c].letter;
+                        let tempType = grid[swapFirstCell.r][swapFirstCell.c].type;
+
                         grid[swapFirstCell.r][swapFirstCell.c].letter = grid[r][c].letter;
+                        grid[swapFirstCell.r][swapFirstCell.c].type = grid[r][c].type;
+
                         grid[r][c].letter = temp;
+                        grid[r][c].type = tempType;
 
                         grid[swapFirstCell.r][swapFirstCell.c].selected = false;
 
-                        // Deduct move
-                        moves -= tool.cost;
-                        movesEl.innerText = moves;
+                        // Deduct count
+                        tool.count--;
 
                         // Reset tool
                         activeTool = null;
@@ -665,37 +1201,37 @@
             } else if (activeTool === 'row') {
                 for (let i = 0; i < COLS; i++) {
                     let cell = grid[r][i];
+                    if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
                     createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
                     cell.removing = true;
                 }
                 score += COLS * 5;
                 scoreEl.innerText = score;
-                moves -= tool.cost;
-                movesEl.innerText = moves;
+                tool.count--;
                 activeTool = null;
                 updateToolsUI();
                 setTimeout(applyGravity, 300);
             } else if (activeTool === 'col') {
                 for (let i = 0; i < ROWS; i++) {
                     let cell = grid[i][c];
+                    if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
                     createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
                     cell.removing = true;
                 }
                 score += ROWS * 5;
                 scoreEl.innerText = score;
-                moves -= tool.cost;
-                movesEl.innerText = moves;
+                tool.count--;
                 activeTool = null;
                 updateToolsUI();
                 setTimeout(applyGravity, 300);
             } else if (activeTool === 'cell') {
                 let cell = grid[r][c];
+                if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
                 createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
                 cell.removing = true;
                 score += 5;
                 scoreEl.innerText = score;
-                moves -= tool.cost;
-                movesEl.innerText = moves;
+                tool.count--;
                 activeTool = null;
                 updateToolsUI();
                 setTimeout(applyGravity, 300);
@@ -722,44 +1258,94 @@
             // (Ayrıca test için kelimenin kendisinin console üzerinde görülmesi faydalı olabilir)
             console.log("Girilen kelime:", word, "Sözlükte var mı:", isValidInDict);
 
-            if (isValidLength) {
+            if (selectedPath.length === 1) {
+                let p = selectedPath[0];
+                let cell = grid[p.r][p.c];
+                if (cell.type !== 'normal') {
+                    if (moves > 0) {
+                        soundManager.play('blast');
+                        triggerSpecialCell(p.r, p.c, cell.type);
+                        cell.removing = true;
+                        moves--;
+                        movesEl.innerText = moves;
+                        setTimeout(applyGravity, 300);
+                        selectedPath = [];
+                        return;
+                    } else {
+                        alert('Hamleniz bitti!');
+                    }
+                }
+            }
+
+            if (isValidInDict) {
+                soundManager.play('match');
                 // Valid word matched
                 let wordLength = selectedPath.length;
 
                 // Kayıt altına al (stats için)
-                if (isValidInDict) {
-                    addWordStat(wordLength);
-                }
+                addWordStat(wordLength);
 
-                // Calculate points: Normal puan veya Teselli Puanı
-                let points = 0;
-                if (isValidInDict) {
-                    points = wordLength * 10 + (wordLength - 3) * 15; // Yüksek puan
-                } else {
-                    points = wordLength * 2; // Düşük puan
-                }
+                // Calculate points
+                let points = wordLength * 10 + (wordLength - 3) * 15; // Yüksek puan
 
                 score += points;
                 scoreEl.innerText = score;
+
+                // Show floating score
+                let lastCell = grid[selectedPath[selectedPath.length - 1].r][selectedPath[selectedPath.length - 1].c];
+                createFloatingText(lastCell.x + CELL_SIZE / 2, lastCell.y + CELL_SIZE / 2, `+${points}`, '#38bdf8');
 
                 // Use move (Eğer kelime bulunursa hamle azalmasın veya sadece sözlükteki kelimelere hamle iadesi mi yapalım?
                 // Daha kolay olması için her başarılı eşleştirmede hamle harcıyoruz ama puan artıyor)
                 moves--;
                 movesEl.innerText = moves;
 
-                // Trigger explosion
-                selectedPath.forEach(p => {
+                // Trigger explosion and handle special cells
+                selectedPath.forEach((p, index) => {
                     let cell = grid[p.r][p.c];
-                    createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
-                    cell.removing = true;
+
+                    // Create Special Cell logic
+                    if (index === 0) { // Place special cell at the first selected position
+                        if (wordLength === 4) {
+                            cell.type = Math.random() > 0.5 ? 'row_blast' : 'col_blast';
+                            cell.removing = false; // Don't remove this one, it becomes special
+                            cell.selected = false;
+                        } else if (wordLength >= 5) {
+                            cell.type = 'bomb';
+                            cell.removing = false;
+                            cell.selected = false;
+                        } else {
+                            createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
+                            cell.removing = true;
+                        }
+                    } else {
+                        if (cell.type !== 'normal') {
+                            triggerSpecialCell(cell.r, cell.c, cell.type);
+                        }
+                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
+                        cell.removing = true;
+                    }
                 });
 
-                // Check level up (e.g. 300 pts per level)
-                if (score >= level * 300) {
+                // Check level up and tool awarding
+                const target = DIFFICULTY_SETTINGS[currentDifficulty].scoreTarget;
+                if (score >= level * target) {
                     level++;
+                    soundManager.play('levelup');
                     levelEl.innerText = level;
-                    moves += 5; // bonus moves for leveling up
+                    moves += 5;
                     movesEl.innerText = moves;
+                }
+
+                // Award tool every 500 points
+                if (score >= lastAwardedScore + 500) {
+                    lastAwardedScore = Math.floor(score / 500) * 500;
+                    awardRandomTool();
+                }
+
+                // Extra tool for long words
+                if (wordLength >= 6) {
+                    awardRandomTool();
                 }
 
                 // Let the removal animation play, then apply gravity
@@ -778,7 +1364,8 @@
             if (moves <= 0) {
                 setTimeout(() => {
                     shuffleBtn.disabled = true;
-                    alert('Oyun Bitti! Skorunuz: ' + score + '\nYeniden başlamak için sayfayı yenileyin.');
+                    gameStarted = false; // Reset game state on game over
+                    alert('Oyun Bitti! Skorunuz: ' + score + '\nYeniden oynamak için 1 enerji gereklidir.');
                 }, 500);
             }
         }
@@ -853,17 +1440,65 @@
         const toolCol = document.getElementById('tool-col');
         const toolCell = document.getElementById('tool-cell');
 
+        let lastAwardedScore = 0;
+
         const tools = [
-            { id: 'swap', el: toolSwap, cost: 1 },
-            { id: 'row', el: toolRow, cost: 2 },
-            { id: 'col', el: toolCol, cost: 2 },
-            { id: 'cell', el: toolCell, cost: 1 }
+            { id: 'swap', el: toolSwap, count: 2, label: 'Yer Değiştir' },
+            { id: 'row', el: toolRow, count: 1, label: 'Satır Patlat' },
+            { id: 'col', el: toolCol, count: 1, label: 'Sütun Patlat' },
+            { id: 'cell', el: toolCell, count: 3, label: 'Hücre Patlat' }
         ];
+
+        function triggerSpecialCell(r, c, type) {
+            soundManager.play('blast');
+            if (type === 'row_blast') {
+                for (let i = 0; i < COLS; i++) {
+                    let cell = grid[r][i];
+                    if (cell && !cell.removing) {
+                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
+                        cell.removing = true;
+                        if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
+                    }
+                }
+            } else if (type === 'col_blast') {
+                for (let i = 0; i < ROWS; i++) {
+                    let cell = grid[i][c];
+                    if (cell && !cell.removing) {
+                        createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
+                        cell.removing = true;
+                        if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
+                    }
+                }
+            } else if (type === 'bomb') {
+                for (let dr = -1; dr <= 1; dr++) {
+                    for (let dc = -1; dc <= 1; dc++) {
+                        let nr = r + dr;
+                        let nc = c + dc;
+                        if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                            let cell = grid[nr][nc];
+                            if (cell && !cell.removing) {
+                                createParticles(cell.x + CELL_SIZE / 2, cell.y + CELL_SIZE / 2);
+                                cell.removing = true;
+                                if (cell.type !== 'normal') triggerSpecialCell(cell.r, cell.c, cell.type);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function awardRandomTool() {
+            const randIdx = Math.floor(Math.random() * tools.length);
+            tools[randIdx].count++;
+            soundManager.play('match'); // Play succes sound for new tool
+            console.log("Yeni araç kazanıldı:", tools[randIdx].label);
+            updateToolsUI();
+        }
 
         tools.forEach(tool => {
             tool.el.addEventListener('click', () => {
-                if (moves < tool.cost) {
-                    alert(`Bu araç için ${tool.cost} hamle gerekli!`);
+                if (tool.count <= 0) {
+                    alert(`Bu araçtan kalmadı! Uzun kelimeler türeterek kazanabilirsin.`);
                     return;
                 }
 
@@ -895,7 +1530,7 @@
         function updateToolsUI() {
             tools.forEach(tool => {
                 tool.el.classList.remove('active');
-                if (moves < tool.cost) {
+                if (tool.count <= 0) {
                     tool.el.classList.add('disabled');
                 } else {
                     tool.el.classList.remove('disabled');
@@ -904,6 +1539,12 @@
                 if (activeTool === tool.id) {
                     tool.el.classList.add('active');
                 }
+
+                // Update count labels
+                const small = tool.el.querySelector('small');
+                if (small) {
+                    small.innerText = `(${tool.count} Adet)`;
+                }
             });
         }
 
@@ -911,6 +1552,7 @@
             if (activeTool) return; // Prevent shuffle while using tool
 
             if (moves > 0) {
+                soundManager.play('select');
                 moves--;
                 movesEl.innerText = moves;
                 initGrid();
@@ -925,8 +1567,8 @@
             }
         });
 
-        // Initialize map
-        initGrid();
+        // Initialize with default or saved difficulty
+        setDifficulty(currentDifficulty);
         updateToolsUI();
         requestAnimationFrame(draw);
     </script>
