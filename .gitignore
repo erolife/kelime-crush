@@ -1,0 +1,34 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.npm-cache/
+
+# Vite/Build
+dist/
+dist-ssr/
+*.local
+
+# Capacitor/Mobile
+android/
+ios/
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+Thumbs.db
+
+# Project specific
+mobile-app/node_modules/
+mobile-app/dist/

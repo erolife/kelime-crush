@@ -1,39 +1,33 @@
 # Agent Context
 - **Proje:** Kelime Crush (Vanilla JS tek dosyalık HTML5 Canvas oyunu)
 - **Tarih:** 26 Şubat 2026
-- **Son Durum:** Oyunun ilk sürümü index.html dosyasına yazıldı. Proje kuralları (8x8 grid, Türkçe harfler, harf ağırlıkları, skor/level gibi özellikler) gereği Canvas içerisinde interaktif logic oluşturuldu.
-- **Kullanılan Teknolojiler:** HTML, CSS, Vanilla JS, Canvas API
+- **Son Durum:** Oyunun mobil dönüşümü React + Vite + Canvas tabanlı "Premium" motorla tamamlandı. Tüm orijinal isterler ve kullanıcı geri bildirimleri optimize edildi.
 
 ## Yapılan Geliştirmeler:
-- `AGENT_CONTEXT.md` dosyasının, kullanıcı kuralları (user_rules 1 ve 3) gereği oturum başında kontrol edilip oluşturulması sağlandı.
-- Ağırlıklı (sesli harflerin daha sık çıktığı) rastgele harf seçme algoritması uygulandı.
-- Canvas üzerinde grid ve seçim işlemi (mouse drag/drop ile) gerçekleştirildi.
-- Alt kısımda belirtilen `Shuffle` butonu tasarlandı ve eklendi.
-- **26 Şubat 2026**: Harf oranları (A, E, İ vb.) artırıldı, kolaylık sağlandı, kelimelerin sözlük zorunluluğu esnetilerek geçersiz ama kurala uyan kelimelere 'Teselli Puanı' verildi. Başlangıç hamlesi 20'den 40'a çıkarıldı.
-- **26 Şubat 2026**: JS LowerCase dönüşümündeki `tr-TR` uyumsuzluğu nedeniyle doğru yazılan Türkçe kelimelerin bulunamama sorunu giderildi, test için Console'a log eklendi.
-- **26 Şubat 2026**: Izgara (Grid) boyutu 8x8'den 10x10'a çıkarıldı. Bu sayede ekrandaki harf sayısı artırılarak oyuncunun kelime bulma ihtimali yükseltildi ve oyun daha zevkli/kolay hale getirildi.
-- **26 Şubat 2026**: Sözlükteki 'abluka altında tutmak' veya kesme işaretli karakter barındırıp grid içerisindeki sadece harflerin eşleşmesinin mümkün olmadığı 8000 adetlik kelime listesi, boşluk, sayı gibi harf olmayan tüm içeriklerden arındırıldı. Kelimeler yeniden oluşturuldu.
-- **26 Şubat 2026**: Sözlükteki birleşik kelime ve TDK uyuşmazlığından ötürü, kullanıcının ilettiği https://gist.githubusercontent.com/f/31ce39df408bebd30774458ff09d3d56/raw/c1c3c32a5a9a9965108998a7c7466088ba741813/kelimeler.json URL'sine sahip sözlük jsonu indirilerek sadece harften oluşan 8000 kelimelik bir liste ile değiştirildi.
-- **26 Şubat 2026**: Türkçe karakterlerin (i, İ, ı, I, Ç, ş vs.) tarayıcılar arasındaki farklı yorumlanma riskini (riya, mazi, çam sorunları) sıfıra indirmek için tüm sistem **Büyük Harf (Uppercase)** eşleşmesine geçirildi. Sözlük () artık 60.000+ kelimeyi Büyük Harf olarak barındırıyor ve ızgaradaki büyük harflerle doğrudan, hatasız eşleşiyor.
-- **26 Şubat 2026**: Satır/Sütun ve Bomba patlatma (özel yetenekler) sırasında oluşan sonsuz döngü ve tarayıcı çökme sorunu giderildi. `triggerSpecialCell` fonksiyonunda senkron işaretleme mantığına geçildi ve partikül efektleri performans için optimize edildi.
-- **26 Şubat 2026**: DB Altyapısı ve Mobil Yol Haritası belirlendi. `proje_schema.sql` oluşturuldu. `users`, `scores`, `tournaments` ve `tournament_entries` tabloları tanımlandı.
-- **26 Şubat 2026**: Oyun **Responsive** hale getirildi. Mobil ve tablet cihazlar için Media Query'ler eklendi, yan panel dikey düzene (column layout) uyumlu hale getirildi ve dokunmatik kontroller optimize edildi.
-- **26 Şubat 2026**: Yardımcı araçlar (swap, blast) yan panelden alınarak oyun alanının altına (**footer**) dairesel butonlar olarak taşındı. Bu sayede mobil cihazlarda ve dar ekranlarda kullanım kolaylığı sağlandı, oyuncunun oyundan kopmadan araç seçebilmesi sağlandı.
-- **26 Şubat 2026**: Mobil cihazlarda sayfa yenilendiğinde sesin çıkmama sorunu (Autoplay Policy) giderildi. Sayfadaki ilk etkileşimde ses motoru otomatik olarak uyandırılıyor.
-- **26 Şubat 2026**: Yardımcı araçların konumu ekran boyutuna göre ayrıştırıldı. Masaüstünde oyun alanı içinde doğal akışta, mobilde ise ekranın altında sabit (`fixed`) olarak kalması sağlandı. `backdrop-filter` kaynaklı `fixed` sorunu `::before` pseudo-elementi ile çözüldü.
-- **26 Şubat 2026**: Yeni yardımcı araç **"Yılan" (Snake)** eklendi. Yeşil temalı bu araç, grid kolon sayısı kadar birbirine komşu (her yöne) harfi serbestçe seçip patlatma imkanı sunuyor.
-- **26 Şubat 2026**: 5 aracın dar mobil ekranlarda sağa taşma sorunu giderildi. Kademeli `gap` azaltma ve 400px altı ekranlar için ultra-küçük buton ayarları yapıldı.
-- **26 Şubat 2026**: Oyunun yüklenememesi hatası (`TypeError: addEventListener on null`) giderildi. HTML elemanlarının script'ten önce tanımlanması sağlandı ve araç butonları için null-safe kontroller eklendi. CSS media query sözdizimi hataları temizlendi.
-- **26 Şubat 2026**: 403 Forbidden hatası veren Mixkit ses dosyaları yerine kullanıcı tarafından sağlanan yerel ses dosyaları (`sesler/`) entegre edildi. Yılan Seçimi (`snake.mp3`), Yılan Patlama (`snake-patlama.mp3`), Bomba Patlama (`kucuk-patlama.mp3`), Tek Harf Patlama (`tek-patlama.mp3`), Harf Değiştirme (`switch.mp3`) ve Satır/Sütun Patlama (`row-colun.mp3`) sesleri ilgili aksiyonlara özelleştirildi.
-- **26 Şubat 2026**: Arka plan müziği (`background.mp3`) sisteme dahil edildi ve ilk etkileşimle başlaması sağlandı. Sürükleme sesi kullanıcıyı yormayacak şekilde optimize edildi.
-- **26 Şubat 2026**: Yılan aracı kullanıldıktan sonra harflerin düşmeme sorunu `finishSnake` içinde `applyGravity` çağrılarak giderildi.
-- **26 Şubat 2026**: Yer değiştirme (Swap) aracının iki aşamalı seçim mantığı (ilk seçim vurgulama, ikinci seçim takas) uygulanarak işlevselliği onarıldı.
-- **26 Şubat 2026**: Oyuna çapraz (diagonal) harf seçme desteği tam olarak entegre edildi/doğrulandı.
-- **26 Şubat 2026**: İngilizce oyun sürümü hazırlığı kapsamında `dwyl/english-words` kaynağından 3 harf ve üzeri 369.647 kelime filtrelenerek `english_words.json` dosyasına yedeklendi.
-- **26 Şubat 2026**: Ses motoru (`SoundManager`) sınıfı ve araç çubuğu (`updateToolsUI`) mantığı baştan yazılarak kararlı hale getirildi.
+- **26 Şubat 2026**: Proje `mobile-app/` klasörüne taşındı. Eski dosyalar `yedek/v1/` içinde toplandı.
+- **Dinamik Grid & Zorluk:** 
+    - Kolay: 12x12 grid (Vowel Bonus: 2.0x)
+    - Normal: 10x10 grid (Vowel Bonus: 1.0x)
+    - Profesör: 8x8 grid (Vowel Bonus: 0.5x)
+- **Harf Puanları:** `Constants.js` içerisindeki `LETTER_POINTS` değerleri her harf karesinin sağ alt köşesine eklendi.
+- **Bomba Mekaniği:** 
+    - 4 harf -> Satır/Sütun patlatıcı.
+    - 5+ harf -> Bomba.
+    - Tek tıkla patlatma: Seçim 1 iken bomba/blast hücresine tıklanırsa 1 Move bedeliyle anında tetikleniyor.
+- **Türkçe Karakter Fix (v2):** Manuel `safeTurkishUpper` (i->İ, ı->I) mapping ile %100 uyumlu sözlük eşleşmesi sağlandı.
+- **Dokunmatik & Çapraz Geçiş Optimizasyonu:** `PremiumCanvas.jsx`'te "Circular Hit Detection" (Radius: 38%) uygulandı. Harfler arası dikey/çapraz geçiş koridoru genişletildi.
+- **Animasyon Sistemi:** `animatingCells` ile harf eşleşmesi ve patlamalarda "Poof" parçacık efekti ve küçülme animasyonu eklendi.
+- **Hata Onarımı:** Canvas parçacık sistemindeki negatif radius (`IndexSizeError`) hatası giderildi.
+- **Ses & Görsel:** `SoundManager.js` ile orijinal sesler entegre edildi. 6+ harf kelimelerde konfeti efekti aktif.
+- **Kelime Analizi Gruplandırma:** Bulunan kelimeler uzunluklarına göre ("3 Harfliler", "4 Harfliler" vb.) kategorize edildi. Kelime geçmişi limiti 50'ye çıkarıldı.
 
-## Gelecek Planlar (Roadmap)
-- **Turnuva Sistemi**: Belirli zaman aralıklarında rekabetçi liderlik tabloları.
-- **Veritabanı Entegrasyonu**: Kullanıcı profili, enerji sistemi ve kalıcı skor yönetimi.
-- **Zamana Karşı Yarış**: Hız gerektiren yeni oyun modu (Challenge Mode).
-- **Mobil Market**: Android/iOS için paketleme ve mağaza hazırlığı.
+## Gelecek Planlar (Roadmap) - 2. Faz 🚀
+- **İngilizce Dil Desteği:** Oyun içi dinamik dil seçeneği (TR/EN) ve global sözlük (`english_words.json`) entegrasyonu.
+- **Veritabanı Entegrasyonu:** Supabase/Firebase bağlantısı ile kullanıcı profili ve kalıcı skor yönetimi.
+- **Görev & Challenge Sistemi:** Günlük görevler, özel meydan okumalar (Level tabanlı) ve ödül mekanizması.
+- **Turnuva Sistemi:** Global liderlik tabloları ve rekabetçi sezonlar.
+
+## Teknik Notlar (Premium Canvas):
+- **Sizing:** `aspect-square` CSS ve `ResizeObserver` kombinasyonu ile %100 responsive kare oyun alanı sağlandı.
+- **Performans:** HTML5 Canvas API ile +60 FPS akıcılık.
+- **Visuals:** Hücrelerde dairesel hit detection (Radius: 38%) ve "Poof" animasyonu ile yüksek dokunmatik konfor.
