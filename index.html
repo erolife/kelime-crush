@@ -415,12 +415,24 @@
 
         @media (max-width: 650px) {
             #top-bar {
-                justify-content: center;
+                justify-content: space-between;
+                flex-wrap: nowrap;
+                gap: 5px;
+                padding: 0;
             }
 
             .stat {
-                min-width: calc(50% - 10px);
+                min-width: 0;
                 flex: 1;
+                padding: 8px 5px;
+            }
+
+            .stat span {
+                font-size: 16px;
+            }
+
+            .stat small {
+                font-size: 9px;
             }
 
             #side-panel {
