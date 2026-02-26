@@ -3,7 +3,7 @@ import confetti from 'canvas-confetti';
 import { soundManager } from '../../logic/SoundManager';
 import { LETTER_POINTS } from '../../logic/Constants';
 
-const PremiumCanvas = ({ grid, selectedPath, animatingCells, onSelectCell, onFinishTurn }) => {
+const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, onSelectCell, onFinishTurn }) => {
     const canvasRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const particlesRef = useRef([]);
@@ -123,6 +123,7 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, onSelectCell, onFin
                 if (!cell) return;
 
                 const isSelected = selectedPath.some(p => p.r === r && p.c === c);
+                const isSwapTarget = swapSelection && swapSelection.r === r && swapSelection.c === c;
                 // If it's in animatingCells, show it shrinking (or just hidden if it's already nulled in grid)
                 // Note: The grid updates instantly in useGame, but animatingCells allows us to ghost them if we kept them.
                 // For now, we use animatingCells to decide shrinkage for existing cells that might be getting blasted.
@@ -136,6 +137,12 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, onSelectCell, onFin
                 const centerY = y + size / 2;
 
                 let scale = isSelected ? 1.08 + Math.sin(time / 150) * 0.04 : 1.0;
+
+                // Pulsing animation for special cells (bombs/blasts)
+                if (cell.type !== 'normal' && !isSelected) {
+                    scale = 1.0 + Math.sin(time / 200) * 0.05;
+                }
+
                 if (isAnimating) scale *= 0.4; // Instant feedback
 
                 ctx.save();
@@ -144,8 +151,10 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, onSelectCell, onFin
                 ctx.translate(-centerX, -centerY);
 
                 // Shadow/Glow
-                ctx.shadowBlur = isSelected ? 30 : (cell.type !== 'normal' ? 15 : 10);
+                const pulse = Math.sin(time / 200) * 5;
+                ctx.shadowBlur = (isSelected || isSwapTarget) ? 30 : (cell.type !== 'normal' ? 20 + pulse : 10);
                 if (isSelected) ctx.shadowColor = COLORS.line;
+                else if (isSwapTarget) ctx.shadowColor = '#fbbf24';
                 else if (cell.type === 'bomb') ctx.shadowColor = '#a855f7';
                 else if (cell.type?.includes('blast')) ctx.shadowColor = '#f59e0b';
                 else ctx.shadowColor = 'rgba(0,0,0,0.5)';
@@ -156,6 +165,9 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, onSelectCell, onFin
                 if (isSelected) {
                     grad.addColorStop(0, '#ffffff');
                     grad.addColorStop(1, '#f1f5f9');
+                } else if (isSwapTarget) {
+                    grad.addColorStop(0, '#fbbf24');
+                    grad.addColorStop(1, '#f59e0b');
                 } else if (cell.type === 'bomb') {
                     grad.addColorStop(0, '#a855f7');
                     grad.addColorStop(1, '#6b21a8');
@@ -174,12 +186,12 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, onSelectCell, onFin
                 ctx.fill();
 
                 // Border
-                ctx.strokeStyle = isSelected ? '#ffffff' : 'rgba(255,255,255,0.2)';
-                ctx.lineWidth = 1;
+                ctx.strokeStyle = (isSelected || isSwapTarget) ? '#ffffff' : 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = (isSelected || isSwapTarget) ? 2 : 1;
                 ctx.stroke();
 
                 // Letter Text
-                ctx.fillStyle = isSelected ? COLORS.bg : (cell.type !== 'normal' ? '#ffffff' : COLORS.text);
+                ctx.fillStyle = (isSelected || isSwapTarget) ? COLORS.bg : (cell.type !== 'normal' ? '#ffffff' : COLORS.text);
                 ctx.font = `900 ${size * 0.55}px Outfit, sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';

@@ -5,6 +5,13 @@
 
 ## Yapılan Geliştirmeler:
 - **26 Şubat 2026**: Proje `mobile-app/` klasörüne taşındı. Eski dosyalar `yedek/v1/` içinde toplandı.
+- **27 Şubat 2026 (Faz 1.5 - Geliştirmeler)**:
+    - **Oyun Akışı (Game Over):** Hamle sayısı 0 olduğunda oyun duruyor ve bulunan kelimelerin özeti (skor, adet, uzunluk) şık bir modal ile gösteriliyor.
+    - **Yeniden Başlatma:** Sonuç ekranında oyunu mevcut zorlukta sıfırlama seçeneği eklendi.
+    - **Bomba Görselliği:** Özel hücreler (Bomb, Row/Col Blast) için Canvas üzerinde "Pulsing" (Nabız) animasyonu ve dinamik gölge efekti eklendi.
+    - **UI Optimizasyonu:** `useGame` hook'u `gameState` durumunu ('playing', 'gameover') yönetecek şekilde güncellendi.
+    - **Hata Giderimi (Takas Aracı):** Takas aracının çalışmamasına sebep olan bağımlılık hilesi (stale closure) giderildi. Seçilen ilk hücrenin Canvas üzerinde vurgulanması (vurgu rengi: amber) sağlandı.
+    - **Gerçek Karıştırma (Shuffle):** Karıştırma işlemi artık gridi sıfırlamak yerine mevcut harflerin ve özel hücrelerin yerlerini Fisher-Yates algoritması ile karıştırıyor.
 - **Dinamik Grid & Zorluk:** 
     - Kolay: 12x12 grid (Vowel Bonus: 2.0x)
     - Normal: 10x10 grid (Vowel Bonus: 1.0x)

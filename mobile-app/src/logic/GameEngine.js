@@ -220,6 +220,43 @@ export class GameEngine {
         return { grid: [...this.grid] };
     }
 
+    shuffleGrid() {
+        const pool = [];
+        // Collect all existing content
+        for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.cols; c++) {
+                if (this.grid[r][c]) {
+                    pool.push({
+                        letter: this.grid[r][c].letter,
+                        type: this.grid[r][c].type
+                    });
+                }
+            }
+        }
+
+        // Fisher-Yates Shuffle
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+
+        // Put back into grid
+        let poolIndex = 0;
+        for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.cols; c++) {
+                if (poolIndex < pool.length) {
+                    const data = pool[poolIndex++];
+                    this.grid[r][c] = this.createCell(r, c, data.letter);
+                    this.grid[r][c].type = data.type;
+                } else {
+                    this.grid[r][c] = null;
+                }
+            }
+        }
+        this.updateCoords();
+        return { grid: [...this.grid] };
+    }
+
     areAdjacent(c1, c2) {
         const dr = Math.abs(c1.r - c2.r);
         const dc = Math.abs(c1.c - c2.c);

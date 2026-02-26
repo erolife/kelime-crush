@@ -25,7 +25,10 @@ function App() {
     selectCell,
     finishTurn,
     shuffle,
-    isDictionaryLoaded
+    isDictionaryLoaded,
+    gameState,
+    resetGame,
+    swapSelection
   } = useGame('normal');
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -154,6 +157,7 @@ function App() {
               grid={grid}
               selectedPath={selectedPath}
               animatingCells={animatingCells}
+              swapSelection={swapSelection}
               onSelectCell={selectCell}
               onFinishTurn={finishTurn}
             />
@@ -204,6 +208,63 @@ function App() {
           </button>
         ))}
       </footer>
+
+      {/* Game Over Modal */}
+      {gameState === 'gameover' && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-xl">
+          <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(56,189,248,0.2)] animate-in fade-in zoom-in duration-500 flex flex-col">
+            <div className="p-8 pb-4 text-center">
+              <div className="w-20 h-20 bg-sky-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-sky-400/30">
+                <Trophy className="w-10 h-10 text-sky-400" />
+              </div>
+              <h2 className="text-3xl font-black text-white italic tracking-tighter mb-1">OYUN BİTTİ</h2>
+              <p className="text-slate-400 text-sm font-medium">Harika bir performans!</p>
+            </div>
+
+            <div className="flex-1 px-8 py-4 space-y-4 overflow-y-auto no-scrollbar">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 text-center">
+                  <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Skor</div>
+                  <div className="text-2xl font-black text-sky-400">{score}</div>
+                </div>
+                <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 text-center">
+                  <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Kelimeler</div>
+                  <div className="text-2xl font-black text-amber-400">{foundWords.length}</div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest flex justify-between">
+                  <span>Bulunan Kelimeler</span>
+                  <span>{foundWords.length} Adet</span>
+                </div>
+                <div className="max-h-40 overflow-y-auto no-scrollbar space-y-1">
+                  {foundWords.length > 0 ? (
+                    foundWords.map((word, i) => (
+                      <div key={i} className="px-4 py-2 bg-white/5 rounded-xl text-xs font-bold text-slate-300 flex justify-between items-center border border-white/5">
+                        <span>{word}</span>
+                        <span className="text-[10px] text-sky-500 uppercase">{word.length} Harf</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-slate-600 italic text-xs">Hiç kelime bulunamadı</div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8 pt-4">
+              <button
+                onClick={resetGame}
+                className="w-full py-5 bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-400 hover:to-sky-500 text-white font-black rounded-2xl shadow-[0_10px_30px_rgba(56,189,248,0.3)] transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                <RefreshCw className="w-5 h-5" />
+                YENİDEN BAŞLA
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Settings Modal */}
       {isSettingsOpen && (

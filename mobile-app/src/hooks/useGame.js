@@ -19,6 +19,7 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [level, setLevel] = useState(1);
     const [isDictionaryLoaded, setIsDictionaryLoaded] = useState(false);
     const [foundWords, setFoundWords] = useState([]);
+    const [gameState, setGameState] = useState('playing'); // 'playing', 'gameover'
 
     const [activeTool, setActiveTool] = useState(null);
     const [swapSelection, setSwapSelection] = useState(null);
@@ -45,8 +46,46 @@ export const useGame = (initialDifficulty = 'normal') => {
         setAnimatingCells([]);
     }, []);
 
+    const handleToolUsage = useCallback((r, c) => {
+        if (!activeTool || tools[activeTool] <= 0) return;
+        let result;
+        switch (activeTool) {
+            case 'bomb': result = engine.removeArea(r, c, 1); break;
+            case 'row': result = engine.removeRow(r); break;
+            case 'col': result = engine.removeCol(c); break;
+            case 'cell': result = engine.removeSingle(r, c); break;
+            case 'swap':
+                if (!swapSelection) {
+                    setSwapSelection({ r, c });
+                    soundManager.play('select');
+                    return;
+                } else {
+                    // Prevent swapping same cell
+                    if (swapSelection.r === r && swapSelection.c === c) {
+                        setSwapSelection(null);
+                        return;
+                    }
+                    result = engine.swapCells(swapSelection, { r, c });
+                    setSwapSelection(null);
+                }
+                break;
+            default: return;
+        }
+
+        if (result) {
+            if (result.blasted) {
+                setAnimatingCells(result.blasted);
+                setTimeout(() => setAnimatingCells([]), 600);
+            }
+            setGrid([...result.grid]);
+            setTools(prev => ({ ...prev, [activeTool]: prev[activeTool] - 1 }));
+            setActiveTool(null);
+            soundManager.play('powerup');
+        }
+    }, [activeTool, tools, engine, swapSelection]);
+
     const selectCell = useCallback((r, c) => {
-        if (moves <= 0) return;
+        if (gameState !== 'playing' || moves <= 0) return;
         if (activeTool) {
             handleToolUsage(r, c);
             return;
@@ -69,40 +108,7 @@ export const useGame = (initialDifficulty = 'normal') => {
             soundManager.play('select');
             return [...prev, { r, c, letter: cell.letter }];
         });
-    }, [grid, moves, engine, activeTool]);
-
-    const handleToolUsage = (r, c) => {
-        if (!activeTool || tools[activeTool] <= 0) return;
-        let result;
-        switch (activeTool) {
-            case 'bomb': result = engine.removeArea(r, c, 1); break;
-            case 'row': result = engine.removeRow(r); break;
-            case 'col': result = engine.removeCol(c); break;
-            case 'cell': result = engine.removeSingle(r, c); break;
-            case 'swap':
-                if (!swapSelection) {
-                    setSwapSelection({ r, c });
-                    soundManager.play('select');
-                    return;
-                } else {
-                    result = engine.swapCells(swapSelection, { r, c });
-                    setSwapSelection(null);
-                }
-                break;
-            default: return;
-        }
-
-        if (result) {
-            if (result.blasted) {
-                setAnimatingCells(result.blasted);
-                setTimeout(() => setAnimatingCells([]), 600);
-            }
-            setGrid([...result.grid]);
-            setTools(prev => ({ ...prev, [activeTool]: prev[activeTool] - 1 }));
-            setActiveTool(null);
-            soundManager.play('powerup');
-        }
-    };
+    }, [grid, moves, engine, activeTool, handleToolUsage, gameState]);
 
     const finishTurn = useCallback(() => {
         if (selectedPath.length === 1) {
@@ -157,14 +163,35 @@ export const useGame = (initialDifficulty = 'normal') => {
     }, [selectedPath, grid, engine]);
 
     const shuffle = useCallback(() => {
-        if (moves < 5) return;
-        setGrid(engine.initGrid());
+        if (gameState !== 'playing' || moves < 5) return;
+        const result = engine.shuffleGrid();
+        setGrid([...result.grid]);
         setMoves(m => m - 5);
         soundManager.play('swap');
-    }, [engine, moves]);
+    }, [engine, moves, gameState]);
+
+    const resetGame = useCallback(() => {
+        const settings = DIFFICULTY_SETTINGS[difficulty];
+        setGrid(engine.initGrid());
+        setMoves(settings.moves);
+        setScore(0);
+        setLevel(1);
+        setFoundWords([]);
+        setSelectedPath([]);
+        setGameState('playing');
+        setActiveTool(null);
+        setAnimatingCells([]);
+    }, [engine, difficulty]);
+
+    useEffect(() => {
+        if (moves <= 0 && gameState === 'playing') {
+            setGameState('gameover');
+        }
+    }, [moves, gameState]);
 
     return {
         grid, selectedPath, animatingCells, score, moves, level, difficulty, foundWords,
+        gameState, resetGame, swapSelection,
         tools, activeTool, setActiveTool, changeDifficulty, selectCell,
         finishTurn, shuffle, isDictionaryLoaded
     };
