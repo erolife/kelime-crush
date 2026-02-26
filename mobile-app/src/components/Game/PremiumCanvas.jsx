@@ -84,18 +84,47 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, onSe
         return () => observer.disconnect();
     }, [dimensions.width]);
 
+    const posMapRef = useRef(new Map()); // Track visual Y positions for each cell ID
+    const lastGridSizeRef = useRef(0);
+
     const draw = useCallback((ctx, time) => {
         const { width, height } = dimensions;
         if (width <= 0 || !grid || grid.length === 0) return;
-
-        ctx.clearRect(0, 0, width, height);
-        ctx.fillStyle = COLORS.bg;
-        ctx.fillRect(0, 0, width, height);
 
         const rows = grid.length;
         const cols = grid[0]?.length || 10;
         const cellSize = width / cols;
         const padding = cellSize * 0.18;
+
+        // Detect grid size change (e.g. difficulty change) and reset
+        const currentGridSize = rows * cols;
+        if (lastGridSizeRef.current !== currentGridSize) {
+            posMapRef.current.clear();
+            lastGridSizeRef.current = currentGridSize;
+        }
+
+        // Robust Initial State Detection:
+        // If the map is empty OR if more than 50% of the cells in the grid have unknown IDs,
+        // we treat this as an "initial load" or "reset" and place everything at target instantly.
+        let missingCount = 0;
+        let totalCells = 0;
+        grid.forEach(row => row.forEach(cell => {
+            if (cell) {
+                totalCells++;
+                if (!posMapRef.current.has(cell.id)) missingCount++;
+            }
+        }));
+
+        const isInitialState = posMapRef.current.size === 0 || (missingCount > totalCells * 0.5);
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = COLORS.bg;
+        ctx.fillRect(0, 0, width, height);
+
+        // Constants for gravity
+        const gravity = 3.2; // Ultra fast fall
+        const friction = 0.25; // Sharp landing
+        const initialOffset = cellSize * 2.5;
 
         // Draw Selection Path Line
         if (selectedPath.length > 1) {
@@ -122,15 +151,61 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, onSe
             row.forEach((cell, c) => {
                 if (!cell) return;
 
+                const targetX = c * cellSize;
+                const targetY = r * cellSize;
+                let state = posMapRef.current.get(cell.id);
+
+                if (!state) {
+                    if (isInitialState) {
+                        // First time seeing any cells: place them exactly at target
+                        state = { currentX: targetX, currentY: targetY, vx: 0, vy: 0, opacity: 1 };
+                    } else {
+                        // Truly new cells (from explosion): start slightly above and fade in
+                        state = {
+                            currentX: targetX,
+                            currentY: targetY - initialOffset,
+                            vx: 0,
+                            vy: 0,
+                            opacity: 0
+                        };
+                    }
+                    posMapRef.current.set(cell.id, state);
+                }
+
+                // Apply Physics Logic (Y-axis)
+                if (state.currentY !== targetY || Math.abs(state.vy) > 0.1) {
+                    state.vy += gravity;
+                    state.currentY += state.vy;
+
+                    // Fast fade-in
+                    if (state.opacity < 1) {
+                        state.opacity = Math.min(1, state.opacity + 0.25);
+                    }
+
+                    // Bounce logic when hitting destination
+                    if (state.currentY >= targetY) {
+                        state.currentY = targetY;
+                        state.vy *= -friction;
+                        if (Math.abs(state.vy) < 1.5) state.vy = 0;
+                    }
+                } else {
+                    state.currentY = targetY;
+                    state.vy = 0;
+                    state.opacity = 1;
+                }
+
+                // Apply Physics Logic (X-axis) for Shuffle/Slide
+                if (state.currentX !== targetX) {
+                    const dx = targetX - state.currentX;
+                    state.currentX += dx * 0.2; // Smooth slide
+                    if (Math.abs(dx) < 0.5) state.currentX = targetX;
+                }
+
                 const isSelected = selectedPath.some(p => p.r === r && p.c === c);
                 const isSwapTarget = swapSelection && swapSelection.r === r && swapSelection.c === c;
-                // If it's in animatingCells, show it shrinking (or just hidden if it's already nulled in grid)
-                // Note: The grid updates instantly in useGame, but animatingCells allows us to ghost them if we kept them.
-                // For now, we use animatingCells to decide shrinkage for existing cells that might be getting blasted.
-                const isAnimating = (animatingCells || []).some(b => b.r === r && b.c === c);
 
-                const x = c * cellSize + padding;
-                const y = r * cellSize + padding;
+                const x = state.currentX + padding;
+                const y = state.currentY + padding;
                 const size = cellSize - padding * 2;
                 const radius = size * 0.15;
                 const centerX = x + size / 2;
@@ -140,19 +215,21 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, onSe
 
                 // Pulsing animation for special cells (bombs/blasts)
                 if (cell.type !== 'normal' && !isSelected) {
-                    scale = 1.0 + Math.sin(time / 200) * 0.05;
+                    // Bigger pulse for bomb/blasts (User request)
+                    const pulseIntensity = cell.type === 'bomb' ? 0.15 : 0.08;
+                    const pulseSpeed = cell.type === 'bomb' ? 150 : 200;
+                    scale = 1.0 + Math.sin(time / pulseSpeed) * pulseIntensity;
                 }
 
-                if (isAnimating) scale *= 0.4; // Instant feedback
-
                 ctx.save();
+                ctx.globalAlpha = state.opacity || 1;
                 ctx.translate(centerX, centerY);
                 ctx.scale(scale, scale);
                 ctx.translate(-centerX, -centerY);
 
                 // Shadow/Glow
-                const pulse = Math.sin(time / 200) * 5;
-                ctx.shadowBlur = (isSelected || isSwapTarget) ? 30 : (cell.type !== 'normal' ? 20 + pulse : 10);
+                const pulseEffect = Math.sin(time / 200) * 5;
+                ctx.shadowBlur = (isSelected || isSwapTarget) ? 30 : (cell.type !== 'normal' ? 20 + pulseEffect : 10);
                 if (isSelected) ctx.shadowColor = COLORS.line;
                 else if (isSwapTarget) ctx.shadowColor = '#fbbf24';
                 else if (cell.type === 'bomb') ctx.shadowColor = '#a855f7';
@@ -215,6 +292,13 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, onSe
                 ctx.restore();
             });
         });
+
+        // Cleanup posMapRef for destroyed cells
+        const currentIds = new Set();
+        grid.forEach(row => row.forEach(cell => cell && currentIds.add(cell.id)));
+        for (let id of posMapRef.current.keys()) {
+            if (!currentIds.has(id)) posMapRef.current.delete(id);
+        }
 
         // Draw and Update Particles (For matches and blasts)
         particlesRef.current = particlesRef.current.filter(p => p.life > 0);

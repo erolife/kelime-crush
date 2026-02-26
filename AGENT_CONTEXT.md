@@ -8,7 +8,9 @@
 - **27 Şubat 2026 (Faz 1.5 - Geliştirmeler)**:
     - **Oyun Akışı (Game Over):** Hamle sayısı 0 olduğunda oyun duruyor ve bulunan kelimelerin özeti (skor, adet, uzunluk) şık bir modal ile gösteriliyor.
     - **Yeniden Başlatma:** Sonuç ekranında oyunu mevcut zorlukta sıfırlama seçeneği eklendi.
-    - **Bomba Görselliği:** Özel hücreler (Bomb, Row/Col Blast) için Canvas üzerinde "Pulsing" (Nabız) animasyonu ve dinamik gölge efekti eklendi.
+    - **Bomba Görselliği:** Özel hücreler (Bomb, Row/Col Blast) için Canvas üzerinde "Pulsing" (Nabız) animasyonu ve dinamik gölge efekti eklendi. Bombanın pulsing efekti kullanıcı isteği üzerine büyütüldü ve hızlandırıldı.
+    - **Yer Çekimi & Zıplama:** Harfler artık boşluklara yer çekimi ivmesiyle düşüyor ve yere değdiklerinde hafif bir zıplama (bounce) efekti sergiliyor. Yeni harfler ekranın üstünden (off-screen) düşerek gride giriş yapıyor. Animasyon hızı artırıldı (~0.3s) ve düşüş sırasında "fade-in" efekti eklendi. Düşen hücrelerdeki hatalı küçülme efekti düzeltildi.
+    - **Hücre Takibi:** Her hücreye benzersiz `id` eklendi, böylece yer değişseler dahi görsel olarak takip edilebiliyorlar.
     - **UI Optimizasyonu:** `useGame` hook'u `gameState` durumunu ('playing', 'gameover') yönetecek şekilde güncellendi.
     - **Hata Giderimi (Takas Aracı):** Takas aracının çalışmamasına sebep olan bağımlılık hilesi (stale closure) giderildi. Seçilen ilk hücrenin Canvas üzerinde vurgulanması (vurgu rengi: amber) sağlandı.
     - **Gerçek Karıştırma (Shuffle):** Karıştırma işlemi artık gridi sıfırlamak yerine mevcut harflerin ve özel hücrelerin yerlerini Fisher-Yates algoritması ile karıştırıyor.

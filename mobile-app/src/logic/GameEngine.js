@@ -10,6 +10,7 @@ export class GameEngine {
 
     createCell(r, c, letter) {
         return {
+            id: 'c-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
             letter: letter || this.getRandomLetter(),
             r: r,
             c: c,
@@ -70,7 +71,7 @@ export class GameEngine {
             }
         }
         this.updateCoords();
-        return { grid: [...this.grid], changes };
+        return { grid: this.grid.map(row => [...row]), changes };
     }
 
     removeCells(path) {
@@ -222,39 +223,37 @@ export class GameEngine {
 
     shuffleGrid() {
         const pool = [];
-        // Collect all existing content
+        // Collect all existing cell objects
         for (let r = 0; r < this.rows; r++) {
             for (let c = 0; c < this.cols; c++) {
                 if (this.grid[r][c]) {
-                    pool.push({
-                        letter: this.grid[r][c].letter,
-                        type: this.grid[r][c].type
-                    });
+                    pool.push(this.grid[r][c]);
                 }
             }
         }
 
-        // Fisher-Yates Shuffle
+        // Fisher-Yates Shuffle the objects
         for (let i = pool.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [pool[i], pool[j]] = [pool[j], pool[i]];
         }
 
-        // Put back into grid
+        // Put objects back into grid and update their internal r/c
         let poolIndex = 0;
         for (let r = 0; r < this.rows; r++) {
             for (let c = 0; c < this.cols; c++) {
                 if (poolIndex < pool.length) {
-                    const data = pool[poolIndex++];
-                    this.grid[r][c] = this.createCell(r, c, data.letter);
-                    this.grid[r][c].type = data.type;
+                    const cell = pool[poolIndex++];
+                    this.grid[r][c] = cell;
+                    cell.r = r;
+                    cell.c = c;
                 } else {
                     this.grid[r][c] = null;
                 }
             }
         }
         this.updateCoords();
-        return { grid: [...this.grid] };
+        return { grid: this.grid.map(row => [...row]) };
     }
 
     areAdjacent(c1, c2) {
