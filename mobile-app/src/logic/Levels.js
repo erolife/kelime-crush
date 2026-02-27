@@ -23,7 +23,8 @@ export const LEVELS = [
             }
         ],
         rewards: {
-            tools: { bomb: 1 }
+            tools: { bomb: 1 },
+            coins: 100
         }
     },
     {
@@ -48,7 +49,8 @@ export const LEVELS = [
             }
         ],
         rewards: {
-            tools: { swap: 1 }
+            tools: { swap: 1 },
+            coins: 100
         }
     },
     {
@@ -74,7 +76,8 @@ export const LEVELS = [
             }
         ],
         rewards: {
-            tools: { bomb: 1, cell: 1 }
+            tools: { bomb: 1, cell: 1 },
+            coins: 250
         }
     }
 ];

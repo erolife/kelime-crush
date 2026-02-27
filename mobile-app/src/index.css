@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+@theme {
+  --font-outfit: "Outfit", sans-serif;
+  --font-inter: "Inter", sans-serif;
+}
+
 :root {
   color-scheme: dark;
 }
@@ -9,5 +14,11 @@ body {
   padding: 0;
   overflow: hidden;
   background-color: #020617;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-outfit);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-inter {
+  font-family: var(--font-inter);
 }

@@ -6,7 +6,7 @@ Oyun başlarken bir yardımcı aracın da oyuna dahil olarak başlaması nasıl 
 **YAPILDI** Bombalar çok belirgin değil nasıl daha belirgin yapılabilir? 
 **YAPILDI** Oyun tamamlandığında genel bir analiz modal olarak görüntülenebilir. 
     **YAPILDI** oluşturduğu kelimeler (harf sayısına göre gruplanmış)
-    Aynı bölümü kaç kişinin ortalama nasıl analizlerle tamamladığı bilgisi
+    Aynı seviyeyi kaç kişinin oynadığı ve ortalama kaç hamlede tamamladığı bilgisi verilebilir mi?
 
 
 Oyuna nasıl görevler eklenebilir?
@@ -37,3 +37,7 @@ Oyun Paraları nasıl kullanılır
     ekstra hamle hakkı satın almak
 
 Farklı kelime bazlı oyunlar oluşturulabilir mi?
+
+
+**İLerleyen zaman için etkileşim beyin fırtınası düşünceleri.**
+Bir oyuncu belirlediğimizsayıda harften fal-zla harf kullanarak geçerli bir kelime oluşturduğunda oyun oynayanların görebileceği bir toast mesaj ekranın sağ alt kısmında çıkabilir mi? Oyuncular tebriklerini (bir kalp gibi) göndermek için tıklayavbilirler. BU etkileşimi üst sınıra çıkarabilir ve oyuncuların oyunu oynama konusundaki iştahlarını kabartabilir mi acaba? Bu uygulanabilir bir özellik mi?

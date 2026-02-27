@@ -3,13 +3,94 @@ import { GameEngine } from '../logic/GameEngine';
 import { dictionary } from '../logic/Dictionary';
 import { soundManager } from '../logic/SoundManager';
 import { DIFFICULTY_SETTINGS } from '../logic/Constants';
-import { LEVELS, GOAL_TYPES } from '../logic/Levels';
+import { LEVELS as LOCAL_LEVELS, GOAL_TYPES } from '../logic/Levels';
+import { SupabaseService } from '../logic/SupabaseService';
+import { supabase } from '../logic/supabaseClient';
+import { TRANSLATIONS } from '../logic/Translations';
 
 export const useGame = (initialDifficulty = 'normal') => {
+    const [language, setLanguageState] = useState(() => {
+        return localStorage.getItem('crush_lang') || 'tr';
+    });
     const [difficulty, setDifficultyState] = useState(initialDifficulty);
     const [gameMode, setGameMode] = useState('arcade'); // 'arcade' or 'mission'
     const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
     const [levelGoals, setLevelGoals] = useState([]);
+    const [cloudLevels, setCloudLevels] = useState(LOCAL_LEVELS);
+    const [isLoadingLevels, setIsLoadingLevels] = useState(true);
+    const [user, setUser] = useState(null);
+    const [profile, setProfile] = useState(null);
+    const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+    const [completedLevels, setCompletedLevels] = useState(() => {
+        return parseInt(localStorage.getItem('crush_completed_levels') || "0");
+    });
+
+    // Dynamic Level Loader
+    useEffect(() => {
+        const fetchLevels = async () => {
+            setIsLoadingLevels(true);
+            const data = await SupabaseService.getLevels();
+            if (data && data.length > 0) {
+                setCloudLevels(data);
+            }
+            setIsLoadingLevels(false);
+        };
+        fetchLevels();
+    }, []);
+
+    // Auth & Profile Listener
+    useEffect(() => {
+        const getInitialSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                setUser(session.user);
+                fetchProfile(session.user.id);
+            }
+        };
+        getInitialSession();
+
+        const { data: { subscription } } = SupabaseService.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session?.user) {
+                setUser(session.user);
+                fetchProfile(session.user.id);
+            } else if (event === 'SIGNED_OUT') {
+                setUser(null);
+                setProfile(null);
+                // Çıkış yapınca yerel coin ve tools kullanmaya devam eder
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const fetchProfile = async (userId) => {
+        setIsLoadingProfile(true);
+        const data = await SupabaseService.getProfile(userId);
+        if (data) {
+            setProfile(data);
+            // Senkronizasyon: Bulut verisini yerel state'e aktar
+            setCoins(data.coins);
+            setTools(data.tools);
+            setCompletedLevels(data.current_level_index || 0);
+            if (data.language) setLanguageState(data.language);
+            localStorage.setItem('crush_completed_levels', (data.current_level_index || 0).toString());
+        }
+        setIsLoadingProfile(false);
+    };
+
+    const setLanguage = useCallback((lang) => {
+        setLanguageState(lang);
+        localStorage.setItem('crush_lang', lang);
+    }, []);
+
+    const t = useCallback((key, params = {}) => {
+        let text = TRANSLATIONS[language]?.[key] || key;
+        // Parametre değişimi (örn: {day} -> 5)
+        Object.entries(params).forEach(([k, v]) => {
+            text = text.replace(`{${k}}`, v);
+        });
+        return text;
+    }, [language]);
 
     const [engine, setEngine] = useState(() => {
         const settings = DIFFICULTY_SETTINGS[initialDifficulty];
@@ -28,17 +109,40 @@ export const useGame = (initialDifficulty = 'normal') => {
 
     const [activeTool, setActiveTool] = useState(null);
     const [swapSelection, setSwapSelection] = useState(null);
+    const [coins, setCoins] = useState(() => {
+        return parseInt(localStorage.getItem('crush_coins') || "500");
+    });
+
     const [tools, setTools] = useState({
         bomb: 1, swap: 2, row: 1, col: 1, cell: 3
     });
 
     useEffect(() => {
-        dictionary.load('./sozluk.json').then(() => setIsDictionaryLoaded(true));
-    }, []);
+        localStorage.setItem('crush_coins', coins.toString());
+        localStorage.setItem('crush_completed_levels', completedLevels.toString());
+        // Sync to Cloud
+        if (user) {
+            const timeoutId = setTimeout(() => {
+                SupabaseService.updateProfile(user.id, {
+                    coins,
+                    tools,
+                    current_level_index: completedLevels,
+                    language
+                });
+            }, 2000); // 2 saniye debounce
+            return () => clearTimeout(timeoutId);
+        }
+    }, [coins, tools, user, completedLevels, language]);
+
+    useEffect(() => {
+        const dictFile = language === 'tr' ? './sozluk.json' : './sozluk_en.json';
+        setIsDictionaryLoaded(false);
+        dictionary.load(dictFile).then(() => setIsDictionaryLoaded(true));
+    }, [language]);
 
     // Mission Mode Initialization
     const startMission = useCallback((index) => {
-        const mission = LEVELS[index];
+        const mission = cloudLevels[index];
         if (!mission) return;
         const settings = DIFFICULTY_SETTINGS[mission.difficulty];
         const newEngine = new GameEngine(settings.rows, settings.cols, settings.vowelBonus);
@@ -54,7 +158,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         setSelectedPath([]);
         setGameState('playing');
         setActiveTool(null);
-    }, []);
+    }, [cloudLevels]);
 
     const updateGoals = useCallback((type, value) => {
         if (gameMode !== 'mission') return;
@@ -86,21 +190,30 @@ export const useGame = (initialDifficulty = 'normal') => {
 
             if (allDone && gameState === 'playing') {
                 setGameState('victory');
+                // Update progression
+                const nextLevel = Math.max(completedLevels, currentLevelIndex + 1);
+                setCompletedLevels(nextLevel);
+
                 // Give rewards
-                const rewards = LEVELS[currentLevelIndex].rewards;
-                if (rewards && rewards.tools) {
-                    setTools(t => {
-                        const newTools = { ...t };
-                        Object.entries(rewards.tools).forEach(([id, amt]) => {
-                            newTools[id] = (newTools[id] || 0) + amt;
+                const rewards = cloudLevels[currentLevelIndex].rewards;
+                if (rewards) {
+                    if (rewards.tools) {
+                        setTools(t => {
+                            const newTools = { ...t };
+                            Object.entries(rewards.tools).forEach(([id, amt]) => {
+                                newTools[id] = (newTools[id] || 0) + amt;
+                            });
+                            return newTools;
                         });
-                        return newTools;
-                    });
+                    }
+                    if (rewards.coins) {
+                        setCoins(c => c + rewards.coins);
+                    }
                 }
             }
             return next;
         });
-    }, [gameMode, score, gameState, currentLevelIndex]);
+    }, [gameMode, score, gameState, currentLevelIndex, cloudLevels]);
 
     const changeDifficulty = useCallback((newDiff) => {
         const settings = DIFFICULTY_SETTINGS[newDiff];
@@ -228,6 +341,10 @@ export const useGame = (initialDifficulty = 'normal') => {
             setFoundWords(prev => [word, ...prev].slice(0, 50));
             setSelectedPath([]);
 
+            // Award coins for word
+            const coinReward = Math.max(0, word.length - 2) * 2;
+            setCoins(c => c + coinReward);
+
             // Update Mission Goals
             updateGoals(GOAL_TYPES.WORD_COUNT, 1);
             updateGoals(GOAL_TYPES.WORD_LENGTH, word.length);
@@ -271,11 +388,29 @@ export const useGame = (initialDifficulty = 'normal') => {
         }
     }, [moves, gameState]);
 
+    const buyTool = useCallback((toolId, price) => {
+        if (coins >= price) {
+            setCoins(c => c - price);
+            setTools(t => ({ ...t, [toolId]: (t[toolId] || 0) + 1 }));
+            soundManager.play('powerup');
+            return true;
+        }
+        soundManager.play('error');
+        return false;
+    }, [coins]);
+
+    const addCoins = useCallback((amount) => setCoins(c => c + amount), []);
+    const addTool = useCallback((toolId, amount = 1) => setTools(t => ({ ...t, [toolId]: (t[toolId] || 0) + amount })), []);
+
     return {
         grid, selectedPath, animatingCells, score, moves, level, difficulty, foundWords,
         gameState, resetGame, swapSelection,
         tools, activeTool, setActiveTool, changeDifficulty, selectCell,
         finishTurn, shuffle, isDictionaryLoaded,
-        gameMode, currentLevelIndex, levelGoals, startMission
+        gameMode, currentLevelIndex, levelGoals, startMission,
+        coins, buyTool, addCoins, addTool,
+        cloudLevels, isLoadingLevels,
+        user, profile, isLoadingProfile, completedLevels,
+        language, setLanguage, t
     };
 };

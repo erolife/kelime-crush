@@ -1,47 +1,104 @@
--- Kelime Crush Veritabanı Şeması
--- Hazırlanma Tarihi: 26 Şubat 2026
+-- WORDLENGE Veritabanı Şeması (PostgreSQL / Supabase Uyumluluğu)
+-- Son Güncelleme: 2026-02-27
 
--- Kullanıcılar Tablosu
-CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE,
-    energy INT DEFAULT 10,
-    total_score BIGINT DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- 1. PROFILES Tablosu (Kullanıcı verileri ve ilerleme)
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+    username TEXT UNIQUE,
+    coins INTEGER DEFAULT 500,
+    current_level_index INTEGER DEFAULT 0,
+    streak_count INTEGER DEFAULT 0,
+    last_gift_time TIMESTAMPTZ,
+    tools JSONB DEFAULT '{"bomb": 1, "swap": 2, "row": 1, "col": 1, "cell": 3}'::jsonb,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Skor Kayıtları Tablosu
-CREATE TABLE IF NOT EXISTS scores (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id),
-    score INT NOT NULL,
-    max_word_length INT,
-    total_words_found INT,
-    game_mode VARCHAR(20) DEFAULT 'normal', -- normal, timed, challenge
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+-- Profiles tablosu için RLS (Row Level Security) ayarları
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- Turnuvalar Tablosu
-CREATE TABLE IF NOT EXISTS tournaments (
+CREATE POLICY "Kullanıcılar kendi profillerini görebilir" 
+ON public.profiles FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Kullanıcılar kendi profillerini güncelleyebilir" 
+ON public.profiles FOR UPDATE USING (auth.uid() = id);
+
+-- 2. LEVELS Tablosu (Dinamik seviye ve görev yönetimi)
+CREATE TABLE IF NOT EXISTS public.levels (
     id SERIAL PRIMARY KEY,
-    title VARCHAR(100) NOT NULL,
+    title TEXT NOT NULL,
     description TEXT,
-    start_date TIMESTAMP WITH TIME ZONE NOT NULL,
-    end_date TIMESTAMP WITH TIME ZONE NOT NULL,
-    prize_pool TEXT,
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    difficulty TEXT DEFAULT 'normal' CHECK (difficulty IN ('easy', 'normal', 'hard')),
+    moves INTEGER NOT NULL,
+    time_limit INTEGER, -- Opsiyonel zaman sınırı (saniye)
+    goals JSONB NOT NULL, -- Görev listesi: [{"type": "wordCount", "count": 5}, ...]
+    rewards JSONB NOT NULL, -- Ödüller: {"coins": 100, "tools": {"bomb": 1}}
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Turnuva Katılımları ve Skorları
-CREATE TABLE IF NOT EXISTS tournament_entries (
-    id SERIAL PRIMARY KEY,
-    tournament_id INT REFERENCES tournaments(id),
-    user_id INT REFERENCES users(id),
-    best_score INT DEFAULT 0,
-    entry_count INT DEFAULT 0,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(tournament_id, user_id)
-);
+-- Levels tablosu herkes tarafından okunabilir (SELECT) ancak sadece admin tarafından değiştirilebilir
+ALTER TABLE public.levels ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Seviyeler herkes tarafından okunabilir" 
+ON public.levels FOR SELECT USING (TRUE);
+
+-- 3. Örnek Veri Girişi (İlk 3 Seviye)
+INSERT INTO public.levels (title, description, difficulty, moves, goals, rewards)
+VALUES 
+('Acemi Avcı', 'Kelime avcılığına küçük adımlarla başla.', 'easy', 12, 
+ '[{"type": "wordLength", "value": 4, "count": 2, "text": "4 Harfli 2 Kelime"}]'::jsonb, 
+ '{"coins": 100, "tools": {"bomb": 1}}'::jsonb),
+
+('Hızlı Düşünür', 'Biraz daha uzun kelimelere odaklanalım.', 'easy', 15, 
+ '[{"type": "wordLength", "value": 5, "count": 1, "text": "5 Harfli 1 Kelime"}, {"type": "score", "value": 200, "text": "200 Puan Topla"}]'::jsonb, 
+ '{"coins": 100, "tools": {"swap": 1}}'::jsonb),
+
+('Bomba Uzmanı', 'Patlayıcıları kullanma vakti.', 'normal', 20, 
+ '[{"type": "useTool", "value": "bomb", "count": 1, "text": "1 Bomba Patlat"}, {"type": "wordCount", "count": 5, "text": "Toplam 5 Kelime Bul"}]'::jsonb, 
+ '{"coins": 250, "tools": {"bomb": 1, "cell": 1}}'::jsonb);
+
+-- 4. OTMOTİK PROFİL OLUŞTURMA (DATABASE TRIGGER)
+-- Bu fonksiyon her yeni auth.users kaydında otomatik çalışır.
+CREATE OR REPLACE FUNCTION public.handle_new_user() 
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, username, coins, tools)
+  VALUES (
+    new.id, 
+    COALESCE(new.raw_user_meta_data->>'username', SPLIT_PART(new.email, '@', 1)), 
+    500, 
+    '{"bomb": 1, "swap": 2, "row": 1, "col": 1, "cell": 3}'::jsonb
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger'ı bağla
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- 5. LİDERLİK TABLOSU VE DİL DESTEĞİ GÜNCELLEMELERİ
+-- Profillere dil tercihi sütunu ekle (Eğer yoksa)
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS language TEXT DEFAULT 'tr';
+
+-- Liderlik Tablosu View'ı (Seviye ve Altın puanına göre sıralı)
+-- Not: View'lar varsayılan olarak owner (postgres) yetkisiyle çalışır ve RLS'i baypas eder.
+-- Bu sayede profiles tablosu gizli kalsa bile bu view üzerinden sıralama görünebilir.
+CREATE OR REPLACE VIEW public.leaderboard AS
+SELECT 
+    id,
+    username,
+    coins,
+    current_level_index,
+    updated_at
+FROM 
+    public.profiles
+ORDER BY 
+    current_level_index DESC, 
+    coins DESC
+LIMIT 100;
+
+-- Sadece SELECT yetkisi veriyoruz (anon ve authenticated rolleri için)
+GRANT SELECT ON public.leaderboard TO anon, authenticated;
