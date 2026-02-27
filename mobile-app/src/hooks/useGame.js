@@ -3,9 +3,14 @@ import { GameEngine } from '../logic/GameEngine';
 import { dictionary } from '../logic/Dictionary';
 import { soundManager } from '../logic/SoundManager';
 import { DIFFICULTY_SETTINGS } from '../logic/Constants';
+import { LEVELS, GOAL_TYPES } from '../logic/Levels';
 
 export const useGame = (initialDifficulty = 'normal') => {
     const [difficulty, setDifficultyState] = useState(initialDifficulty);
+    const [gameMode, setGameMode] = useState('arcade'); // 'arcade' or 'mission'
+    const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
+    const [levelGoals, setLevelGoals] = useState([]);
+
     const [engine, setEngine] = useState(() => {
         const settings = DIFFICULTY_SETTINGS[initialDifficulty];
         return new GameEngine(settings.rows, settings.cols, settings.vowelBonus);
@@ -13,13 +18,13 @@ export const useGame = (initialDifficulty = 'normal') => {
 
     const [grid, setGrid] = useState(() => engine.initGrid());
     const [selectedPath, setSelectedPath] = useState([]);
-    const [animatingCells, setAnimatingCells] = useState([]); // Renamed for clarity
+    const [animatingCells, setAnimatingCells] = useState([]);
     const [score, setScore] = useState(0);
     const [moves, setMoves] = useState(DIFFICULTY_SETTINGS[initialDifficulty].moves);
     const [level, setLevel] = useState(1);
     const [isDictionaryLoaded, setIsDictionaryLoaded] = useState(false);
     const [foundWords, setFoundWords] = useState([]);
-    const [gameState, setGameState] = useState('playing'); // 'playing', 'gameover'
+    const [gameState, setGameState] = useState('playing'); // 'playing', 'gameover', 'victory'
 
     const [activeTool, setActiveTool] = useState(null);
     const [swapSelection, setSwapSelection] = useState(null);
@@ -31,9 +36,76 @@ export const useGame = (initialDifficulty = 'normal') => {
         dictionary.load('./sozluk.json').then(() => setIsDictionaryLoaded(true));
     }, []);
 
+    // Mission Mode Initialization
+    const startMission = useCallback((index) => {
+        const mission = LEVELS[index];
+        if (!mission) return;
+        const settings = DIFFICULTY_SETTINGS[mission.difficulty];
+        const newEngine = new GameEngine(settings.rows, settings.cols, settings.vowelBonus);
+
+        setGameMode('mission');
+        setCurrentLevelIndex(index);
+        setLevelGoals(mission.goals.map(g => ({ ...g, current: 0 })));
+        setEngine(newEngine);
+        setGrid(newEngine.initGrid());
+        setMoves(mission.moves);
+        setScore(0);
+        setFoundWords([]);
+        setSelectedPath([]);
+        setGameState('playing');
+        setActiveTool(null);
+    }, []);
+
+    const updateGoals = useCallback((type, value) => {
+        if (gameMode !== 'mission') return;
+
+        setLevelGoals(prev => {
+            const next = prev.map(goal => {
+                if (goal.type === type) {
+                    if (type === GOAL_TYPES.WORD_LENGTH && goal.value === value) {
+                        return { ...goal, current: Math.min(goal.count, goal.current + 1) };
+                    }
+                    if (type === GOAL_TYPES.SCORE) {
+                        return { ...goal, current: Math.min(goal.value, score + value) };
+                    }
+                    if (type === GOAL_TYPES.USE_TOOL && goal.value === value) {
+                        return { ...goal, current: Math.min(goal.count, goal.current + 1) };
+                    }
+                    if (type === GOAL_TYPES.WORD_COUNT) {
+                        return { ...goal, current: Math.min(goal.count, goal.current + 1) };
+                    }
+                }
+                return goal;
+            });
+
+            // Check if all goals completed
+            const allDone = next.every(g => {
+                if (g.type === GOAL_TYPES.SCORE) return (score + (type === GOAL_TYPES.SCORE ? value : 0)) >= g.value;
+                return g.current >= g.count;
+            });
+
+            if (allDone && gameState === 'playing') {
+                setGameState('victory');
+                // Give rewards
+                const rewards = LEVELS[currentLevelIndex].rewards;
+                if (rewards && rewards.tools) {
+                    setTools(t => {
+                        const newTools = { ...t };
+                        Object.entries(rewards.tools).forEach(([id, amt]) => {
+                            newTools[id] = (newTools[id] || 0) + amt;
+                        });
+                        return newTools;
+                    });
+                }
+            }
+            return next;
+        });
+    }, [gameMode, score, gameState, currentLevelIndex]);
+
     const changeDifficulty = useCallback((newDiff) => {
         const settings = DIFFICULTY_SETTINGS[newDiff];
         const newEngine = new GameEngine(settings.rows, settings.cols, settings.vowelBonus);
+        setGameMode('arcade');
         setDifficultyState(newDiff);
         setEngine(newEngine);
         setGrid(newEngine.initGrid());
@@ -49,6 +121,7 @@ export const useGame = (initialDifficulty = 'normal') => {
     const handleToolUsage = useCallback((r, c) => {
         if (!activeTool || tools[activeTool] <= 0) return;
         let result;
+        const toolUsed = activeTool;
         switch (activeTool) {
             case 'bomb': result = engine.removeArea(r, c, 1); break;
             case 'row': result = engine.removeRow(r); break;
@@ -60,7 +133,6 @@ export const useGame = (initialDifficulty = 'normal') => {
                     soundManager.play('select');
                     return;
                 } else {
-                    // Prevent swapping same cell
                     if (swapSelection.r === r && swapSelection.c === c) {
                         setSwapSelection(null);
                         return;
@@ -81,8 +153,9 @@ export const useGame = (initialDifficulty = 'normal') => {
             setTools(prev => ({ ...prev, [activeTool]: prev[activeTool] - 1 }));
             setActiveTool(null);
             soundManager.play('powerup');
+            updateGoals(GOAL_TYPES.USE_TOOL, toolUsed);
         }
-    }, [activeTool, tools, engine, swapSelection]);
+    }, [activeTool, tools, engine, swapSelection, updateGoals]);
 
     const selectCell = useCallback((r, c) => {
         if (gameState !== 'playing' || moves <= 0) return;
@@ -122,6 +195,7 @@ export const useGame = (initialDifficulty = 'normal') => {
                 setMoves(m => m - 1);
                 soundManager.play('bomb_blast');
                 setSelectedPath([]);
+                updateGoals(GOAL_TYPES.USE_TOOL, cell.type === 'bomb' ? 'bomb' : 'blast');
                 return true;
             }
             setSelectedPath([]);
@@ -140,7 +214,6 @@ export const useGame = (initialDifficulty = 'normal') => {
             const turnScore = engine.calculateScore(selectedPath);
             const { grid: newGrid, blasted } = engine.removeCells(selectedPath);
 
-            // Collect ALL removed cells for animation (Path + Blasted)
             const allRemoved = [
                 ...selectedPath.map(p => ({ ...p, type: 'match' })),
                 ...(blasted || [])
@@ -154,13 +227,18 @@ export const useGame = (initialDifficulty = 'normal') => {
             setMoves(m => m - 1);
             setFoundWords(prev => [word, ...prev].slice(0, 50));
             setSelectedPath([]);
-            // Match sound is triggered in PremiumCanvas UI logic
+
+            // Update Mission Goals
+            updateGoals(GOAL_TYPES.WORD_COUNT, 1);
+            updateGoals(GOAL_TYPES.WORD_LENGTH, word.length);
+            updateGoals(GOAL_TYPES.SCORE, turnScore);
+
             return true;
         }
         soundManager.play('error');
         setSelectedPath([]);
         return false;
-    }, [selectedPath, grid, engine]);
+    }, [selectedPath, grid, engine, updateGoals]);
 
     const shuffle = useCallback(() => {
         if (gameState !== 'playing' || moves < 5) return;
@@ -171,6 +249,10 @@ export const useGame = (initialDifficulty = 'normal') => {
     }, [engine, moves, gameState]);
 
     const resetGame = useCallback(() => {
+        if (gameMode === 'mission') {
+            startMission(currentLevelIndex);
+            return;
+        }
         const settings = DIFFICULTY_SETTINGS[difficulty];
         setGrid(engine.initGrid());
         setMoves(settings.moves);
@@ -181,7 +263,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         setGameState('playing');
         setActiveTool(null);
         setAnimatingCells([]);
-    }, [engine, difficulty]);
+    }, [engine, difficulty, gameMode, currentLevelIndex, startMission]);
 
     useEffect(() => {
         if (moves <= 0 && gameState === 'playing') {
@@ -193,6 +275,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         grid, selectedPath, animatingCells, score, moves, level, difficulty, foundWords,
         gameState, resetGame, swapSelection,
         tools, activeTool, setActiveTool, changeDifficulty, selectCell,
-        finishTurn, shuffle, isDictionaryLoaded
+        finishTurn, shuffle, isDictionaryLoaded,
+        gameMode, currentLevelIndex, levelGoals, startMission
     };
 };

@@ -1,26 +1,28 @@
+const CHALLENGE_GRID_SIZE = 10;
+
 export const DIFFICULTY_SETTINGS = {
     easy: {
         moves: 40,
         scoreTarget: 200,
-        vowelBonus: 2.0, // More vowels
-        rows: 12,
-        cols: 12,
+        vowelBonus: 1.8,
+        rows: 9,
+        cols: 11,
         label: 'Kolay'
     },
     normal: {
         moves: 30,
         scoreTarget: 300,
         vowelBonus: 1.0,
-        rows: 10,
-        cols: 10,
+        rows: 9,
+        cols: 11,
         label: 'Zor'
     },
     pro: {
         moves: 20,
         scoreTarget: 500,
-        vowelBonus: 0.5, // Fewer vowels
-        rows: 8,
-        cols: 8,
+        vowelBonus: 0.6,
+        rows: 9,
+        cols: 11,
         label: 'Profesör'
     }
 };

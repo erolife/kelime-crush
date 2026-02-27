@@ -68,13 +68,20 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, onSe
 
     useEffect(() => {
         const parent = canvasRef.current?.parentElement;
-        if (!parent) return;
+        if (!parent || !grid || grid.length === 0) return;
+
+        const rows = grid.length;
+        const cols = grid[0]?.length || 11;
 
         const updateSize = () => {
             const rect = parent.getBoundingClientRect();
-            const size = Math.floor(Math.min(rect.width, rect.height));
-            if (size > 0 && Math.abs(dimensions.width - size) > 1) {
-                setDimensions({ width: size, height: size });
+            // Calculate best fit for grid based on rows and columns
+            const cellSize = Math.floor(Math.min(rect.width / cols, rect.height / rows));
+            const newWidth = cellSize * cols;
+            const newHeight = cellSize * rows;
+
+            if (cellSize > 0 && (Math.abs(dimensions.width - newWidth) > 1 || Math.abs(dimensions.height - newHeight) > 1)) {
+                setDimensions({ width: newWidth, height: newHeight });
             }
         };
 
@@ -82,7 +89,7 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, onSe
         observer.observe(parent);
         updateSize();
         return () => observer.disconnect();
-    }, [dimensions.width]);
+    }, [grid, dimensions.width, dimensions.height]); // Added dimensions to dependencies for comparison
 
     const posMapRef = useRef(new Map()); // Track visual Y positions for each cell ID
     const lastGridSizeRef = useRef(0);

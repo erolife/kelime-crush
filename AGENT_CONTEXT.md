@@ -5,19 +5,15 @@
 
 ## Yapılan Geliştirmeler:
 - **26 Şubat 2026**: Proje `mobile-app/` klasörüne taşındı. Eski dosyalar `yedek/v1/` içinde toplandı.
-- **27 Şubat 2026 (Faz 1.5 - Geliştirmeler)**:
-    - **Oyun Akışı (Game Over):** Hamle sayısı 0 olduğunda oyun duruyor ve bulunan kelimelerin özeti (skor, adet, uzunluk) şık bir modal ile gösteriliyor.
-    - **Yeniden Başlatma:** Sonuç ekranında oyunu mevcut zorlukta sıfırlama seçeneği eklendi.
-    - **Bomba Görselliği:** Özel hücreler (Bomb, Row/Col Blast) için Canvas üzerinde "Pulsing" (Nabız) animasyonu ve dinamik gölge efekti eklendi. Bombanın pulsing efekti kullanıcı isteği üzerine büyütüldü ve hızlandırıldı.
-    - **Yer Çekimi & Zıplama:** Harfler artık boşluklara yer çekimi ivmesiyle düşüyor ve yere değdiklerinde hafif bir zıplama (bounce) efekti sergiliyor. Yeni harfler ekranın üstünden (off-screen) düşerek gride giriş yapıyor. Animasyon hızı artırıldı (~0.3s) ve düşüş sırasında "fade-in" efekti eklendi. Düşen hücrelerdeki hatalı küçülme efekti düzeltildi.
-    - **Hücre Takibi:** Her hücreye benzersiz `id` eklendi, böylece yer değişseler dahi görsel olarak takip edilebiliyorlar.
-    - **UI Optimizasyonu:** `useGame` hook'u `gameState` durumunu ('playing', 'gameover') yönetecek şekilde güncellendi.
-    - **Hata Giderimi (Takas Aracı):** Takas aracının çalışmamasına sebep olan bağımlılık hilesi (stale closure) giderildi. Seçilen ilk hücrenin Canvas üzerinde vurgulanması (vurgu rengi: amber) sağlandı.
-    - **Gerçek Karıştırma (Shuffle):** Karıştırma işlemi artık gridi sıfırlamak yerine mevcut harflerin ve özel hücrelerin yerlerini Fisher-Yates algoritması ile karıştırıyor.
-- **Dinamik Grid & Zorluk:** 
-    - Kolay: 12x12 grid (Vowel Bonus: 2.0x)
-    - Normal: 10x10 grid (Vowel Bonus: 1.0x)
-    - Profesör: 8x8 grid (Vowel Bonus: 0.5x)
+- **27 Şubat 2026 (Faz 1.5 - Seviye Sistemi & Pro Dashboard)**:
+    - **Yapısal Reform:** Seviye (Mission) modu eklendi. `Levels.js` üzerinden görevler, ödüller ve ilerleme sistemi (`localStorage`) entegre edildi.
+    - **Pro Dashboard:** İki aşamalı (Mod Seçimi & Seviye Grid) premium giriş ekranı. 4 sütunlu grid yapısı ve arka planda "Oyun Karosu" (Tile) şeklinde düşen harf animasyonları (0.5 opacity) eklendi.
+    - **Ekonomi Altyapısı (Coins):** Header alanında Altın göstergesi eklendi (Gelecekteki hediye sistemi için hazırlık).
+    - **Arayüz İyileştirmeleri:** Kelime seçim çubuğu başlığa taşındı, skor ve hamle paneli yan yana getirilerek sadeleştirildi.
+- **Dinamik Zorluk (11x9):** 
+    - Kolay: Moves: 40, Vowel Bonus: 1.8x
+    - Normal: Moves: 30, Vowel Bonus: 1.0x
+    - Profesör: Moves: 20, Vowel Bonus: 0.6x
 - **Harf Puanları:** `Constants.js` içerisindeki `LETTER_POINTS` değerleri her harf karesinin sağ alt köşesine eklendi.
 - **Bomba Mekaniği:** 
     - 4 harf -> Satır/Sütun patlatıcı.
@@ -37,6 +33,6 @@
 - **Turnuva Sistemi:** Global liderlik tabloları ve rekabetçi sezonlar.
 
 ## Teknik Notlar (Premium Canvas):
-- **Sizing:** `aspect-square` CSS ve `ResizeObserver` kombinasyonu ile %100 responsive kare oyun alanı sağlandı.
+- **Sizing:** `md:aspect-[11/9]` ve `ResizeObserver` kombinasyonu ile %100 responsive dikdörtgen oyun alanı sağlandı.
 - **Performans:** HTML5 Canvas API ile +60 FPS akıcılık.
 - **Visuals:** Hücrelerde dairesel hit detection (Radius: 38%) ve "Poof" animasyonu ile yüksek dokunmatik konfor.
