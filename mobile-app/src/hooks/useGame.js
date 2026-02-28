@@ -332,7 +332,7 @@ export const useGame = (initialDifficulty = 'normal') => {
             });
 
             // Check if all goals completed
-            const allDone = next.every(g => {
+            const allDone = next.length > 0 && next.every(g => {
                 if (g.type === GOAL_TYPES.SCORE) return currentScore >= g.value;
                 return g.current >= g.count;
             });
@@ -419,7 +419,7 @@ export const useGame = (initialDifficulty = 'normal') => {
             setTools(prev => ({ ...prev, [activeTool]: prev[activeTool] - 1 }));
             setActiveTool(null);
             soundManager.play('powerup');
-            updateGoals(GOAL_TYPES.USE_TOOL, toolUsed);
+            updateGoals(GOAL_TYPES.USE_TOOL, toolUsed, score);
         }
     }, [activeTool, tools, engine, swapSelection, updateGoals]);
 
@@ -466,7 +466,7 @@ export const useGame = (initialDifficulty = 'normal') => {
                 setTotalMovesMade(prev => prev + 1);
                 soundManager.play('bomb_blast');
                 setSelectedPath([]);
-                updateGoals(GOAL_TYPES.USE_TOOL, cell.type === 'bomb' ? 'bomb' : 'blast');
+                updateGoals(GOAL_TYPES.USE_TOOL, cell.type === 'bomb' ? 'bomb' : 'blast', score);
                 return true;
             }
             setSelectedPath([]);

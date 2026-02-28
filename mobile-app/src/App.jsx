@@ -199,18 +199,19 @@ const Dashboard = ({
                   <p className="text-xs font-black uppercase tracking-[0.3em]">{t('loading_levels')}</p>
                 </div>
               ) : (
-                levels.map((level, idx) => {
-                  const isLocked = idx > currentLevel;
-                  const isCompleted = idx < currentLevel;
-                  const isActive = idx === currentLevel;
+                (levels || []).map((level, idx) => {
+                  const isLocked = idx > completedLevels;
+                  const isCompleted = idx < completedLevels;
+                  const isActive = idx === completedLevels;
                   return (
                     <button
                       key={level.id}
                       onClick={() => {
+                        if (isCompleted) return; // Tamamlananlara girişi engelle
                         setSelectedLevelIdx(idx);
                         setView('pregame');
                       }}
-                      disabled={isLocked}
+                      disabled={isLocked || isCompleted}
                       className={`
                         relative group aspect-square rounded-xl border transition-all duration-500 p-2 flex flex-col justify-between overflow-hidden
                         ${isLocked ? 'bg-slate-900/20 border-white/5 opacity-40 cursor-not-allowed' :
@@ -220,16 +221,18 @@ const Dashboard = ({
                     >
                       <div className="flex justify-between items-start">
                         <span className={`text-lg font-black italic tracking-tighter ${isLocked ? 'text-slate-700' : isCompleted ? 'text-green-500' : 'text-sky-500'}`}>
-                          {level.id}
+                          {idx + 1}
                         </span>
                         {isCompleted ? <CheckCircle2 className="text-green-500" size={12} /> :
                           isLocked ? <div className="p-0.5 bg-slate-800 rounded-sm"><Sparkles size={8} className="text-slate-600" /></div> :
                             <div className="p-0.5 bg-sky-500/20 rounded-sm animate-pulse"><Play size={8} className="text-sky-400" /></div>}
                       </div>
-                      <div className="relative z-10 text-left">
-                        <h4 className={`font-bold text-[8px] leading-tight truncate ${isLocked ? 'text-slate-600' : 'text-white'}`}>{level.title}</h4>
-                        <p className="text-[6px] text-slate-500 uppercase font-black tracking-widest mt-0.5">
-                          {isLocked ? t('locked') : level.difficulty}
+                      <div className="relative z-10 text-left text-xs">
+                        <h4 className={`font-bold leading-tight truncate ${isLocked ? 'text-slate-600' : 'text-white'}`}>
+                          {typeof level.title === 'object' ? (level.title[language] || level.title['tr']) : level.title}
+                        </h4>
+                        <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest mt-0.5">
+                          {isLocked ? t('locked') : isCompleted ? t('completed') : (typeof level.difficulty === 'object' ? (level.difficulty[language] || level.difficulty['tr']) : level.difficulty)}
                         </p>
                       </div>
                       {isActive && <div className="absolute inset-0 border border-sky-400 rounded-xl animate-ping opacity-20 pointer-events-none" />}
@@ -251,7 +254,7 @@ const Dashboard = ({
               <button onClick={() => setView(isArcade ? 'modes' : 'levels')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
                 <X size={20} className="md:w-6 md:h-6" />
               </button>
-              <h2 className="text-xl md:text-3xl font-black text-white italic tracking-tighter uppercase">{isArcade ? t('arcade') : `${t('level')} ${selectedLevel.id}`}</h2>
+              <h2 className="text-xl md:text-3xl font-black text-white italic tracking-tighter uppercase">{isArcade ? t('arcade') : `${t('level')} ${selectedLevelIdx + 1}`}</h2>
             </div>
 
             {/* Member Only Warning Toast/Modal */}
@@ -272,12 +275,14 @@ const Dashboard = ({
 
             <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 backdrop-blur-md space-y-4 md:space-y-8 flex-1 overflow-y-auto no-scrollbar">
               <div className="text-center shrink-0">
-                <h3 className="text-lg md:text-xl font-black text-white italic tracking-tighter uppercase mb-2">{selectedLevel.title}</h3>
+                <h3 className="text-lg md:text-xl font-black text-white italic tracking-tighter uppercase mb-2">
+                  {typeof selectedLevel.title === 'object' ? (selectedLevel.title[language] || selectedLevel.title['tr']) : selectedLevel.title}
+                </h3>
                 {!isArcade && (
-                  <div className="flex justify-center flex-wrap gap-4">
+                  <div className="flex justify-center flex-wrap gap-2">
                     {selectedLevel.goals.map((g, i) => (
-                      <div key={i} className="bg-slate-950/50 px-4 py-2 rounded-xl text-[10px] font-black text-sky-400 border border-sky-400/20 uppercase tracking-widest">
-                        {t(`goal_${g.type}`)}: {g.count || g.value}
+                      <div key={i} className="bg-slate-950/50 px-3 py-1.5 rounded-xl text-[10px] font-black text-sky-400 border border-sky-400/20 uppercase tracking-widest">
+                        {typeof g.text === 'object' ? (g.text[language] || g.text['tr']) : g.text}
                       </div>
                     ))}
                   </div>
@@ -1238,7 +1243,7 @@ const LeaderboardView = ({ t = (s) => s, profile }) => {
   );
 };
 
-const MissionTracker = ({ goals = [], t = (s) => s }) => (
+const MissionTracker = ({ goals = [], t = (s) => s, language = 'tr' }) => (
   <div className="flex flex-col gap-1.5">
     <div className="flex items-center gap-2 mb-1">
       <Target className="text-orange-400" size={14} />
@@ -1250,7 +1255,7 @@ const MissionTracker = ({ goals = [], t = (s) => s }) => (
         <div key={idx} className={`relative overflow-hidden group bg-slate-950/60 border ${isDone ? 'border-green-500/40' : 'border-white/5'} rounded-xl p-2 transition-all`}>
           <div className="flex items-center justify-between relative z-10">
             <span className={`text-[9px] font-bold tracking-wide ${isDone ? 'text-green-400 line-through opacity-50' : 'text-slate-400'}`}>
-              {goal.text}
+              {typeof goal.text === 'object' ? (goal.text[language] || goal.text['tr']) : goal.text}
             </span>
             {isDone ? (
               <CheckCircle2 className="text-green-500" size={12} />
@@ -1586,10 +1591,10 @@ function App() {
               </div>
               <div className="min-w-[140px]">
                 <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent italic uppercase leading-none mb-1">
-                  {gameMode === 'mission' ? `${t('mission')} ${cloudLevels?.[currentLevelIndex]?.id || ''}` : 'WORDLENGE'}
+                  {gameMode === 'mission' ? `${t('mission')} ${currentLevelIndex + 1}` : 'WORDLENGE'}
                 </h1>
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate font-inter">
-                  {gameMode === 'mission' ? cloudLevels?.[currentLevelIndex]?.title : t('arcade')}
+                  {gameMode === 'mission' ? (typeof cloudLevels?.[currentLevelIndex]?.title === 'object' ? cloudLevels[currentLevelIndex].title[language] : cloudLevels?.[currentLevelIndex]?.title) : t('arcade')}
                 </p>
               </div>
             </div>
@@ -1639,6 +1644,9 @@ function App() {
             {/* Left Side: Goals & Stats */}
             <aside className="w-56 flex flex-col gap-3 shrink-0 overflow-y-auto no-scrollbar hidden md:flex">
               <div className="bg-slate-900/40 backdrop-blur-xl p-4 rounded-3xl border border-white/5 shadow-2xl space-y-3 shrink-0">
+                {gameMode === 'mission' && (
+                  <MissionTracker goals={levelGoals} t={t} language={language} />
+                )}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-slate-950/60 p-3 rounded-2xl border border-white/5 relative overflow-hidden group">
                     <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">Skor</div>
@@ -1718,22 +1726,17 @@ function App() {
                     gameMode={gameMode}
                   />
 
-                  {/* Victory / GameOver Overlays */}
-                  {gameState !== 'playing' && gameState !== 'gameover' && (
+                  {/* Victory Overlay (Only for Victory) */}
+                  {gameState === 'victory' && (
                     <div className="absolute inset-0 z-[300] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-8 text-center animate-in fade-in zoom-in duration-500">
                       <div className="max-w-xs w-full">
-                        <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border ${gameState === 'victory' ? 'bg-green-500/20 border-green-400 text-green-400' : 'bg-rose-500/20 border-rose-400 text-rose-400'}`}>
-                          {gameState === 'victory' ? <Award size={40} /> : <Zap size={40} />}
+                        <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border bg-green-500/20 border-green-400 text-green-400">
+                          <Award size={40} />
                         </div>
-                        <h2 className="text-4xl font-black text-white italic tracking-tighter mb-2 uppercase">
-                          {gameState === 'victory' ? 'TEBRİKLER!' : 'MAALESEF'}
-                        </h2>
-                        <button onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)} className="w-full py-4 bg-sky-500 text-white font-black rounded-2xl mb-2">
-                          {gameState === 'victory' ? 'DEVAM ET' : 'TEKRAR DENE'}
-                        </button>
-                        <button onClick={() => setShowDashboard(true)} className="w-full py-4 bg-white/5 text-slate-400 font-black rounded-2xl hover:bg-white/10 transition-all">
-                          ANA MENÜ
-                        </button>
+                        <h2 className="text-4xl font-black text-white italic tracking-tighter mb-2 uppercase">TEBRİKLER!</h2>
+                        <p className="text-emerald-500 text-[10px] font-black uppercase tracking-widest mb-6 italic">GÖREV BAŞARIYLA TAMAMLANDI</p>
+                        <button onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)} className="w-full py-4 bg-emerald-500 text-white font-black rounded-2xl mb-2 hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20">DEVAM ET</button>
+                        <button onClick={() => setShowDashboard(true)} className="w-full py-4 bg-white/5 text-slate-400 font-black rounded-2xl hover:bg-white/10 transition-all">ANA MENÜ</button>
                       </div>
                     </div>
                   )}
@@ -1784,7 +1787,7 @@ function App() {
             </aside>
           </main>
 
-          {/* Game Over Modal */}
+          {/* Game Over Modal (Failures for ARCADE/MISSION or Analysis for ZEN) */}
           {gameState === 'gameover' && (
             <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-xl">
               <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 text-center animate-in fade-in zoom-in duration-500">
@@ -1816,14 +1819,22 @@ function App() {
                   </>
                 ) : (
                   <>
-                    <Trophy className="w-16 h-16 text-sky-400 mx-auto mb-4" />
-                    <h2 className="text-3xl font-black text-white italic tracking-tighter mb-4">OYUN BİTTİ</h2>
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border ${gameMode === 'mission' ? 'bg-rose-500/20 border-rose-400 text-rose-400' : 'bg-sky-500/20 border-sky-400 text-sky-400'}`}>
+                      {gameMode === 'mission' ? <X size={40} /> : <Trophy size={40} />}
+                    </div>
+                    <h2 className="text-3xl font-black text-white italic tracking-tighter mb-2 uppercase">
+                      {gameMode === 'mission' ? 'GÖREV BAŞARISIZ' : 'OYUN BİTTİ'}
+                    </h2>
+                    <p className={`text-[10px] font-black uppercase tracking-widest mb-6 italic ${gameMode === 'mission' ? 'text-rose-500' : 'text-sky-500'}`}>
+                      {gameMode === 'mission' ? 'HEDEFLERE ULAŞILAMADI' : 'HAMLELER TÜKENDİ'}
+                    </p>
+
                     <div className="grid grid-cols-2 gap-4 mb-8">
-                      <div className="bg-slate-800 p-4 rounded-2xl">
+                      <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5">
                         <div className="text-[10px] text-slate-500 font-black uppercase mb-1">Skor</div>
-                        <div className="text-2xl font-black text-white italic">{score}</div>
+                        <div className="text-2xl font-black text-white italic tabular-nums">{score}</div>
                       </div>
-                      <div className="bg-slate-800 p-4 rounded-2xl">
+                      <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5">
                         {gameMode === 'arcade' && arcadeSubMode === 'time' ? (
                           <>
                             <div className="text-[10px] text-slate-500 font-black uppercase mb-1">{t('total_moves')}</div>
@@ -1832,13 +1843,14 @@ function App() {
                         ) : (
                           <>
                             <div className="text-[10px] text-slate-500 font-black uppercase mb-1">Hamle</div>
-                            <div className="text-2xl font-black text-white tabular-nums">{moves}</div>
+                            <div className="text-2xl font-black text-white tabular-nums">{totalMovesMade}</div>
                           </>
                         )}
                       </div>
                     </div>
-                    <button onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)} className="w-full py-5 bg-sky-500 text-white font-black rounded-2xl shadow-xl mb-3">TEKRAR DENE</button>
-                    <button onClick={() => setShowDashboard(true)} className="w-full py-4 bg-white/5 text-slate-400 font-black rounded-2xl hover:bg-white/10 transition-all underline decoration-sky-500/30 underline-offset-4">ANA MENÜYE DÖN</button>
+
+                    <button onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)} className={`w-full py-5 text-white font-black rounded-2xl shadow-xl mb-3 ${gameMode === 'mission' ? 'bg-rose-500 hover:bg-rose-400 shadow-rose-500/20' : 'bg-sky-500 hover:bg-sky-400 shadow-sky-500/20'}`}>TEKRAR DENE</button>
+                    <button onClick={() => setShowDashboard(true)} className="w-full py-4 bg-white/5 text-slate-400 font-black rounded-2xl hover:bg-white/10 transition-all underline underline-offset-4 decoration-white/10">ANA MENÜYE DÖN</button>
                   </>
                 )}
               </div>
