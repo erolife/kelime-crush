@@ -1,7 +1,9 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
 **Son Güncelleme:** 2026-02-27
-## Proje Durumu: v4.5.0 (Dashboard UI Redesign)
+## Proje Durumu: v4.6.0 (Mobil Optimizasyon & Hata Giderme)
+- **Feature (v4.6.0)**: Mobil cihazlarda (md breakpoint altı) Header padding, logo ve font boyutları daraltıldı. Dashboard ikincil sayfaları (envanter, günlük ödül vb.) dikey kaydırılabilir (overflow-y-auto) hale getirildi.
+- **Hotfix (v4.6.0)**: Oyun modlarına (Arcade/Mission) geçişte yaşanan Blank Screen (Boş Ekran) hatası giderildi. Hatanın kaynağı olan App.jsx lexical declaration (syntax) problemleri ve PremiumCanvas içerisindeki ResizeObserver sonsuz döngüsü düzeltildi.
 - **Feature (v4.5.0)**: Dashboard ana ekranı tamamen yeniden tasarlandı. Mobil-first layout, gradient kartlar, noise texture, XP bar, CTA pill'ler, responsive profil şeridi eklendi.
 - **Hotfix (v4.4.3)**: highScore oyun sonu mantığı düzeltildi, score closure sorunu giderildi.
 - **Feature (v4.4.2)**: Misafirler için Header'daki Altın/Enerji gizlendi; Leaderboard erişimi açıldı.

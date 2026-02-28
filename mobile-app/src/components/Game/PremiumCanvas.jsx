@@ -112,7 +112,7 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
         observer.observe(parent);
         updateSize();
         return () => observer.disconnect();
-    }, [grid, dimensions.width, dimensions.height]); // Added dimensions to dependencies for comparison
+    }, [grid]); // Removed dimensions from dependencies to prevent infinite loops
 
     const posMapRef = useRef(new Map()); // Track visual Y positions for each cell ID
     const lastGridSizeRef = useRef(0);

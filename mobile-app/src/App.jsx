@@ -232,24 +232,24 @@ const Dashboard = ({
           </div>
         );
 
-      case 'pregame':
+      case 'pregame': {
         const isArcade = selectedLevelIdx === null;
         const selectedLevel = isArcade ? { id: t('arcade'), title: t('arcade_desc'), goals: [] } : levels[selectedLevelIdx];
         if (!selectedLevel) return null;
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto">
-            <div className="flex items-center gap-4 mb-8">
-              <button onClick={() => setView(isArcade ? 'modes' : 'levels')} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
-                <X size={24} />
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full max-h-screen">
+            <div className="flex items-center gap-2 md:gap-4 mb-2 md:mb-6 shrink-0 pt-2 md:pt-0">
+              <button onClick={() => setView(isArcade ? 'modes' : 'levels')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
+                <X size={20} className="md:w-6 md:h-6" />
               </button>
-              <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">{isArcade ? t('arcade') : `${t('level')} ${selectedLevel.id}`}</h2>
+              <h2 className="text-xl md:text-3xl font-black text-white italic tracking-tighter uppercase">{isArcade ? t('arcade') : `${t('level')} ${selectedLevel.id}`}</h2>
             </div>
 
-            <div className="bg-slate-900/60 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-md space-y-8">
-              <div className="text-center">
-                <h3 className="text-xl font-black text-white italic tracking-tighter uppercase mb-2">{level.title}</h3>
+            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 backdrop-blur-md space-y-4 md:space-y-8 flex-1 overflow-y-auto no-scrollbar">
+              <div className="text-center shrink-0">
+                <h3 className="text-lg md:text-xl font-black text-white italic tracking-tighter uppercase mb-2">{selectedLevel.title}</h3>
                 <div className="flex justify-center flex-wrap gap-4">
-                  {level.goals.map((g, i) => (
+                  {selectedLevel.goals.map((g, i) => (
                     <div key={i} className="bg-slate-950/50 px-4 py-2 rounded-xl text-[10px] font-black text-sky-400 border border-sky-400/20 uppercase tracking-widest">
                       {t(`goal_${g.type}`)}: {g.count || g.value}
                     </div>
@@ -257,9 +257,9 @@ const Dashboard = ({
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2 font-inter">{t('select_boosters')}</div>
-                <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2 md:space-y-4 shrink-0">
+                <div className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1 md:ml-2 font-inter">{t('select_boosters')}</div>
+                <div className="grid grid-cols-3 gap-2 md:gap-4">
                   {['bomb', 'row', 'col'].map(type => {
                     const count = tools?.[type] || 0;
                     const isSelected = selectedBoosters[type];
@@ -275,16 +275,16 @@ const Dashboard = ({
                             count > 0 ? 'bg-slate-800/40 border-white/5 text-slate-400 hover:bg-slate-800' : 'bg-slate-900/20 border-white/5 opacity-40 grayscale'}
                         `}
                       >
-                        <Icon size={24} className={isSelected ? 'animate-bounce' : ''} />
-                        <span className="text-[10px] font-black uppercase tracking-widest leading-none">{t(type)}</span>
-                        <span className="absolute -top-2 -right-2 bg-white text-slate-950 text-[10px] font-black w-6 h-6 rounded-full border-2 border-slate-950 flex items-center justify-center">{count}</span>
+                        <Icon className={`w-5 h-5 md:w-6 md:h-6 ${isSelected ? 'animate-bounce' : ''}`} />
+                        <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest leading-none">{t(type)}</span>
+                        <span className="absolute -top-1.5 -right-1.5 md:-top-2 md:-right-2 bg-white text-slate-950 text-[9px] md:text-[10px] font-black w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-slate-950 flex items-center justify-center">{count}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-2 md:pt-4 shrink-0 mt-auto pb-4 md:pb-0">
                 <button
                   onClick={() => {
                     if (energy > 0) {
@@ -300,15 +300,15 @@ const Dashboard = ({
                   }}
                   disabled={energy <= 0}
                   className={`
-                    w-full py-6 rounded-2xl font-black text-xl italic tracking-[0.2em] uppercase transition-all active:scale-95 shadow-2xl flex items-center justify-center gap-3
+                    w-full py-4 md:py-6 rounded-xl md:rounded-2xl font-black text-lg md:text-xl italic tracking-[0.2em] uppercase transition-all active:scale-95 shadow-xl md:shadow-2xl flex items-center justify-center gap-2 md:gap-3
                     ${energy > 0 ? 'bg-gradient-to-r from-orange-500 to-red-600 text-slate-950 hover:from-orange-400 hover:to-red-500 shadow-orange-500/20' : 'bg-slate-800 text-slate-500 cursor-not-allowed'}
                   `}
                 >
-                  <Play size={24} fill="currentColor" />
+                  <Play size={20} className="md:w-6 md:h-6" fill="currentColor" />
                   {t('start_game')} (-1 ⚡)
                 </button>
                 {energy <= 0 && (
-                  <p className="text-center text-rose-500 text-[10px] font-black uppercase tracking-widest mt-4 animate-pulse">
+                  <p className="text-center text-rose-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mt-2 md:mt-4 animate-pulse">
                     Enerji bitti! Bekle: {Math.floor(nextEnergyIn / 60)}:{(nextEnergyIn % 60).toString().padStart(2, '0')}
                   </p>
                 )}
@@ -316,6 +316,7 @@ const Dashboard = ({
             </div>
           </div>
         );
+      }
 
       case 'inventory':
         return (
@@ -772,30 +773,29 @@ const Dashboard = ({
                   </button>
                 </div>
               </div>
+            </div>
 
-              {/* ── MOBİL: Sağ Icon Kolonu (sadece mobile) ── */}
-              <div className="lg:hidden flex flex-col gap-2 w-12 shrink-0">
-                <button
-                  onClick={() => setView('leaderboard')}
-                  className="w-12 h-12 bg-white/5 border border-white/8 rounded-xl flex items-center justify-center active:scale-95 transition-all hover:border-sky-500/30"
-                >
-                  <BarChart3 size={18} className="text-sky-400" />
-                </button>
-                <button
-                  onClick={() => { if (!user) setShowMissionLock(true); else setView('inventory'); }}
-                  className="w-12 h-12 bg-white/5 border border-white/8 rounded-xl flex items-center justify-center active:scale-95 transition-all hover:border-purple-500/30"
-                >
-                  <Box size={18} className="text-purple-400" />
-                </button>
-                <button
-                  onClick={() => setView('daily')}
-                  className="relative w-12 h-12 bg-white/5 border border-white/8 rounded-xl flex items-center justify-center active:scale-95 transition-all hover:border-amber-500/30"
-                >
-                  <Gift size={18} className="text-amber-400" />
-                  <div className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-slate-950 animate-pulse" />
-                </button>
-              </div>
-
+            {/* ── MOBİL: Alt İkon Barı (sadece mobile) ── */}
+            <div className="lg:hidden flex flex-row justify-center items-center gap-4 w-full pt-4 mt-auto border-t border-white/10 shrink-0">
+              <button
+                onClick={() => setView('leaderboard')}
+                className="w-14 h-14 bg-white/5 border border-white/8 rounded-[1.5rem] flex items-center justify-center active:scale-95 transition-all hover:border-sky-500/30"
+              >
+                <BarChart3 size={20} className="text-sky-400" />
+              </button>
+              <button
+                onClick={() => { if (!user) setShowMissionLock(true); else setView('inventory'); }}
+                className="w-14 h-14 bg-white/5 border border-white/8 rounded-[1.5rem] flex items-center justify-center active:scale-95 transition-all hover:border-purple-500/30"
+              >
+                <Box size={20} className="text-purple-400" />
+              </button>
+              <button
+                onClick={() => setView('daily')}
+                className="relative w-14 h-14 bg-white/5 border border-white/8 rounded-[1.5rem] flex items-center justify-center active:scale-95 transition-all hover:border-amber-500/30"
+              >
+                <Gift size={20} className="text-amber-400" />
+                <div className="absolute top-1 right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-slate-950 animate-pulse" />
+              </button>
             </div>
 
           </div>
@@ -851,20 +851,20 @@ const Dashboard = ({
         })}
       </div>
 
-      <header className="relative z-10 px-8 py-6 flex justify-between items-center bg-slate-950/20 backdrop-blur-md border-b border-white/5">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center p-2 backdrop-blur-md border border-white/20">
+      <header className="relative z-10 px-4 py-3 md:px-8 md:py-6 flex justify-between items-center bg-slate-950/20 backdrop-blur-md border-b border-white/5 shrink-0">
+        <div className="flex items-center gap-2 md:gap-4">
+          <div className="w-10 h-10 md:w-16 md:h-16 bg-white/10 rounded-xl md:rounded-2xl flex items-center justify-center p-1.5 md:p-2 backdrop-blur-md border border-white/20">
             <img src="/logo.png" alt="WORDLENGE" className="w-full h-full object-contain" onError={(e) => e.target.style.display = 'none'} />
-            <Gamepad2 className="text-orange-500" size={32} />
+            <Gamepad2 className="text-orange-500 w-5 h-5 md:w-8 md:h-8 hidden" />
           </div>
-          <div className="flex flex-col">
-            <h1 className="text-4xl font-black bg-gradient-to-r from-orange-400 via-red-500 to-blue-500 bg-clip-text text-transparent italic tracking-tighter leading-none font-outfit">
+          <div className="hidden md:flex flex-col">
+            <h1 className="text-2xl md:text-4xl font-black bg-gradient-to-r from-orange-400 via-red-500 to-blue-500 bg-clip-text text-transparent italic tracking-tighter leading-none font-outfit">
               WORDLENGE
             </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="h-[1.5px] w-12 bg-gradient-to-r from-orange-500 to-blue-500"></span>
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] font-inter">Puzzle Edition v2.6</span>
-              <div className="flex items-center gap-1.5 ml-4 bg-slate-900/40 p-1 rounded-lg border border-white/5 font-inter">
+            <div className="flex items-center gap-2 mt-0 md:mt-1">
+              <span className="h-[1.5px] w-6 md:w-12 bg-gradient-to-r from-orange-500 to-blue-500"></span>
+              <span className="text-[7px] md:text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] font-inter hidden sm:inline-block">Puzzle Edition v2.6</span>
+              <div className="flex items-center gap-1 md:gap-1.5 ml-2 md:ml-4 bg-slate-900/40 p-0.5 md:p-1 rounded-md md:rounded-lg border border-white/5 font-inter">
                 <button
                   onClick={() => setLanguage('tr')}
                   className={`px-2 py-0.5 text-[9px] font-black rounded transition-all ${language === 'tr' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
@@ -881,73 +881,73 @@ const Dashboard = ({
 
               <button
                 onClick={() => setView('settings')}
-                className="ml-2 w-8 h-8 bg-slate-900/40 hover:bg-white/5 border border-white/5 rounded-lg flex items-center justify-center text-slate-500 hover:text-white transition-all active:scale-95 group"
+                className="ml-1 md:ml-2 w-6 h-6 md:w-8 md:h-8 bg-slate-900/40 hover:bg-white/5 border border-white/5 rounded-md md:rounded-lg flex items-center justify-center text-slate-500 hover:text-white transition-all active:scale-95 group"
               >
-                <Settings size={16} className="group-hover:rotate-45 transition-transform" />
+                <Settings className="w-3 h-3 md:w-4 md:h-4 group-hover:rotate-45 transition-transform" />
               </button>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4 shrink-0">
           {user && (
             <>
-              <div className="bg-slate-900/60 border border-white/5 px-4 py-2 rounded-2xl flex items-center gap-3 group transition-all hover:border-sky-500/50 relative overflow-hidden">
+              <div className="bg-slate-900/60 border border-white/5 px-2 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl flex items-center gap-1.5 md:gap-3 group transition-all hover:border-sky-500/50 relative overflow-hidden hidden sm:flex">
                 {energy < 5 && (
                   <div className="absolute bottom-0 left-0 h-1 bg-sky-500/30 transition-all duration-1000" style={{ width: `${(1 - (nextEnergyIn / 1200)) * 100}%` }} />
                 )}
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${energy > 0 ? 'bg-sky-500/20 text-sky-400' : 'bg-rose-500/20 text-rose-400'} group-hover:scale-110 transition-transform`}>
-                  <Zap size={18} fill={energy > 0 ? "currentColor" : "none"} />
+                <div className={`w-6 h-6 md:w-8 md:h-8 rounded-lg flex items-center justify-center ${energy > 0 ? 'bg-sky-500/20 text-sky-400' : 'bg-rose-500/20 text-rose-400'} group-hover:scale-110 transition-transform`}>
+                  <Zap className="w-3 h-3 md:w-4 md:h-4" fill={energy > 0 ? "currentColor" : "none"} />
                 </div>
-                <div className="flex flex-col font-outfit min-w-[40px]">
-                  <span className="text-xs font-black text-white leading-none">{energy}/5</span>
-                  <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight">
+                <div className="flex flex-col font-outfit min-w-[24px] md:min-w-[40px]">
+                  <span className="text-[10px] md:text-xs font-black text-white leading-none">{energy}/5</span>
+                  <span className="text-[6px] md:text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight">
                     {energy < 5 ? `${Math.floor(nextEnergyIn / 60)}:${(nextEnergyIn % 60).toString().padStart(2, '0')}` : 'Full'}
                   </span>
                 </div>
               </div>
 
-              <div className="bg-slate-900/60 border border-white/5 px-4 py-2 rounded-2xl flex items-center gap-2 group transition-all hover:border-amber-500/50">
-                <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
-                  <Coins size={18} />
+              <div className="bg-slate-900/60 border border-white/5 px-2 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl flex items-center gap-1 md:gap-2 group transition-all hover:border-amber-500/50 hidden sm:flex">
+                <div className="w-6 h-6 md:w-8 md:h-8 bg-amber-500/20 rounded-lg flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
+                  <Coins className="w-3 h-3 md:w-4 md:h-4" />
                 </div>
                 <div className="flex flex-col font-outfit">
-                  <span className="text-xs font-black text-white leading-none">{coins}</span>
-                  <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight">Altın</span>
+                  <span className="text-[10px] md:text-xs font-black text-white leading-none">{coins}</span>
+                  <span className="text-[6px] md:text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight">Altın</span>
                 </div>
               </div>
             </>
           )}
 
           {user ? (
-            <div className="flex items-center gap-3 bg-slate-900/60 border border-white/5 p-1 pr-4 rounded-2xl group transition-all hover:border-sky-500/50 font-outfit">
+            <div className="flex items-center gap-2 md:gap-3 bg-slate-900/60 border border-white/5 p-1 pr-3 md:pr-4 rounded-xl md:rounded-2xl group transition-all hover:border-sky-500/50 font-outfit">
               <div className="relative">
-                <div className="w-10 h-10 bg-sky-500/20 rounded-xl flex items-center justify-center text-sky-400 font-black italic">
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-sky-500/20 rounded-lg md:rounded-xl flex items-center justify-center text-sky-400 font-black italic text-xs md:text-base">
                   {profile?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
                 </div>
                 {/* Level Badge */}
-                <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white text-[7px] font-black leading-none px-1.5 py-0.5 rounded-md border-2 border-slate-950 shadow-lg">
+                <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white text-[6px] md:text-[7px] font-black leading-none px-1 md:px-1.5 py-0.5 rounded-sm md:rounded-md border border-slate-950 md:border-2 shadow-lg">
                   {completedLevels + 1}
                 </div>
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-black text-white leading-none truncate max-w-[80px]">
+                <span className="text-[10px] md:text-xs font-black text-white leading-none truncate max-w-[60px] md:max-w-[80px]">
                   {profile?.username || user?.email?.split('@')[0]}
                 </span>
                 <button
                   onClick={() => AuthService.signOut()}
-                  className="text-[8px] font-bold text-slate-500 hover:text-red-400 uppercase tracking-widest transition-colors flex items-center gap-1 font-inter"
+                  className="text-[6px] md:text-[8px] font-bold text-slate-500 hover:text-red-400 uppercase tracking-widest transition-colors flex items-center gap-0.5 md:gap-1 font-inter mt-0.5"
                 >
-                  <LogOut size={8} /> {t('logout')}
+                  <LogOut className="w-2 h-2 md:w-3 md:h-3" /> {t('logout')}
                 </button>
               </div>
             </div>
           ) : (
             <button
               onClick={onOpenAuth}
-              className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl flex items-center gap-2 text-slate-400 hover:text-white transition-all font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 font-inter"
+              className="px-4 py-2 md:px-6 md:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl md:rounded-2xl flex items-center gap-2 text-slate-400 hover:text-white transition-all font-black text-[8px] md:text-[10px] uppercase tracking-widest shadow-xl active:scale-95 font-inter"
             >
-              <User size={16} className="text-orange-500" />
+              <User className="w-3 h-3 md:w-4 md:h-4 text-orange-500" />
               Giriş Yap
             </button>
           )}
@@ -956,7 +956,7 @@ const Dashboard = ({
 
       {/* Main Content Area */}
       <div className="flex-1 relative z-10 flex flex-col items-center overflow-y-auto no-scrollbar p-4 lg:p-8">
-        <div className="w-full h-full flex items-center justify-center">
+        <div className="w-full min-h-full flex items-center justify-center">
           {renderView()}
         </div>
       </div>

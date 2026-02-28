@@ -39,5 +39,11 @@ Oyun Paraları nasıl kullanılır
 Farklı kelime bazlı oyunlar oluşturulabilir mi?
 
 
-**İLerleyen zaman için etkileşim beyin fırtınası düşünceleri.**
-Bir oyuncu belirlediğimizsayıda harften fal-zla harf kullanarak geçerli bir kelime oluşturduğunda oyun oynayanların görebileceği bir toast mesaj ekranın sağ alt kısmında çıkabilir mi? Oyuncular tebriklerini (bir kalp gibi) göndermek için tıklayavbilirler. BU etkileşimi üst sınıra çıkarabilir ve oyuncuların oyunu oynama konusundaki iştahlarını kabartabilir mi acaba? Bu uygulanabilir bir özellik mi?
+
+
+**İlerleyen zaman için etkileşim beyin fırtınası düşünceleri.**
+Bir oyuncu belirlediğimizsayıda harften fazla harf kullanarak geçerli bir kelime oluşturduğunda oyun oynayanların görebileceği bir toast mesaj ekranın sağ alt kısmında çıkabilir mi? Oyuncular tebriklerini (bir kalp gibi) göndermek için tıklayavbilirler. BU etkileşimi üst sınıra çıkarabilir ve oyuncuların oyunu oynama konusundaki iştahlarını kabartabilir mi acaba? Bu uygulanabilir bir özellik mi?
+
+
+**MOBIL DENEYIM SORUNLARI**
+Mobil cihazda sayfalar ekrana sığmıyor. header çok yer kapladığı için açılan ekrandan dashboarda dönüş yapılamıyor. Bu konuda bir çözüm geliştirilmesi lazım. Mobil kullanıcı deneyimi çok önemli. Oyun oynama ekranlarında headeri gizleyip oyun bittiğinde tekrar görünür hale getirmek gibi bir çözüm düşünülebilir. Süreç içerisinde web uygulamasını mobil bir oyun uygulamasına dönüştüreceğiz bu sorunları çözmeden yapamayız. Ya mobil için ayrı bir aryüz ayarlayacağız ya da bu tasarımı mobil uyumlu hale getireceğiz.  
