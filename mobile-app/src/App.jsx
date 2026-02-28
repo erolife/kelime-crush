@@ -8,7 +8,7 @@ import {
   Target, MoveHorizontal, MoveVertical, X,
   ChevronRight, Play, CheckCircle2, Award, History,
   LayoutGrid, RotateCcw, Coins, Calendar, Box,
-  ListTodo, Gift, ShoppingBag, BarChart3
+  ListTodo, Gift, ShoppingBag, BarChart3, Share2
 } from 'lucide-react';
 import { LEVELS } from './logic/Levels';
 import { LETTER_POINTS } from './logic/Constants';
@@ -141,6 +141,7 @@ const Dashboard = ({
   levels = [], isLoading, user, profile, onOpenAuth, language, setLanguage, t = (s) => s,
   isMuted, toggleMute, difficulty, changeDifficulty, dailyReward, claimGift, STREAK_REWARDS = [],
   showDailyGift, energy, nextEnergyIn,
+  totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId
 }) => {
   const [view, setView] = React.useState('modes');
   const [selectedLevelIdx, setSelectedLevelIdx] = React.useState(null);
@@ -476,6 +477,92 @@ const Dashboard = ({
           </div>
         );
 
+      case 'profile':
+        return (
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-20">
+            <div className="flex items-center gap-4 mb-8">
+              <button onClick={() => setView('modes')} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
+                <X size={24} />
+              </button>
+              <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">{t('profile')}</h2>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* User Identity Card */}
+              <div className="lg:col-span-1 space-y-6">
+                <div className="bg-slate-900/60 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-md flex flex-col items-center text-center">
+                  <div className="relative mb-6 group">
+                    <div className="w-32 h-32 bg-gradient-to-br from-sky-500 to-purple-600 rounded-[2.5rem] flex items-center justify-center text-white shadow-2xl overflow-hidden">
+                      <User size={64} />
+                    </div>
+                    <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-amber-500 rounded-full border-4 border-slate-900 flex items-center justify-center text-slate-950 font-black text-xs shadow-lg">
+                      {currentLevel + 1}
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-1">{user?.user_metadata?.username || user?.email?.split('@')[0] || t('player')}</h3>
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">{t('member_since')}: {new Date(user?.created_at).toLocaleDateString()}</p>
+
+                  {user ? (
+                    <button onClick={onOpenAuth} className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl text-xs font-black text-slate-400 hover:text-white transition-all uppercase tracking-widest italic">
+                      {t('logout')}
+                    </button>
+                  ) : (
+                    <button onClick={onOpenAuth} className="w-full py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black rounded-2xl transition-all uppercase tracking-widest italic">
+                      {t('signin_button')}
+                    </button>
+                  )}
+                </div>
+
+                <div className="bg-slate-900/40 border border-white/5 rounded-3xl p-6 backdrop-blur-md">
+                  <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 text-center">{t('level_progress')}</div>
+                  <div className="w-full h-3 bg-slate-950 rounded-full overflow-hidden border border-white/5">
+                    <div
+                      className="h-full bg-gradient-to-r from-sky-500 to-purple-600 transition-all duration-1000"
+                      style={{ width: `${Math.min(100, (currentLevel / levels.length) * 100)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-2">
+                    <span className="text-[10px] font-black text-sky-500 italic">Lvl {currentLevel}</span>
+                    <span className="text-[10px] font-black text-slate-600 italic">Total {levels.length}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { label: t('total_score'), value: totalScore, icon: <Trophy size={20} />, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+                    { label: t('high_score'), value: highScore, icon: <Zap size={20} />, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+                    { label: t('words_found'), value: wordsFoundCount, icon: <AlignLeft size={20} />, color: 'text-sky-500', bg: 'bg-sky-500/10' },
+                    { label: t('games_played'), value: gamesPlayed, icon: <Gamepad2 size={20} />, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+                  ].map((stat, i) => (
+                    <div key={i} className="bg-slate-900/60 border border-white/5 rounded-[2rem] p-6 backdrop-blur-md flex flex-col items-center justify-center text-center group hover:border-white/20 transition-all">
+                      <div className={`w-12 h-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                        {stat.icon}
+                      </div>
+                      <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{stat.label}</div>
+                      <div className="text-3xl font-black text-white italic tracking-tighter leading-none">{stat.value?.toLocaleString()}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Badges Placeholder */}
+                <div className="bg-slate-900/40 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-md">
+                  <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-6 font-inter">{t('achievements')}</div>
+                  <div className="flex flex-wrap gap-4">
+                    {[1, 2, 3, 4, 5].map(i => (
+                      <div key={i} className="w-16 h-16 bg-slate-950/50 border border-white/5 rounded-2xl flex items-center justify-center text-slate-700 opacity-40 grayscale group hover:opacity-100 transition-all">
+                        <Award size={32} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       default: // 'modes'
         return (
           <div className="flex flex-row gap-2 lg:gap-6 items-start animate-in fade-in zoom-in duration-700 max-w-6xl mx-auto w-full px-2 lg:px-4 h-full min-h-0">
@@ -519,6 +606,23 @@ const Dashboard = ({
 
             {/* SIDEBAR COLUMN - Fixed on the right */}
             <div className="w-[140px] lg:w-80 shrink-0 space-y-2 lg:space-y-4 h-full overflow-y-auto no-scrollbar pb-20 lg:pb-0">
+              {/* Profile Card */}
+              <button
+                onClick={() => setView('profile')}
+                className="w-full bg-slate-900/60 hover:bg-slate-900/80 border border-white/5 hover:border-sky-500/30 rounded-[1.5rem] lg:rounded-[2.5rem] p-3 lg:p-6 transition-all group flex items-center gap-4 text-left shadow-2xl"
+              >
+                <div className="w-10 h-10 lg:w-16 lg:h-16 bg-gradient-to-br from-sky-500 to-purple-600 rounded-xl lg:rounded-3xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                  <User size={24} className="lg:hidden" />
+                  <User size={32} className="hidden lg:block" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[8px] lg:text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">PROGRES</div>
+                  <div className="text-xs lg:text-xl font-black text-white italic tracking-tighter truncate uppercase">{user?.user_metadata?.username || user?.email?.split('@')[0] || t('player')}</div>
+                  <div className="text-[8px] lg:text-[10px] font-black text-sky-400 uppercase tracking-widest mt-1">Lvl {currentLevel + 1}</div>
+                </div>
+                <ChevronRight size={16} className="text-slate-600 group-hover:text-white group-hover:translate-x-1 transition-all" />
+              </button>
+
               {/* RANK & INVENTORY ROW */}
               <div className="grid grid-cols-2 gap-2">
                 <button
@@ -818,7 +922,8 @@ function App() {
     cloudLevels, isLoadingLevels,
     user, profile, isLoadingProfile, completedLevels,
     language, setLanguage, t,
-    energy, nextEnergyIn, setEnergy, setLastEnergyRefill
+    energy, nextEnergyIn, setEnergy, setLastEnergyRefill,
+    totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId
   } = useGame();
 
   const [isMuted, setIsMuted] = useState(false);
@@ -902,6 +1007,31 @@ function App() {
     setIsMuted(muted);
   };
 
+  const handleShare = async () => {
+    const isArcade = gameMode === 'arcade';
+    const messageTemplate = isArcade ? t('share_msg_arcade') : t('share_msg_mission');
+    const text = messageTemplate
+      .replace('{score}', score.toString())
+      .replace('{level}', (currentLevelIndex + 1).toString());
+
+    const shareData = {
+      title: 'Wordlenge',
+      text: text,
+      url: window.location.origin
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(`${text} ${shareData.url}`);
+        alert(t('language') === 'tr' ? 'Sonuç panoya kopyalandı!' : 'Result copied to clipboard!');
+      }
+    } catch (err) {
+      console.error('Share error:', err);
+    }
+  };
+
   return (
     <div className="h-screen w-screen bg-[#020617] text-slate-100 font-outfit select-none overflow-hidden flex flex-col">
       {/* Auth Modal stays as utility */}
@@ -953,6 +1083,12 @@ function App() {
               setShowDashboard(false);
             }
           }}
+          totalScore={totalScore}
+          wordsFoundCount={wordsFoundCount}
+          gamesPlayed={gamesPlayed}
+          highScore={highScore}
+          avatarId={avatarId}
+          setAvatarId={setAvatarId}
         />
       )}
 
@@ -1073,10 +1209,19 @@ function App() {
                     <p className="text-slate-400 text-sm font-medium mb-8">
                       {gameState === 'victory' ? 'Seviyeyi başarıyla tamamladın! Ödüllerin envanterine eklendi.' : 'Hamlelerin bitti ama pes etme. Tekrar deneyebilirsin.'}
                     </p>
-                    <div className="flex gap-3">
-                      <button onClick={() => setShowDashboard(true)} className="flex-1 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-black rounded-2xl transition-all active:scale-95 uppercase text-xs">ANA MENÜ</button>
-                      <button onClick={resetGame} className={`flex-1 py-4 ${gameState === 'victory' ? 'bg-green-500 hover:bg-green-400 shadow-green-500/30' : 'bg-sky-500 hover:bg-sky-400 shadow-sky-500/30'} text-white font-black rounded-2xl shadow-xl transition-all active:scale-95 uppercase text-xs`}>
-                        {gameState === 'victory' ? 'DEVAM ET' : 'TEKRAR DENE'}
+                    <div className="flex flex-col gap-3">
+                      <div className="flex gap-3">
+                        <button onClick={() => setShowDashboard(true)} className="flex-1 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-black rounded-2xl transition-all active:scale-95 uppercase text-xs">ANA MENÜ</button>
+                        <button onClick={resetGame} className={`flex-1 py-4 ${gameState === 'victory' ? 'bg-green-500 hover:bg-green-400 shadow-green-500/30' : 'bg-sky-500 hover:bg-sky-400 shadow-sky-500/30'} text-white font-black rounded-2xl shadow-xl transition-all active:scale-95 uppercase text-xs`}>
+                          {gameState === 'victory' ? 'DEVAM ET' : 'TEKRAR DENE'}
+                        </button>
+                      </div>
+                      <button
+                        onClick={handleShare}
+                        className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-2xl shadow-lg transition-all active:scale-95 uppercase text-xs flex items-center justify-center gap-2"
+                      >
+                        <Share2 size={16} />
+                        {t('share_button')}
                       </button>
                     </div>
                   </div>
@@ -1211,13 +1356,20 @@ function App() {
                 </div>
               </div>
 
-              <div className="p-8 pt-4">
+              <div className="p-8 pt-4 space-y-3">
                 <button
                   onClick={resetGame}
                   className="w-full py-5 bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-400 hover:to-sky-500 text-white font-black rounded-2xl shadow-[0_10px_30px_rgba(56,189,248,0.3)] transition-all active:scale-95 flex items-center justify-center gap-2"
                 >
                   <RefreshCw className="w-5 h-5" />
                   YENİDEN BAŞLA
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase tracking-widest"
+                >
+                  <Share2 size={16} />
+                  {t('share_button')}
                 </button>
               </div>
             </div>

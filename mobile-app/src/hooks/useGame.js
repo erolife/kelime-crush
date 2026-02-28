@@ -31,6 +31,11 @@ export const useGame = (initialDifficulty = 'normal') => {
         return parseInt(localStorage.getItem('crush_last_refill') || Date.now().toString());
     });
     const [nextEnergyIn, setNextEnergyIn] = useState(0); // Saniye cinsinden geri sayım
+    const [totalScore, setTotalScore] = useState(0);
+    const [wordsFoundCount, setWordsFoundCount] = useState(0);
+    const [gamesPlayed, setGamesPlayed] = useState(0);
+    const [highScore, setHighScore] = useState(0);
+    const [avatarId, setAvatarId] = useState('default');
 
     // Dynamic Level Loader
     useEffect(() => {
@@ -82,6 +87,11 @@ export const useGame = (initialDifficulty = 'normal') => {
             if (data.energy !== undefined) setEnergy(data.energy);
             if (data.last_energy_refill) setLastEnergyRefill(new Date(data.last_energy_refill).getTime());
             if (data.language) setLanguageState(data.language);
+            if (data.total_score) setTotalScore(data.total_score);
+            if (data.words_found_count) setWordsFoundCount(data.words_found_count);
+            if (data.games_played) setGamesPlayed(data.games_played);
+            if (data.high_score) setHighScore(data.high_score);
+            if (data.avatar_id) setAvatarId(data.avatar_id);
             localStorage.setItem('crush_completed_levels', (data.current_level_index || 0).toString());
         }
         setIsLoadingProfile(false);
@@ -141,12 +151,17 @@ export const useGame = (initialDifficulty = 'normal') => {
                     current_level_index: completedLevels,
                     language,
                     energy,
-                    last_energy_refill: new Date(lastEnergyRefill).toISOString()
+                    last_energy_refill: new Date(lastEnergyRefill).toISOString(),
+                    total_score: totalScore,
+                    words_found_count: wordsFoundCount,
+                    games_played: gamesPlayed,
+                    high_score: highScore,
+                    avatar_id: avatarId
                 });
             }, 2000); // 2 saniye debounce
             return () => clearTimeout(timeoutId);
         }
-    }, [coins, tools, user, completedLevels, language, energy, lastEnergyRefill]);
+    }, [coins, tools, user, completedLevels, language, energy, lastEnergyRefill, totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId]);
 
     // Energy Refill Logic (20 minutes = 1200 seconds)
     useEffect(() => {
@@ -187,7 +202,8 @@ export const useGame = (initialDifficulty = 'normal') => {
         setCurrentLevelIndex(index);
         setLevelGoals(mission.goals.map(g => ({ ...g, current: 0 })));
         setEngine(newEngine);
-        setGrid(newEngine.initGrid());
+        const newGrid = newEngine.initGrid();
+        setGrid(newGrid);
         setMoves(mission.moves);
         setScore(0);
         setFoundWords([]);
@@ -195,21 +211,34 @@ export const useGame = (initialDifficulty = 'normal') => {
         setGameState('playing');
         setActiveTool(null);
 
-        // Consume selected boosters
+        // Consume and Place selected boosters
         if (selectedBoosters) {
-            setTools(prev => {
-                const next = { ...prev };
-                Object.entries(selectedBoosters).forEach(([type, isSelected]) => {
-                    if (isSelected && next[type] > 0) {
-                        next[type] -= 1;
-                        // Start with 1 of each selected booster added to active tools indirectly 
-                        // Actually, adding them to active tools at start is tricky with current state.
-                        // For now we just consume from inventory as the user requested "start with one of them".
+            const consumed = {};
+            Object.entries(selectedBoosters).forEach(([type, isSelected]) => {
+                if (isSelected && tools[type] > 0) {
+                    consumed[type] = 1;
+                    // Place on grid
+                    const engineType = type === 'row' ? 'row_blast' : type === 'col' ? 'col_blast' : 'bomb';
+                    const r = Math.floor(Math.random() * settings.rows);
+                    const c = Math.floor(Math.random() * settings.cols);
+                    if (newGrid[r] && newGrid[r][c]) {
+                        newGrid[r][c].type = engineType;
                     }
-                });
-                return next;
+                }
             });
+
+            if (Object.keys(consumed).length > 0) {
+                setTools(prev => {
+                    const next = { ...prev };
+                    Object.keys(consumed).forEach(type => {
+                        next[type] -= 1;
+                    });
+                    return next;
+                });
+                setGrid([...newGrid.map(row => [...row])]);
+            }
         }
+        setGamesPlayed(prev => prev + 1);
     }, [cloudLevels]);
 
     const updateGoals = useCallback((type, value) => {
@@ -406,6 +435,11 @@ export const useGame = (initialDifficulty = 'normal') => {
             updateGoals(GOAL_TYPES.WORD_LENGTH, word.length);
             updateGoals(GOAL_TYPES.SCORE, turnScore);
 
+            // Update stats
+            setWordsFoundCount(prev => prev + 1);
+            setTotalScore(prev => prev + turnScore);
+            setHighScore(prev => Math.max(prev, turnScore)); // Update high score if this turn is better
+
             return true;
         }
         soundManager.play('error');
@@ -431,7 +465,8 @@ export const useGame = (initialDifficulty = 'normal') => {
         // Ensure Arcade mode
         setGameMode('arcade');
         const settings = DIFFICULTY_SETTINGS[difficulty];
-        setGrid(engine.initGrid());
+        const initialGrid = engine.initGrid();
+        setGrid(initialGrid);
         setMoves(settings.moves);
         setScore(0);
         setLevel(1);
@@ -441,18 +476,34 @@ export const useGame = (initialDifficulty = 'normal') => {
         setActiveTool(null);
         setAnimatingCells([]);
 
-        // Consume selected boosters
+        // Consume and Place selected boosters
         if (selectedBoosters) {
-            setTools(prev => {
-                const next = { ...prev };
-                Object.entries(selectedBoosters).forEach(([type, isSelected]) => {
-                    if (isSelected && next[type] > 0) {
-                        next[type] -= 1;
+            const consumed = {};
+            Object.entries(selectedBoosters).forEach(([type, isSelected]) => {
+                if (isSelected && tools[type] > 0) {
+                    consumed[type] = 1;
+                    // Place on grid
+                    const engineType = type === 'row' ? 'row_blast' : type === 'col' ? 'col_blast' : 'bomb';
+                    const r = Math.floor(Math.random() * settings.rows);
+                    const c = Math.floor(Math.random() * settings.cols);
+                    if (initialGrid[r] && initialGrid[r][c]) {
+                        initialGrid[r][c].type = engineType;
                     }
-                });
-                return next;
+                }
             });
+
+            if (Object.keys(consumed).length > 0) {
+                setTools(prev => {
+                    const next = { ...prev };
+                    Object.keys(consumed).forEach(type => {
+                        next[type] -= 1;
+                    });
+                    return next;
+                });
+                setGrid([...initialGrid.map(row => [...row])]);
+            }
         }
+        setGamesPlayed(prev => prev + 1);
     }, [engine, difficulty, gameMode, currentLevelIndex, startMission]);
 
     useEffect(() => {
@@ -485,6 +536,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         cloudLevels, isLoadingLevels,
         user, profile, isLoadingProfile, completedLevels,
         language, setLanguage, t,
-        energy, nextEnergyIn, setEnergy, setLastEnergyRefill
+        energy, nextEnergyIn, setEnergy, setLastEnergyRefill,
+        totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId
     };
 };

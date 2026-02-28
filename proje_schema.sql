@@ -10,6 +10,11 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     streak_count INTEGER DEFAULT 0,
     last_gift_time TIMESTAMPTZ,
     tools JSONB DEFAULT '{"bomb": 1, "swap": 2, "row": 1, "col": 1, "cell": 3}'::jsonb,
+    total_score BIGINT DEFAULT 0,
+    words_found_count INTEGER DEFAULT 0,
+    games_played INTEGER DEFAULT 0,
+    high_score INTEGER DEFAULT 0,
+    avatar_id TEXT DEFAULT 'default',
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -86,17 +91,21 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS language TEXT DEFAULT 'tr';
 -- Liderlik Tablosu View'ı (Seviye ve Altın puanına göre sıralı)
 -- Not: View'lar varsayılan olarak owner (postgres) yetkisiyle çalışır ve RLS'i baypas eder.
 -- Bu sayede profiles tablosu gizli kalsa bile bu view üzerinden sıralama görünebilir.
-CREATE OR REPLACE VIEW public.leaderboard AS
+DROP VIEW IF EXISTS public.leaderboard;
+CREATE VIEW public.leaderboard AS
 SELECT 
     id,
     username,
     coins,
     current_level_index,
+    total_score,
+    high_score,
     updated_at
 FROM 
     public.profiles
 ORDER BY 
     current_level_index DESC, 
+    high_score DESC,
     coins DESC
 LIMIT 100;
 
