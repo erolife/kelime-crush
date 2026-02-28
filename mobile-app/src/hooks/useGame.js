@@ -57,6 +57,10 @@ export const useGame = (initialDifficulty = 'normal') => {
             if (session?.user) {
                 setUser(session.user);
                 fetchProfile(session.user.id);
+            } else {
+                // Initial cleanup for guest if no session exists but local storage has data
+                localStorage.removeItem('crush_completed_levels');
+                setCompletedLevels(0);
             }
         };
         getInitialSession();
@@ -68,7 +72,17 @@ export const useGame = (initialDifficulty = 'normal') => {
             } else if (event === 'SIGNED_OUT') {
                 setUser(null);
                 setProfile(null);
-                // Çıkış yapınca yerel coin ve tools kullanmaya devam eder
+                // Reset states to defaults for guest
+                setCoins(500);
+                setTools({ bomb: 1, swap: 2, row: 1, col: 1, cell: 3 });
+                setCompletedLevels(0);
+                setTotalScore(0);
+                setWordsFoundCount(0);
+                setGamesPlayed(0);
+                setHighScore(0);
+                setEnergy(5);
+                localStorage.removeItem('crush_completed_levels');
+                localStorage.setItem('crush_coins', '500');
             }
         });
 

@@ -1,10 +1,10 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
 **Son Güncelleme:** 2026-02-27
-## Proje Durumu: v4.3.2 (Booster Double-Fix)
-- **Hotfix (v4.3.2)**: Seçilen bombaların grid üzerinde çift oluşması (Strict Mode çakışması) giderildi.
-- **Hotfix (v4.3.1)**: Pregame ekranında seçilen bombaların grid üzerinde oluşmama sorunu giderildi.
-- **Hotfix (v4.1.2)**: "Oyun Başlat" butonunun çalışmama sorunu (energy'nin undefined olması) giderildi.
+## Proje Durumu: v4.4.2 (Guest UI Cleanup)
+- **Feature (v4.4.2)**: Misafirler için Header'daki Altın/Enerji gizlendi; Leaderboard erişimi açıldı.
+- **Hotfix (v4.4.1)**: Misafir kullanıcıların yanlış verileri (seviye/envanter) görmesi engellendi, profil butonları kilitlendi.
+- **Feature (v4.4.0)**: Misafir kullanıcıların Seviye moduna erişimi kısıtlandı.
 - **Hotfix (v4.0.3)**: Bomba oluşumu sırasında yaşanan 'result is not defined' hatası giderildi ve 'Pulse' animasyonu eklendi.
 - **Hotfix (v4.0.2)**: Seviye seçiminde ve MissionTracker'da yaşanan 't is not a function' (Translation) hatası giderildi.
 - **Hotfix (v4.0.1)**: Canlı yayım sonrası tespit edilen 'Seviye Modunda Boş Ekran' ve 'Mobil Görünümde Izgara Kaybolması' hataları giderildi.
@@ -20,8 +20,8 @@
 
 ### 1. Ayarlar & Ses Kontrolü (Phase 6.5 - v3.1)
 - **Settings Restore:** Dashboard Header'ına "Ayarlar" butonu geri eklendi. Ses aç/kapat ve zorluk seviyesi ayarlarına erişim sağlandı.
-- [x] v4.3.2: Booster Double-Creation (Strict Mode mutation) bugfix
-- [x] v4.3.1: Pregame Booster (Bomb/Row/Col) yerleştirme bugfix
+- [x] v4.4.1: Guest data isolation (Inventory/Profile/Leaderboard lock)
+- [x] v4.4.0: Misafir kullanıcı Seviye modu kısıtlaması & Üyelik teşviki
 - [x] v4.2.1: totalScore ReferenceError (missing destructuring) düzeltmesi
 - **UI Consolidation (v3.0):** Envanter modal yapısına çekildi, Sidebar konsolide edildi ve mod kartları gapless hale getirildi.
 - **Görsel İyileştirme:** Google Fonts (Outfit, Inter) entegrasyonu ve Tailwind 4 @theme geçişi ile tipografi mükemmelleştirildi.

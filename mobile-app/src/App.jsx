@@ -146,6 +146,7 @@ const Dashboard = ({
   const [view, setView] = React.useState('modes');
   const [selectedLevelIdx, setSelectedLevelIdx] = React.useState(null);
   const [selectedBoosters, setSelectedBoosters] = React.useState({ bomb: false, row: false, col: false });
+  const [showMissionLock, setShowMissionLock] = React.useState(false);
 
   // Falling letters background logic
   const [fallingLetters, setFallingLetters] = React.useState([]);
@@ -565,16 +566,16 @@ const Dashboard = ({
 
       default: // 'modes'
         return (
-          <div className="flex flex-row gap-2 lg:gap-6 items-start animate-in fade-in zoom-in duration-700 max-w-6xl mx-auto w-full px-2 lg:px-4 h-full min-h-0">
-            {/* MODES COLUMN - Gapless stack */}
-            <div className="flex-1 grid grid-cols-1 gap-0 h-full overflow-y-auto no-scrollbar pb-20 lg:pb-0">
+          <div className="flex flex-row gap-2 lg:gap-6 items-center animate-in fade-in zoom-in duration-700 max-w-6xl mx-auto w-full px-2 lg:px-4 h-full min-h-0">
+            {/* MODES COLUMN - Gapless stack centered */}
+            <div className="flex-1 flex flex-col justify-center items-center gap-0 h-full overflow-y-auto no-scrollbar pb-20 lg:pb-0">
               {/* ARCADE MODE */}
               <button
                 onClick={() => {
                   setSelectedLevelIdx(null);
                   setView('pregame');
                 }}
-                className="group relative h-28 lg:h-56 bg-slate-900/60 hover:bg-slate-900/80 border border-white/10 hover:border-blue-500/50 rounded-t-[1rem] lg:rounded-t-[2.5rem] p-3 lg:p-8 transition-all duration-500 flex flex-col items-center justify-center text-center overflow-hidden shadow-2xl"
+                className="group relative w-full max-w-md h-28 lg:h-64 bg-slate-900/60 hover:bg-slate-900/80 border border-white/10 hover:border-blue-500/50 rounded-t-[1rem] lg:rounded-t-[2.5rem] p-3 lg:p-8 transition-all duration-500 flex flex-col items-center justify-center text-center overflow-hidden shadow-2xl"
               >
                 <div className="absolute top-0 right-0 w-24 h-24 lg:w-32 lg:h-32 bg-blue-500/10 blur-[40px] lg:blur-[60px] -mr-12 -mt-12 lg:-mr-16 lg:-mt-16 rounded-full transition-all group-hover:bg-blue-500/20" />
                 <div className="relative z-10 flex flex-col items-center">
@@ -589,8 +590,14 @@ const Dashboard = ({
 
               {/* MISSION MODE */}
               <button
-                onClick={() => setView('levels')}
-                className="group relative h-28 lg:h-56 bg-slate-900/60 hover:bg-slate-900/80 border border-white/10 border-t-0 hover:border-orange-500/50 rounded-b-[1rem] lg:rounded-b-[2.5rem] p-3 lg:p-8 transition-all duration-500 flex flex-col items-center justify-center text-center overflow-hidden shadow-2xl"
+                onClick={() => {
+                  if (!user) {
+                    setShowMissionLock(true);
+                  } else {
+                    setView('levels');
+                  }
+                }}
+                className="group relative w-full max-w-md h-28 lg:h-64 bg-slate-900/60 hover:bg-slate-900/80 border border-white/10 border-t-0 hover:border-orange-500/50 rounded-b-[1rem] lg:rounded-b-[2.5rem] p-3 lg:p-8 transition-all duration-500 flex flex-col items-center justify-center text-center overflow-hidden shadow-2xl"
               >
                 <div className="absolute top-0 right-0 w-24 h-24 lg:w-32 lg:h-32 bg-orange-500/10 blur-[40px] lg:blur-[60px] -mr-12 -mt-12 lg:-mr-16 lg:-mt-16 rounded-full transition-all group-hover:bg-orange-500/20" />
                 <div className="relative z-10 flex flex-col items-center">
@@ -608,7 +615,10 @@ const Dashboard = ({
             <div className="w-[140px] lg:w-80 shrink-0 space-y-2 lg:space-y-4 h-full overflow-y-auto no-scrollbar pb-20 lg:pb-0">
               {/* Profile Card */}
               <button
-                onClick={() => setView('profile')}
+                onClick={() => {
+                  if (!user) setShowMissionLock(true);
+                  else setView('profile');
+                }}
                 className="w-full bg-slate-900/60 hover:bg-slate-900/80 border border-white/5 hover:border-sky-500/30 rounded-[1.5rem] lg:rounded-[2.5rem] p-3 lg:p-6 transition-all group flex items-center gap-4 text-left shadow-2xl"
               >
                 <div className="w-10 h-10 lg:w-16 lg:h-16 bg-gradient-to-br from-sky-500 to-purple-600 rounded-xl lg:rounded-3xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
@@ -618,7 +628,7 @@ const Dashboard = ({
                 <div className="flex-1 min-w-0">
                   <div className="text-[8px] lg:text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">PROGRES</div>
                   <div className="text-xs lg:text-xl font-black text-white italic tracking-tighter truncate uppercase">{user?.user_metadata?.username || user?.email?.split('@')[0] || t('player')}</div>
-                  <div className="text-[8px] lg:text-[10px] font-black text-sky-400 uppercase tracking-widest mt-1">Lvl {currentLevel + 1}</div>
+                  <div className="text-[8px] lg:text-[10px] font-black text-sky-400 uppercase tracking-widest mt-1">{user ? `Lvl ${currentLevel + 1}` : 'Guest'}</div>
                 </div>
                 <ChevronRight size={16} className="text-slate-600 group-hover:text-white group-hover:translate-x-1 transition-all" />
               </button>
@@ -634,7 +644,10 @@ const Dashboard = ({
                 </button>
 
                 <button
-                  onClick={() => setView('inventory')}
+                  onClick={() => {
+                    if (!user) setShowMissionLock(true);
+                    else setView('inventory');
+                  }}
                   className="bg-slate-900/40 hover:bg-purple-500/10 border border-white/5 hover:border-purple-500/30 rounded-[1rem] lg:rounded-[1.5rem] p-2 lg:p-4 backdrop-blur-md flex flex-col items-center justify-center transition-all group active:scale-95"
                 >
                   <Box size={14} className="text-purple-400 mb-1 group-hover:scale-110 transition-transform" />
@@ -752,30 +765,34 @@ const Dashboard = ({
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="bg-slate-900/60 border border-white/5 px-4 py-2 rounded-2xl flex items-center gap-3 group transition-all hover:border-sky-500/50 relative overflow-hidden">
-            {energy < 5 && (
-              <div className="absolute bottom-0 left-0 h-1 bg-sky-500/30 transition-all duration-1000" style={{ width: `${(1 - (nextEnergyIn / 1200)) * 100}%` }} />
-            )}
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${energy > 0 ? 'bg-sky-500/20 text-sky-400' : 'bg-rose-500/20 text-rose-400'} group-hover:scale-110 transition-transform`}>
-              <Zap size={18} fill={energy > 0 ? "currentColor" : "none"} />
-            </div>
-            <div className="flex flex-col font-outfit min-w-[40px]">
-              <span className="text-xs font-black text-white leading-none">{energy}/5</span>
-              <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight">
-                {energy < 5 ? `${Math.floor(nextEnergyIn / 60)}:${(nextEnergyIn % 60).toString().padStart(2, '0')}` : 'Full'}
-              </span>
-            </div>
-          </div>
+          {user && (
+            <>
+              <div className="bg-slate-900/60 border border-white/5 px-4 py-2 rounded-2xl flex items-center gap-3 group transition-all hover:border-sky-500/50 relative overflow-hidden">
+                {energy < 5 && (
+                  <div className="absolute bottom-0 left-0 h-1 bg-sky-500/30 transition-all duration-1000" style={{ width: `${(1 - (nextEnergyIn / 1200)) * 100}%` }} />
+                )}
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${energy > 0 ? 'bg-sky-500/20 text-sky-400' : 'bg-rose-500/20 text-rose-400'} group-hover:scale-110 transition-transform`}>
+                  <Zap size={18} fill={energy > 0 ? "currentColor" : "none"} />
+                </div>
+                <div className="flex flex-col font-outfit min-w-[40px]">
+                  <span className="text-xs font-black text-white leading-none">{energy}/5</span>
+                  <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight">
+                    {energy < 5 ? `${Math.floor(nextEnergyIn / 60)}:${(nextEnergyIn % 60).toString().padStart(2, '0')}` : 'Full'}
+                  </span>
+                </div>
+              </div>
 
-          <div className="bg-slate-900/60 border border-white/5 px-4 py-2 rounded-2xl flex items-center gap-2 group transition-all hover:border-amber-500/50">
-            <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
-              <Coins size={18} />
-            </div>
-            <div className="flex flex-col font-outfit">
-              <span className="text-xs font-black text-white leading-none">{coins}</span>
-              <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight">Altın</span>
-            </div>
-          </div>
+              <div className="bg-slate-900/60 border border-white/5 px-4 py-2 rounded-2xl flex items-center gap-2 group transition-all hover:border-amber-500/50">
+                <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
+                  <Coins size={18} />
+                </div>
+                <div className="flex flex-col font-outfit">
+                  <span className="text-xs font-black text-white leading-none">{coins}</span>
+                  <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight">Altın</span>
+                </div>
+              </div>
+            </>
+          )}
 
           {user ? (
             <div className="flex items-center gap-3 bg-slate-900/60 border border-white/5 p-1 pr-4 rounded-2xl group transition-all hover:border-sky-500/50 font-outfit">
@@ -812,7 +829,43 @@ const Dashboard = ({
           {renderView()}
         </div>
       </div>
-    </div >
+
+      {/* Mission Lock Modal */}
+      {showMissionLock && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div className="p-8 text-center">
+              <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-orange-400/30">
+                <Lock size={40} className="text-orange-400" />
+              </div>
+              <h2 className="text-xl font-black text-white italic tracking-tighter mb-2 uppercase leading-tight">
+                {t('mission_lock_title')}
+              </h2>
+              <p className="text-slate-400 text-[11px] font-medium mb-8 leading-relaxed px-4">
+                {t('mission_lock_desc')}
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => {
+                    setShowMissionLock(false);
+                    onOpenAuth();
+                  }}
+                  className="w-full py-5 bg-gradient-to-r from-orange-500 to-red-600 text-slate-950 font-black rounded-2xl transition-all active:scale-95 shadow-xl shadow-orange-500/20 uppercase text-xs tracking-widest"
+                >
+                  {t('mission_lock_button')}
+                </button>
+                <button
+                  onClick={() => setShowMissionLock(false)}
+                  className="w-full py-4 text-slate-500 font-bold hover:text-white transition-colors text-[10px] uppercase tracking-widest"
+                >
+                  {t('back')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

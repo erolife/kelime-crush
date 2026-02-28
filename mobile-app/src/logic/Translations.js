@@ -65,6 +65,9 @@ export const TRANSLATIONS = {
         share_msg_mission: "Wordlenge'de Seviye {level}'ı {score} puanla tamamladım! Hadi sen de katıl! #wordlenge",
         share_msg_arcade: "Wordlenge Arcade modunda {score} puan yaparak rekor kırdım! Beni geçebilir misin? #wordlenge",
         achievements: "BAŞARILAR",
+        mission_lock_title: "ÜYE OL, SERÜVENE KATIL!",
+        mission_lock_desc: "Seviye modunda ilerlemek, başarılar kazanmak ve ödüller toplamak için hemen ücretsiz üye olabilirsin. Üyelik tamamen ücretsizdir!",
+        mission_lock_button: "HEMEN ÜCRETSİZ KATIL",
     },
     en: {
         arcade: "ARCADE",
@@ -132,5 +135,8 @@ export const TRANSLATIONS = {
         share_msg_mission: "I finished Level {level} with {score} points in Wordlenge! Join me now! #wordlenge",
         share_msg_arcade: "I just scored {score} in Wordlenge Arcade mode! Can you beat me? #wordlenge",
         achievements: "ACHIEVEMENTS",
+        mission_lock_title: "SIGN UP & JOIN THE ADVENTURE!",
+        mission_lock_desc: "Sign up for free to progress in levels, earn achievements, and collect rewards. It's completely free!",
+        mission_lock_button: "JOIN FOR FREE NOW",
     }
 };
