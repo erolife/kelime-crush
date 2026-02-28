@@ -138,13 +138,18 @@ const Dashboard = ({
   onSelectMission, onSelectArcade, currentLevel, coins, tools, streakCount,
   levels = [], isLoading, user, profile, onOpenAuth, language, setLanguage, t = (s) => s,
   isMuted, toggleMute, difficulty, changeDifficulty, dailyReward, claimGift, STREAK_REWARDS = [],
-  showDailyGift, energy, nextEnergyIn,
+  showDailyGift, energy, nextEnergyIn, buyTool,
   totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId, completedLevels
 }) => {
   const [view, setView] = React.useState('modes');
   const [selectedLevelIdx, setSelectedLevelIdx] = React.useState(null);
   const [selectedBoosters, setSelectedBoosters] = React.useState({ bomb: false, row: false, col: false });
   const [showMissionLock, setShowMissionLock] = React.useState(false);
+
+  console.log('--- DASHBOARD RENDER ---');
+  console.log('Current View:', view);
+  console.log('User:', user?.email);
+  console.log('Coins:', coins);
 
   // Falling letters background logic
   const [fallingLetters, setFallingLetters] = React.useState([]);
@@ -170,6 +175,7 @@ const Dashboard = ({
   }, [showDailyGift]);
 
   const renderView = () => {
+    console.log('--- DASHBOARD RENDERVIEW CALLED ---', view);
     switch (view) {
       case 'levels':
         return (
@@ -356,6 +362,16 @@ const Dashboard = ({
                 })}
               </div>
             </div>
+
+            <div className="mt-6 md:mt-8 mb-4 flex justify-center w-full max-w-2xl mx-auto px-4">
+              <button
+                onClick={() => setView('shop')}
+                className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all active:scale-95 uppercase tracking-[0.2em] text-[10px] hover:from-emerald-400 hover:to-teal-500 flex items-center justify-center gap-3"
+              >
+                <ShoppingBag size={18} />
+                {t('market') || 'Market'} EKRANINDAN ARAÇ SATIN AL
+              </button>
+            </div>
           </div>
         );
 
@@ -432,7 +448,39 @@ const Dashboard = ({
           </div>
         );
 
+      case 'shop':
+        console.log('--- RENDERING SHOP VIEW ---');
+        return (
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto flex flex-col h-full max-h-[85vh]">
+            <div className="flex items-center gap-4 mb-4 md:mb-6 shrink-0 pt-2 md:pt-0">
+              <button onClick={() => setView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
+                <X size={20} className="md:w-6 md:h-6" />
+              </button>
+              <div>
+                <h2 className="text-xl md:text-3xl font-black bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent italic tracking-tighter uppercase leading-none">{t('market') || 'MARKET'}</h2>
+                <p className="text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] font-inter mt-1">GÜÇ VEYA ARAÇ SATIN AL</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 backdrop-blur-md flex-1 overflow-y-auto no-scrollbar flex flex-col">
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-3xl p-4 flex items-center justify-between shadow-inner w-full max-w-sm mx-auto mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
+                    <Coins className="text-amber-500" size={20} />
+                  </div>
+                  <div>
+                    <div className="text-[9px] font-black text-amber-500 uppercase tracking-widest">Mevcut Bakiye</div>
+                    <div className="text-xl font-black text-white tracking-tight leading-none mt-0.5">{coins} <span className="text-xs text-amber-500 font-bold ml-1">ALTIN</span></div>
+                  </div>
+                </div>
+              </div>
+              <ShopView t={t} coins={coins} tools={tools} buyTool={buyTool} />
+            </div>
+          </div>
+        );
+
       case 'daily':
+        console.log('--- RENDERING DAILY VIEW ---');
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full flex flex-col items-center justify-center">
             <div className="w-full text-center p-8 bg-slate-900/60 border border-amber-500/30 rounded-[3rem] shadow-[0_0_100px_rgba(245,158,11,0.1)] relative overflow-hidden">
@@ -478,8 +526,9 @@ const Dashboard = ({
         );
 
       case 'profile':
+        console.log('--- RENDERING PROFILE VIEW ---');
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-20">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-20 px-4">
             <div className="flex items-center gap-4 mb-8">
               <button onClick={() => setView('modes')} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
                 <X size={24} />
@@ -488,7 +537,6 @@ const Dashboard = ({
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* User Identity Card */}
               <div className="lg:col-span-1 space-y-6">
                 <div className="bg-slate-900/60 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-md flex flex-col items-center text-center">
                   <div className="relative mb-6 group">
@@ -500,7 +548,7 @@ const Dashboard = ({
                     </div>
                   </div>
                   <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-1">{user?.user_metadata?.username || user?.email?.split('@')[0] || t('player')}</h3>
-                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">{t('member_since')}: {new Date(user?.created_at).toLocaleDateString()}</p>
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">{user?.created_at ? `${t('member_since')}: ${new Date(user.created_at).toLocaleDateString()}` : t('member_since_guest')}</p>
 
                   {user ? (
                     <button onClick={() => AuthService.signOut()} className="w-full py-4 bg-white/5 hover:bg-red-500/10 hover:border-red-500/30 border border-white/5 rounded-2xl text-xs font-black text-slate-400 hover:text-red-400 transition-all uppercase tracking-widest italic">
@@ -518,7 +566,7 @@ const Dashboard = ({
                   <div className="w-full h-3 bg-slate-950 rounded-full overflow-hidden border border-white/5">
                     <div
                       className="h-full bg-gradient-to-r from-sky-500 to-purple-600 transition-all duration-1000"
-                      style={{ width: `${Math.min(100, (currentLevel / levels.length) * 100)}%` }}
+                      style={{ width: `${Math.min(100, (currentLevel / (levels.length || 1)) * 100)}%` }}
                     />
                   </div>
                   <div className="flex justify-between mt-2">
@@ -528,7 +576,6 @@ const Dashboard = ({
                 </div>
               </div>
 
-              {/* Stats Grid */}
               <div className="lg:col-span-2 space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   {[
@@ -547,7 +594,6 @@ const Dashboard = ({
                   ))}
                 </div>
 
-                {/* Badges Placeholder */}
                 <div className="bg-slate-900/40 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-md">
                   <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-6 font-inter">{t('achievements')}</div>
                   <div className="flex flex-wrap gap-4">
@@ -564,6 +610,7 @@ const Dashboard = ({
         );
 
       default: // 'modes'
+        console.log('--- RENDERING MODES (MAIN) VIEW ---');
         return (
           <div className="w-full h-full flex flex-col lg:flex-row gap-0 lg:gap-6 max-w-7xl mx-auto px-3 lg:px-6 animate-in fade-in duration-500">
 
@@ -739,6 +786,22 @@ const Dashboard = ({
                   <ChevronRight size={16} className="text-slate-700 group-hover:text-sky-400 group-hover:translate-x-1 transition-all shrink-0" />
                 </button>
 
+                {/* MARKET Kartı (full width) */}
+                <button
+                  onClick={() => { if (!user) setShowMissionLock(true); else setView('shop'); }}
+                  className="group relative overflow-hidden rounded-[1.5rem] border border-white/8 p-5 flex items-center gap-4 text-left transition-all duration-300 hover:border-emerald-500/30 active:scale-[0.98]"
+                  style={{ background: 'linear-gradient(135deg, #061810 0%, #04100b 100%)' }}
+                >
+                  <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-center group-hover:bg-emerald-500/20 group-hover:border-emerald-500/40 transition-all shrink-0">
+                    <ShoppingBag size={20} className="text-emerald-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-0.5">MAĞAZA</div>
+                    <div className="text-lg font-black text-white uppercase tracking-tight leading-none">{t('market') || 'MARKET'}</div>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-700 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all shrink-0" />
+                </button>
+
                 {/* ENVANTER + DAILY (2 col grid) */}
                 <div className="grid grid-cols-2 gap-3">
                   <button
@@ -785,19 +848,24 @@ const Dashboard = ({
               </button>
               <button
                 onClick={() => { if (!user) setShowMissionLock(true); else setView('inventory'); }}
-                className="w-14 h-14 bg-white/5 border border-white/8 rounded-[1.5rem] flex items-center justify-center active:scale-95 transition-all hover:border-purple-500/30"
+                className="w-12 h-12 md:w-14 md:h-14 bg-white/5 border border-white/8 rounded-2xl md:rounded-[1.5rem] flex items-center justify-center active:scale-95 transition-all hover:border-purple-500/30"
               >
-                <Box size={20} className="text-purple-400" />
+                <Box size={20} className="text-purple-400 md:w-6 md:h-6" />
+              </button>
+              <button
+                onClick={() => { if (!user) setShowMissionLock(true); else setView('shop'); }}
+                className="w-12 h-12 md:w-14 md:h-14 bg-white/5 border border-white/8 rounded-2xl md:rounded-[1.5rem] flex items-center justify-center active:scale-95 transition-all hover:border-emerald-500/30"
+              >
+                <ShoppingBag size={20} className="text-emerald-400 md:w-6 md:h-6" />
               </button>
               <button
                 onClick={() => setView('daily')}
-                className="relative w-14 h-14 bg-white/5 border border-white/8 rounded-[1.5rem] flex items-center justify-center active:scale-95 transition-all hover:border-amber-500/30"
+                className="relative w-12 h-12 md:w-14 md:h-14 bg-white/5 border border-white/8 rounded-2xl md:rounded-[1.5rem] flex items-center justify-center active:scale-95 transition-all hover:border-amber-500/30"
               >
                 <Gift size={20} className="text-amber-400" />
                 <div className="absolute top-1 right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-slate-950 animate-pulse" />
               </button>
             </div>
-
           </div>
         );
     }
@@ -958,10 +1026,8 @@ const Dashboard = ({
       </header>
 
       {/* Main Content Area */}
-      <div className="flex-1 relative z-10 flex flex-col items-center overflow-y-auto no-scrollbar p-4 lg:p-8">
-        <div className="w-full min-h-full flex items-center justify-center">
-          {renderView()}
-        </div>
+      <div className="flex-1 w-full flex items-center justify-center p-4 lg:p-8 min-h-0 relative z-10">
+        {renderView()}
       </div>
 
       {/* Mission Lock Modal */}
@@ -1099,18 +1165,66 @@ const MissionTracker = ({ goals = [], t = (s) => s }) => (
   </div>
 );
 
+const ShopView = ({ t = (s) => s, coins, tools, buyTool }) => {
+  const items = [
+    { id: 'bomb', name: t('bomb'), desc: 'Seçili hücre ve etrafını patlatır', cost: 100, icon: <Zap size={24} className="text-amber-400" />, color: 'from-amber-500 to-orange-600' },
+    { id: 'row', name: t('row'), desc: 'Tüm yatay satırı temizler', cost: 150, icon: <MoveHorizontal size={24} className="text-rose-400" />, color: 'from-rose-500 to-pink-600' },
+    { id: 'col', name: t('col'), desc: 'Tüm dikey sütunu temizler', cost: 150, icon: <MoveVertical size={24} className="text-emerald-400" />, color: 'from-emerald-500 to-teal-600' },
+    { id: 'swap', name: t('swap'), desc: 'İki harfin yerini değiştirir', cost: 200, icon: <RefreshCw size={24} className="text-sky-400" />, color: 'from-sky-500 to-blue-600' },
+    { id: 'cell', name: t('cell'), desc: 'Tek bir harfi siler', cost: 50, icon: <Target size={24} className="text-purple-400" />, color: 'from-purple-500 to-violet-600' }
+  ];
+
+  return (
+    <div className="flex-1 overflow-y-auto pr-2 no-scrollbar max-h-[70vh]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-6">
+        {items.map(item => {
+          const canAfford = coins >= item.cost;
+          return (
+            <div key={item.id} className="relative overflow-hidden bg-slate-900/40 border border-white/5 rounded-3xl p-4 flex items-center gap-4 transition-all group hover:border-white/10 shadow-lg">
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-slate-950/60 shadow-inner group-hover:scale-110 transition-transform shrink-0 border border-white/5`}>
+                {item.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-white font-black italic uppercase text-sm mb-0.5">{item.name}</h4>
+                <p className="text-[10px] text-slate-400 leading-tight pr-2 font-medium">{item.desc}</p>
+              </div>
+
+              <div className="flex flex-col items-center gap-2 shrink-0">
+                <div className="bg-slate-950/60 px-2 py-1 rounded-lg text-[8px] font-black text-amber-500/80 uppercase tracking-widest border border-white/5 shadow-inner">
+                  {t('owned') || 'MEVCUT'}: {tools?.[item.id] || 0}
+                </div>
+                <button
+                  onClick={() => buyTool(item.id, item.cost)}
+                  disabled={!canAfford}
+                  className={`flex flex-col items-center justify-center min-w-[80px] py-2 px-3 rounded-xl transition-all active:scale-95 border-2 ${canAfford ? 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 text-amber-500 shadow-lg' : 'bg-slate-800/50 border-transparent text-slate-500 cursor-not-allowed opacity-50'}`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-black text-xs italic">{item.cost}</span>
+                    <Coins size={10} className="text-amber-500" />
+                  </div>
+                  <span className="text-[7px] uppercase font-black tracking-tighter opacity-70 group-hover:opacity-100">{t('buy') || 'SATIN AL'}</span>
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 function App() {
   const {
-    grid, selectedPath, animatingCells, score, moves, level, difficulty,
+    grid, selectedPath, animatingCells, score, moves, difficulty,
     foundWords, gameState, resetGame, swapSelection, tools, activeTool,
     setActiveTool, changeDifficulty, selectCell, finishTurn, shuffle,
-    isDictionaryLoaded, gameMode, currentLevelIndex, levelGoals, startMission,
+    gameMode, currentLevelIndex, levelGoals, startMission,
     coins, buyTool, addCoins, addTool, createdSpecial,
     cloudLevels, isLoadingLevels,
-    user, profile, isLoadingProfile, completedLevels,
+    user, profile, completedLevels,
     language, setLanguage, t,
     energy, nextEnergyIn, setEnergy, setLastEnergyRefill,
-    totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId
+    totalScore, wordsFoundCount, gamesPlayed, highScore
   } = useGame();
 
   const [isMuted, setIsMuted] = useState(false);
@@ -1119,6 +1233,7 @@ function App() {
   const [showDashboard, setShowDashboard] = useState(true);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     setCurrentWord(selectedPath.map(p => p.letter).join(''));
   }, [selectedPath]);
 
@@ -1146,6 +1261,7 @@ function App() {
   const [dailyReward, setDailyReward] = useState(null);
   const [streakCount, setStreakCount] = useState(() => parseInt(localStorage.getItem('crush_streak_count') || "0"));
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const lastGift = localStorage.getItem('crush_last_gift');
     const now = Date.now();
@@ -1220,7 +1336,7 @@ function App() {
   };
 
   return (
-    <div className="h-screen w-screen bg-[#020617] text-slate-100 font-outfit select-none overflow-hidden flex flex-col">
+    <div className="relative h-screen w-screen bg-[#020617] text-slate-100 font-outfit select-none overflow-hidden flex flex-col">
       {/* Auth Modal stays as utility */}
       <AuthModal
         isOpen={isAuthModalOpen}
@@ -1229,7 +1345,27 @@ function App() {
         t={t}
       />
 
-      {showDashboard && (
+      {/* Premium Animated Background Layer */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-50">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute text-white/5 font-black select-none pointer-events-none animate-fall"
+            style={{
+              left: `${Math.random() * 100}%`,
+              fontSize: `${Math.random() * 40 + 20}px`,
+              animationDuration: `${Math.random() * 10 + 10}s`,
+              animationDelay: `${Math.random() * 20}s`,
+              transform: `rotate(${Math.random() * 360}deg)`
+            }}
+          >
+            {String.fromCharCode(65 + Math.floor(Math.random() * 26))}
+          </div>
+        ))}
+      </div>
+
+      {console.log('--- APP MAIN RENDER ---', { showDashboard })}
+      {showDashboard ? (
         <Dashboard
           levels={cloudLevels}
           isLoading={isLoadingLevels}
@@ -1237,6 +1373,7 @@ function App() {
           completedLevels={completedLevels}
           coins={coins}
           tools={tools}
+          buyTool={buyTool}
           streakCount={streakCount}
           user={user}
           profile={profile}
@@ -1275,313 +1412,197 @@ function App() {
           wordsFoundCount={wordsFoundCount}
           gamesPlayed={gamesPlayed}
           highScore={highScore}
-          avatarId={avatarId}
-          setAvatarId={setAvatarId}
         />
-      )}
-
-      {/* Header */}
-      <header className="px-6 py-4 flex items-center justify-between border-b border-white/5 bg-slate-950/50 backdrop-blur-md shrink-0 gap-8">
-        <div className="flex items-center gap-4 shrink-0">
-          <div className="p-2 bg-gradient-to-br from-sky-500 to-purple-600 rounded-xl shadow-lg shadow-sky-500/20">
-            <LayoutGrid size={24} className="text-white" />
-          </div>
-          <div className="min-w-[140px]">
-            <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent italic uppercase leading-none mb-1">
-              {gameMode === 'mission' ? `${t('mission')} ${cloudLevels?.[currentLevelIndex]?.id || ''}` : 'WORDLENGE'}
-            </h1>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate font-inter">
-              {gameMode === 'mission' ? cloudLevels?.[currentLevelIndex]?.title : t('arcade')}
-            </p>
-          </div>
-        </div>
-
-        {/* Word Display Area - Moved to Header */}
-        <div className={`
-          flex-1 hidden md:flex items-center justify-center px-8 py-3 rounded-2xl backdrop-blur-3xl border-2 transition-all duration-500 max-w-xl mx-auto
-          ${currentWord.length >= 3
-            ? 'bg-sky-500/10 border-sky-400/50 shadow-[0_0_30px_rgba(56,189,248,0.05)]'
-            : 'bg-slate-900/40 border-white/5'
-          }
-        `}>
-          <span className={`
-            text-2xl font-black tracking-[0.4em] transition-all
-            ${currentWord.length >= 3 ? 'text-white drop-shadow-[0_0_10px_rgba(56,189,248,0.3)]' : 'text-slate-800'}
-          `}>
-            {currentWord || '..........'}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={() => setShowDashboard(true)}
-            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-slate-400 hover:text-white"
-          >
-            <Settings size={20} />
-          </button>
-
-          <button
-            onClick={resetGame}
-            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-slate-400 hover:text-white"
-          >
-            <RotateCcw size={20} />
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col md:flex-row gap-4 p-4 min-h-0 overflow-hidden relative z-10">
-        {/* Left Side: Goals & Stats */}
-        <aside className="w-56 flex flex-col gap-3 shrink-0 overflow-y-auto no-scrollbar hidden md:flex">
-          <div className="bg-slate-900/40 backdrop-blur-xl p-4 rounded-3xl border border-white/5 shadow-2xl space-y-3 shrink-0">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-slate-950/60 p-3 rounded-2xl border border-white/5 relative overflow-hidden group">
-                <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">Skor</div>
-                <div className="text-xl font-black text-sky-400 tabular-nums">{score}</div>
+      ) : (
+        <>
+          {/* Header */}
+          <header className="px-6 py-4 flex items-center justify-between border-b border-white/5 bg-slate-950/50 backdrop-blur-md shrink-0 gap-8">
+            <div className="flex items-center gap-4 shrink-0">
+              <div className="p-2 bg-gradient-to-br from-sky-500 to-purple-600 rounded-xl shadow-lg shadow-sky-500/20">
+                <LayoutGrid size={24} className="text-white" />
               </div>
-              <div className="bg-slate-950/60 p-3 rounded-2xl border border-white/5 relative overflow-hidden group">
-                <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">Hamle</div>
-                <div className="text-xl font-black text-amber-400 tabular-nums">{moves}</div>
+              <div className="min-w-[140px]">
+                <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent italic uppercase leading-none mb-1">
+                  {gameMode === 'mission' ? `${t('mission')} ${cloudLevels?.[currentLevelIndex]?.id || ''}` : 'WORDLENGE'}
+                </h1>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate font-inter">
+                  {gameMode === 'mission' ? cloudLevels?.[currentLevelIndex]?.title : t('arcade')}
+                </p>
               </div>
             </div>
-          </div>
 
-          <div className="flex-1 bg-slate-900/40 backdrop-blur-xl p-4 rounded-3xl border border-white/5 shadow-2xl flex flex-col min-h-0">
-            {gameMode === 'mission' ? (
-              <MissionTracker goals={levelGoals} t={t} />
-            ) : (
-              <>
-                <div className="flex justify-between items-center border-b border-white/5 pb-2 shrink-0">
-                  <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Kelimeler</h2>
-                  <AlignLeft className="w-3.5 h-3.5 text-sky-400" />
-                </div>
-                <div className="flex-1 overflow-y-auto no-scrollbar py-2 space-y-2">
-                  {foundWords.map((word, idx) => (
-                    <div key={idx} className="px-2 py-1 bg-white/5 rounded-lg text-[10px] font-bold text-slate-300 border border-white/5 truncate">
-                      {word}
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        </aside>
-
-        {/* Center: Grid Area */}
-        <div className="flex-1 flex flex-col gap-2 md:gap-3 min-w-0 h-full">
-
-          {/* Word Display Area - Mobile visible only */}
-          <div className={`
-            md:hidden flex items-center justify-center px-4 py-2 rounded-xl backdrop-blur-3xl border-2 transition-all duration-500 mx-auto
-            ${currentWord.length >= 3
-              ? 'bg-sky-500/10 border-sky-400/50 shadow-[0_0_15px_rgba(56,189,248,0.1)]'
-              : 'bg-slate-900/40 border-white/5'
-            }
-          `}>
-            <span className={`
-              text-lg font-black tracking-[0.3em] transition-all
-              ${currentWord.length >= 3 ? 'text-white drop-shadow-[0_0_10px_rgba(56,189,248,0.3)]' : 'text-slate-500'}
-            `}>
-              {currentWord || '..........'}
-            </span>
-          </div>
-
-          <div className="flex-1 flex items-center justify-center min-h-0 relative">
+            {/* Word Display Area - Moved to Header */}
             <div className={`
-                relative max-h-full w-full max-w-[min(100%,(72vh*11/9))] aspect-[11/9] bg-slate-950/40 rounded-xl md:rounded-3xl border-2 shadow-2xl overflow-hidden transition-all duration-300
-                ${activeTool ? 'border-purple-500 ring-[8px] ring-purple-500/10' : 'border-white/5'}
+              flex-1 hidden md:flex items-center justify-center px-8 py-3 rounded-2xl backdrop-blur-3xl border-2 transition-all duration-500 max-w-xl mx-auto
+              ${currentWord.length >= 3
+                ? 'bg-sky-500/10 border-sky-400/50 shadow-[0_0_30px_rgba(56,189,248,0.05)]'
+                : 'bg-slate-900/40 border-white/5'
+              }
             `}>
-              <PremiumCanvas
-                grid={grid}
-                selectedPath={selectedPath}
-                animatingCells={animatingCells}
-                swapSelection={swapSelection}
-                createdSpecial={createdSpecial}
-                onSelectCell={selectCell}
-                onFinishTurn={finishTurn}
-              />
+              <span className={`
+                text-2xl font-black tracking-[0.4em] transition-all
+                ${currentWord.length >= 3 ? 'text-white drop-shadow-[0_0_10px_rgba(56,189,248,0.3)]' : 'text-slate-800'}
+              `}>
+                {currentWord || '..........'}
+              </span>
+            </div>
 
-              {/* Overlay: Victory / GameOver / Tool Active */}
-              {gameState !== 'playing' && (
-                <div className="absolute inset-0 z-[300] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-8 text-center animate-in fade-in zoom-in duration-500">
-                  <div className="max-w-xs w-full">
-                    <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border ${gameState === 'victory' ? 'bg-green-500/20 border-green-400 text-green-400' : 'bg-rose-500/20 border-rose-400 text-rose-400'}`}>
-                      {gameState === 'victory' ? <Award size={40} /> : <Zap size={40} />}
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={() => setShowDashboard(true)}
+                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-slate-400 hover:text-white"
+              >
+                <Settings size={20} />
+              </button>
+
+              <button
+                onClick={resetGame}
+                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-slate-400 hover:text-white"
+              >
+                <RotateCcw size={20} />
+              </button>
+            </div>
+          </header>
+
+          <main className="flex-1 flex flex-col md:flex-row gap-4 p-4 min-h-0 overflow-hidden relative z-10">
+            {/* Left Side: Goals & Stats */}
+            <aside className="w-56 flex flex-col gap-3 shrink-0 overflow-y-auto no-scrollbar hidden md:flex">
+              <div className="bg-slate-900/40 backdrop-blur-xl p-4 rounded-3xl border border-white/5 shadow-2xl space-y-3 shrink-0">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-slate-950/60 p-3 rounded-2xl border border-white/5 relative overflow-hidden group">
+                    <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">Skor</div>
+                    <div className="text-xl font-black text-sky-400 tabular-nums">{score}</div>
+                  </div>
+                  <div className="bg-slate-950/60 p-3 rounded-2xl border border-white/5 relative overflow-hidden group">
+                    <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">Hamle</div>
+                    <div className="text-xl font-black text-amber-400 tabular-nums">{moves}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 bg-slate-900/40 backdrop-blur-xl p-4 rounded-3xl border border-white/5 shadow-2xl flex flex-col min-h-0">
+                {gameMode === 'mission' ? (
+                  <MissionTracker goals={levelGoals} t={t} />
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2 shrink-0">
+                      <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Kelimeler</h2>
+                      <AlignLeft className="w-3.5 h-3.5 text-sky-400" />
                     </div>
-                    <h2 className="text-4xl font-black text-white italic tracking-tighter mb-2 uppercase">
-                      {gameState === 'victory' ? 'TEBRİKLER!' : 'MAALESEF'}
-                    </h2>
-                    <p className="text-slate-400 text-sm font-medium mb-8">
-                      {gameState === 'victory' ? 'Seviyeyi başarıyla tamamladın! Ödüllerin envanterine eklendi.' : 'Hamlelerin bitti ama pes etme. Tekrar deneyebilirsin.'}
-                    </p>
-                    <div className="flex flex-col gap-3">
-                      <div className="flex gap-3">
-                        <button onClick={() => setShowDashboard(true)} className="flex-1 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-black rounded-2xl transition-all active:scale-95 uppercase text-xs">ANA MENÜ</button>
-                        <button onClick={resetGame} className={`flex-1 py-4 ${gameState === 'victory' ? 'bg-green-500 hover:bg-green-400 shadow-green-500/30' : 'bg-sky-500 hover:bg-sky-400 shadow-sky-500/30'} text-white font-black rounded-2xl shadow-xl transition-all active:scale-95 uppercase text-xs`}>
+                    <div className="flex-1 overflow-y-auto no-scrollbar py-2 space-y-2">
+                      {foundWords.map((word, idx) => (
+                        <div key={idx} className="px-2 py-1 bg-white/5 rounded-lg text-[10px] font-bold text-slate-300 border border-white/5 truncate">
+                          {word}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </aside>
+
+            {/* Center: Grid Area */}
+            <div className="flex-1 flex flex-col gap-2 md:gap-3 min-w-0 h-full">
+              {/* Word Display Area - Mobile visible only */}
+              <div className={`
+                md:hidden flex items-center justify-center px-4 py-2 rounded-xl backdrop-blur-3xl border-2 transition-all duration-500 mx-auto
+                ${currentWord.length >= 3 ? 'bg-sky-500/10 border-sky-400/50' : 'bg-slate-900/40 border-white/5'}
+              `}>
+                <span className={`text-lg font-black tracking-[0.3em] ${currentWord.length >= 3 ? 'text-white' : 'text-slate-500'}`}>
+                  {currentWord || '..........'}
+                </span>
+              </div>
+
+              <div className="flex-1 flex items-center justify-center min-h-0 relative">
+                <div className={`
+                  relative max-h-full w-full max-w-[min(100%,(72vh*11/9))] aspect-[11/9] bg-slate-950/40 rounded-xl md:rounded-3xl border-2 shadow-2xl overflow-hidden transition-all duration-300
+                  ${activeTool ? 'border-purple-500 ring-[8px] ring-purple-500/10' : 'border-white/5'}
+                `}>
+                  <PremiumCanvas
+                    grid={grid}
+                    selectedPath={selectedPath}
+                    animatingCells={animatingCells}
+                    swapSelection={swapSelection}
+                    createdSpecial={createdSpecial}
+                    onSelectCell={selectCell}
+                    onFinishTurn={finishTurn}
+                  />
+
+                  {/* Victory / GameOver Overlays */}
+                  {gameState !== 'playing' && gameState !== 'gameover' && (
+                    <div className="absolute inset-0 z-[300] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-8 text-center animate-in fade-in zoom-in duration-500">
+                      <div className="max-w-xs w-full">
+                        <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border ${gameState === 'victory' ? 'bg-green-500/20 border-green-400 text-green-400' : 'bg-rose-500/20 border-rose-400 text-rose-400'}`}>
+                          {gameState === 'victory' ? <Award size={40} /> : <Zap size={40} />}
+                        </div>
+                        <h2 className="text-4xl font-black text-white italic tracking-tighter mb-2 uppercase">
+                          {gameState === 'victory' ? 'TEBRİKLER!' : 'MAALESEF'}
+                        </h2>
+                        <button onClick={resetGame} className="w-full py-4 bg-sky-500 text-white font-black rounded-2xl">
                           {gameState === 'victory' ? 'DEVAM ET' : 'TEKRAR DENE'}
                         </button>
                       </div>
-                      <button
-                        onClick={handleShare}
-                        className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-2xl shadow-lg transition-all active:scale-95 uppercase text-xs flex items-center justify-center gap-2"
-                      >
-                        <Share2 size={16} />
-                        {t('share_button')}
-                      </button>
                     </div>
-                  </div>
-                </div>
-              )}
-              {activeTool && (
-                <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-950 text-[10px] font-black px-6 py-2 rounded-full animate-bounce shadow-2xl uppercase tracking-[0.2em] z-20 pointer-events-none">
-                  Aktif: {activeTool === 'bomb' ? 'BOMBA' : activeTool === 'swap' ? 'TAKAS' : activeTool === 'row' ? 'SATIR' : activeTool === 'col' ? 'SÜTUN' : 'HÜCRE'}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Bottom Tools (Mobile Only) */}
-          <div className="md:hidden flex gap-2 overflow-x-auto no-scrollbar pb-2 pt-2 shrink-0">
-            <button onClick={shuffle} className="shrink-0 w-14 h-14 bg-slate-900 rounded-2xl border border-white/5 flex items-center justify-center active:scale-95 transition-all">
-              <RefreshCw className="w-6 h-6 text-amber-400" />
-            </button>
-            {['cell', 'bomb', 'row', 'col', 'swap'].map(id => (
-              <button key={id} disabled={tools[id] === 0} onClick={() => setActiveTool(activeTool === id ? null : id)} className={`shrink-0 w-14 h-14 rounded-2xl border flex items-center justify-center relative active:scale-95 transition-all ${activeTool === id ? 'bg-amber-400/10 border-amber-400' : 'bg-slate-900 border-white/5'} ${tools[id] === 0 ? 'opacity-20' : ''}`}>
-                <span className={`${id === 'cell' ? 'text-purple-400' : id === 'bomb' ? 'text-amber-400' : id === 'row' ? 'text-rose-400' : id === 'col' ? 'text-emerald-400' : 'text-sky-400'}`}>
-                  {id === 'cell' ? <Target className="w-6 h-6" /> : id === 'bomb' ? <Sparkles className="w-6 h-6" /> : id === 'row' ? <MoveHorizontal className="w-6 h-6" /> : id === 'col' ? <MoveVertical className="w-6 h-6" /> : <AlignLeft className="w-6 h-6" />}
-                </span>
-                {tools[id] > 0 && <span className="absolute -top-1.5 -right-1.5 bg-white text-slate-950 text-[9px] font-black w-5 h-5 rounded-full border-2 border-slate-950 flex shadow-lg items-center justify-center">{tools[id]}</span>}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Right Side: Tools & Powers */}
-        <aside className="w-20 shrink-0 flex flex-col gap-1 py-1 hidden md:flex overflow-y-auto no-scrollbar items-center justify-center">
-
-          <button
-            onClick={shuffle}
-            className="group flex flex-col items-center p-2 bg-slate-900/40 hover:bg-slate-800/60 rounded-xl border border-white/5 transition-all active:scale-95 shadow-xl"
-          >
-            <div className="w-9 h-9 rounded-lg bg-slate-950 flex items-center justify-center group-hover:rotate-180 transition-transform duration-700">
-              <RefreshCw className="w-4 h-4 text-amber-400" />
-            </div>
-          </button>
-
-          <div className="h-px bg-white/5 w-full mx-2 my-0.5" />
-
-          {[
-            { id: 'cell', icon: <Target className="w-5 h-5" />, color: 'text-purple-400', count: tools.cell },
-            { id: 'bomb', icon: <Sparkles className="w-5 h-5" />, color: 'text-amber-400', count: tools.bomb },
-            { id: 'row', icon: <MoveHorizontal className="w-5 h-5" />, color: 'text-rose-400', count: tools.row },
-            { id: 'col', icon: <MoveVertical className="w-5 h-5" />, color: 'text-emerald-400', count: tools.col },
-            { id: 'swap', icon: <AlignLeft className="w-5 h-5" />, color: 'text-sky-400', count: tools.swap },
-          ].map((tool) => {
-            const price = 100;
-            const canBuy = coins >= price;
-            const isOutOfStock = tool.count === 0;
-
-            return (
-              <button
-                key={tool.id}
-                onClick={() => {
-                  if (isOutOfStock) {
-                    buyTool(tool.id, price);
-                  } else {
-                    setActiveTool(activeTool === tool.id ? null : tool.id);
-                  }
-                }}
-                className={`
-                  group flex flex-col items-center p-2 rounded-xl border transition-all active:scale-95 shadow-xl relative
-                  ${activeTool === tool.id ? 'bg-amber-400/10 border-amber-400 scale-105' : 'bg-slate-900/40 border-white/5 hover:bg-slate-800/60'}
-                  ${isOutOfStock && !canBuy ? 'opacity-20 grayscale cursor-not-allowed' : 'opacity-100'}
-                `}
-              >
-                <div className={`w-9 h-9 rounded-lg bg-slate-950 flex items-center justify-center ${tool.color} ${isOutOfStock ? 'opacity-40' : ''}`}>
-                  {tool.icon}
-                </div>
-                {tool.count > 0 ? (
-                  <span className="absolute -top-1 -right-1 bg-white text-slate-950 text-[7px] font-black w-4 h-4 rounded-full border border-slate-950 flex shadow-lg items-center justify-center z-10">
-                    {tool.count}
-                  </span>
-                ) : (
-                  <div className="absolute -top-1 -right-1 bg-amber-500 text-white text-[6px] font-black px-1 rounded-full border border-slate-950 flex items-center gap-0.5 shadow-lg z-10">
-                    <Coins size={6} />
-                    {price}
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </aside>
-      </main>
-
-      {/* Game Over Modal */}
-      {
-        gameState === 'gameover' && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-xl">
-            <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(56,189,248,0.2)] animate-in fade-in zoom-in duration-500 flex flex-col">
-              <div className="p-8 pb-4 text-center">
-                <div className="w-20 h-20 bg-sky-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-sky-400/30">
-                  <Trophy className="w-10 h-10 text-sky-400" />
-                </div>
-                <h2 className="text-3xl font-black text-white italic tracking-tighter mb-1">OYUN BİTTİ</h2>
-                <p className="text-slate-400 text-sm font-medium">Harika bir performans!</p>
-              </div>
-
-              <div className="flex-1 px-8 py-4 space-y-4 overflow-y-auto no-scrollbar">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 text-center">
-                    <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Skor</div>
-                    <div className="text-2xl font-black text-sky-400">{score}</div>
-                  </div>
-                  <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 text-center">
-                    <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Kelimeler</div>
-                    <div className="text-2xl font-black text-amber-400">{foundWords.length}</div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest flex justify-between">
-                    <span>Bulunan Kelimeler</span>
-                    <span>{foundWords.length} Adet</span>
-                  </div>
-                  <div className="max-h-40 overflow-y-auto no-scrollbar space-y-1">
-                    {foundWords.length > 0 ? (
-                      foundWords.map((word, i) => (
-                        <div key={i} className="px-4 py-2 bg-white/5 rounded-xl text-xs font-bold text-slate-300 flex justify-between items-center border border-white/5">
-                          <span>{word}</span>
-                          <span className="text-[10px] text-sky-500 uppercase">{word.length} Harf</span>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-4 text-slate-600 italic text-xs">Hiç kelime bulunamadı</div>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
 
-              <div className="p-8 pt-4 space-y-3">
-                <button
-                  onClick={resetGame}
-                  className="w-full py-5 bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-400 hover:to-sky-500 text-white font-black rounded-2xl shadow-[0_10px_30px_rgba(56,189,248,0.3)] transition-all active:scale-95 flex items-center justify-center gap-2"
-                >
-                  <RefreshCw className="w-5 h-5" />
-                  YENİDEN BAŞLA
+              {/* Bottom Tools (Mobile Only) */}
+              <div className="md:hidden flex gap-2 overflow-x-auto no-scrollbar pb-2 pt-2 shrink-0">
+                <button onClick={shuffle} className="shrink-0 w-14 h-14 bg-slate-900 rounded-2xl border border-white/5 flex items-center justify-center">
+                  <RefreshCw className="w-6 h-6 text-amber-400" />
                 </button>
-                <button
-                  onClick={handleShare}
-                  className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-xs uppercase tracking-widest"
-                >
-                  <Share2 size={16} />
-                  {t('share_button')}
-                </button>
+                {['cell', 'bomb', 'row', 'col', 'swap'].map(id => (
+                  <button key={id} disabled={tools[id] === 0} onClick={() => setActiveTool(activeTool === id ? null : id)} className={`shrink-0 w-14 h-14 rounded-2xl border flex items-center justify-center relative ${activeTool === id ? 'bg-amber-400/10 border-amber-400' : 'bg-slate-900 border-white/5'}`}>
+                    <span className={`${id === 'bomb' ? 'text-amber-400' : 'text-sky-400'}`}>
+                      {id === 'bomb' ? <Sparkles className="w-6 h-6" /> : <Target className="w-6 h-6" />}
+                    </span>
+                    {tools[id] > 0 && <span className="absolute -top-1.5 -right-1.5 bg-white text-slate-950 text-[9px] font-black w-5 h-5 rounded-full border-2 border-slate-950 flex items-center justify-center">{tools[id]}</span>}
+                  </button>
+                ))}
               </div>
             </div>
-          </div>
-        )
-      }
 
+            {/* Right Side: Tools (Desktop) */}
+            <aside className="w-20 shrink-0 flex flex-col gap-2 py-1 hidden md:flex items-center">
+              <button onClick={shuffle} className="p-3 bg-slate-950 rounded-xl border border-white/5 text-amber-400 hover:bg-slate-900 transition-all">
+                <RefreshCw size={20} />
+              </button>
+              {['cell', 'bomb', 'row', 'col', 'swap'].map(id => (
+                <button
+                  key={id}
+                  onClick={() => setActiveTool(activeTool === id ? null : id)}
+                  className={`w-14 h-14 rounded-xl border flex items-center justify-center relative transition-all ${activeTool === id ? 'bg-amber-400/10 border-amber-400' : 'bg-slate-950 border-white/5'}`}
+                >
+                  <span className="text-sky-400">{id === 'bomb' ? <Sparkles /> : <Box />}</span>
+                  <span className="absolute -top-1 -right-1 bg-white text-slate-950 text-[8px] font-black w-4 h-4 rounded-full border border-slate-950 flex items-center justify-center">{tools[id]}</span>
+                </button>
+              ))}
+            </aside>
+          </main>
+
+          {/* Game Over Modal */}
+          {gameState === 'gameover' && (
+            <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-xl">
+              <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 text-center animate-in fade-in zoom-in duration-500">
+                <Trophy className="w-16 h-16 text-sky-400 mx-auto mb-4" />
+                <h2 className="text-3xl font-black text-white italic tracking-tighter mb-4">OYUN BİTTİ</h2>
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="bg-slate-800 p-4 rounded-2xl">
+                    <div className="text-[10px] text-slate-500 font-black uppercase mb-1">Skor</div>
+                    <div className="text-2xl font-black text-white">{score}</div>
+                  </div>
+                  <div className="bg-slate-800 p-4 rounded-2xl">
+                    <div className="text-[10px] text-slate-500 font-black uppercase mb-1">Hamle</div>
+                    <div className="text-2xl font-black text-white">{moves}</div>
+                  </div>
+                </div>
+                <button onClick={resetGame} className="w-full py-5 bg-sky-500 text-white font-black rounded-2xl shadow-xl">TEKRAR DENE</button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -1601,7 +1622,7 @@ function App() {
           animation-iteration-count: infinite;
         }
       `}</style>
-    </div >
+    </div>
   );
 }
 
