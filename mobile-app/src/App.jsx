@@ -864,79 +864,82 @@ const Dashboard = ({
             <div className="flex items-center gap-2 mt-0 md:mt-1">
               <span className="h-[1.5px] w-6 md:w-12 bg-gradient-to-r from-orange-500 to-blue-500"></span>
               <span className="text-[7px] md:text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] font-inter hidden sm:inline-block">Puzzle Edition v2.6</span>
-              <div className="flex items-center gap-1 md:gap-1.5 ml-2 md:ml-4 bg-slate-900/40 p-0.5 md:p-1 rounded-md md:rounded-lg border border-white/5 font-inter">
-                <button
-                  onClick={() => setLanguage('tr')}
-                  className={`px-2 py-0.5 text-[9px] font-black rounded transition-all ${language === 'tr' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-                >
-                  TR
-                </button>
-                <button
-                  onClick={() => setLanguage('en')}
-                  className={`px-2 py-0.5 text-[9px] font-black rounded transition-all ${language === 'en' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-                >
-                  EN
-                </button>
-              </div>
+            </div>
+          </div>
 
+          <div className="flex items-center gap-1 md:gap-1.5 ml-1 md:ml-4 font-inter shrink-0">
+            <div className="flex items-center gap-0.5 md:gap-1.5 bg-slate-900/40 p-0.5 md:p-1 rounded-md md:rounded-lg border border-white/5">
               <button
-                onClick={() => setView('settings')}
-                className="ml-1 md:ml-2 w-6 h-6 md:w-8 md:h-8 bg-slate-900/40 hover:bg-white/5 border border-white/5 rounded-md md:rounded-lg flex items-center justify-center text-slate-500 hover:text-white transition-all active:scale-95 group"
+                onClick={() => setLanguage('tr')}
+                className={`px-1.5 md:px-2 py-0.5 text-[8px] md:text-[9px] font-black rounded transition-all ${language === 'tr' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
               >
-                <Settings className="w-3 h-3 md:w-4 md:h-4 group-hover:rotate-45 transition-transform" />
+                TR
+              </button>
+              <button
+                onClick={() => setLanguage('en')}
+                className={`px-1.5 md:px-2 py-0.5 text-[8px] md:text-[9px] font-black rounded transition-all ${language === 'en' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+              >
+                EN
               </button>
             </div>
+
+            <button
+              onClick={() => setView('settings')}
+              className="w-6 h-6 md:w-8 md:h-8 bg-slate-900/40 hover:bg-white/5 border border-white/5 rounded-md md:rounded-lg flex items-center justify-center text-slate-500 hover:text-white transition-all active:scale-95 group"
+            >
+              <Settings className="w-3 h-3 md:w-4 md:h-4 group-hover:rotate-45 transition-transform" />
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-4 shrink-0">
+        <div className="flex items-center gap-1.5 md:gap-4 shrink-0">
           {user && (
             <>
-              <div className="bg-slate-900/60 border border-white/5 px-2 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl flex items-center gap-1.5 md:gap-3 group transition-all hover:border-sky-500/50 relative overflow-hidden hidden sm:flex">
+              <div className="bg-slate-900/60 border border-white/5 px-1.5 md:px-4 py-1 md:py-2 rounded-lg md:rounded-2xl flex items-center gap-1 md:gap-3 group transition-all hover:border-sky-500/50 relative overflow-hidden hidden sm:flex">
                 {energy < 5 && (
                   <div className="absolute bottom-0 left-0 h-1 bg-sky-500/30 transition-all duration-1000" style={{ width: `${(1 - (nextEnergyIn / 1200)) * 100}%` }} />
                 )}
-                <div className={`w-6 h-6 md:w-8 md:h-8 rounded-lg flex items-center justify-center ${energy > 0 ? 'bg-sky-500/20 text-sky-400' : 'bg-rose-500/20 text-rose-400'} group-hover:scale-110 transition-transform`}>
+                <div className={`w-5 h-5 md:w-8 md:h-8 rounded-md md:rounded-lg flex items-center justify-center ${energy > 0 ? 'bg-sky-500/20 text-sky-400' : 'bg-rose-500/20 text-rose-400'} group-hover:scale-110 transition-transform shrink-0`}>
                   <Zap className="w-3 h-3 md:w-4 md:h-4" fill={energy > 0 ? "currentColor" : "none"} />
                 </div>
-                <div className="flex flex-col font-outfit min-w-[24px] md:min-w-[40px]">
-                  <span className="text-[10px] md:text-xs font-black text-white leading-none">{energy}/5</span>
-                  <span className="text-[6px] md:text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight">
+                <div className="flex flex-col font-outfit min-w-[20px] md:min-w-[40px]">
+                  <span className="text-[9px] md:text-xs font-black text-white leading-none">{energy}/5</span>
+                  <span className="text-[5px] md:text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight">
                     {energy < 5 ? `${Math.floor(nextEnergyIn / 60)}:${(nextEnergyIn % 60).toString().padStart(2, '0')}` : 'Full'}
                   </span>
                 </div>
               </div>
 
-              <div className="bg-slate-900/60 border border-white/5 px-2 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl flex items-center gap-1 md:gap-2 group transition-all hover:border-amber-500/50 hidden sm:flex">
-                <div className="w-6 h-6 md:w-8 md:h-8 bg-amber-500/20 rounded-lg flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
+              <div className="bg-slate-900/60 border border-white/5 px-1.5 md:px-4 py-1 md:py-2 rounded-lg md:rounded-2xl flex items-center gap-1 md:gap-2 group transition-all hover:border-amber-500/50 hidden sm:flex">
+                <div className="w-5 h-5 md:w-8 md:h-8 bg-amber-500/20 rounded-md md:rounded-lg flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform shrink-0">
                   <Coins className="w-3 h-3 md:w-4 md:h-4" />
                 </div>
                 <div className="flex flex-col font-outfit">
-                  <span className="text-[10px] md:text-xs font-black text-white leading-none">{coins}</span>
-                  <span className="text-[6px] md:text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight">Altın</span>
+                  <span className="text-[9px] md:text-xs font-black text-white leading-none">{coins}</span>
+                  <span className="text-[5px] md:text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight">Altın</span>
                 </div>
               </div>
             </>
           )}
 
           {user ? (
-            <div className="flex items-center gap-2 md:gap-3 bg-slate-900/60 border border-white/5 p-1 pr-3 md:pr-4 rounded-xl md:rounded-2xl group transition-all hover:border-sky-500/50 font-outfit">
+            <div className="flex items-center gap-1.5 md:gap-3 bg-slate-900/60 border border-white/5 p-1 pr-2 md:pr-4 rounded-lg md:rounded-2xl group transition-all hover:border-sky-500/50 font-outfit">
               <div className="relative">
-                <div className="w-8 h-8 md:w-10 md:h-10 bg-sky-500/20 rounded-lg md:rounded-xl flex items-center justify-center text-sky-400 font-black italic text-xs md:text-base">
+                <div className="w-7 h-7 md:w-10 md:h-10 bg-sky-500/20 rounded-md md:rounded-xl flex items-center justify-center text-sky-400 font-black italic text-xs md:text-base">
                   {profile?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
                 </div>
                 {/* Level Badge */}
-                <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white text-[6px] md:text-[7px] font-black leading-none px-1 md:px-1.5 py-0.5 rounded-sm md:rounded-md border border-slate-950 md:border-2 shadow-lg">
+                <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white text-[5px] md:text-[7px] font-black leading-none px-1 md:px-1.5 py-0.5 rounded-sm md:rounded-md border border-slate-950 md:border-2 shadow-lg">
                   {completedLevels + 1}
                 </div>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] md:text-xs font-black text-white leading-none truncate max-w-[60px] md:max-w-[80px]">
+                <span className="text-[9px] md:text-xs font-black text-white leading-none truncate max-w-[50px] md:max-w-[80px]">
                   {profile?.username || user?.email?.split('@')[0]}
                 </span>
                 <button
                   onClick={() => AuthService.signOut()}
-                  className="text-[6px] md:text-[8px] font-bold text-slate-500 hover:text-red-400 uppercase tracking-widest transition-colors flex items-center gap-0.5 md:gap-1 font-inter mt-0.5"
+                  className="text-[5px] md:text-[8px] font-bold text-slate-500 hover:text-red-400 uppercase tracking-widest transition-colors flex items-center gap-0.5 md:gap-1 font-inter mt-0.5"
                 >
                   <LogOut className="w-2 h-2 md:w-3 md:h-3" /> {t('logout')}
                 </button>
@@ -945,10 +948,10 @@ const Dashboard = ({
           ) : (
             <button
               onClick={onOpenAuth}
-              className="px-4 py-2 md:px-6 md:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl md:rounded-2xl flex items-center gap-2 text-slate-400 hover:text-white transition-all font-black text-[8px] md:text-[10px] uppercase tracking-widest shadow-xl active:scale-95 font-inter"
+              className="px-3 py-1.5 md:px-6 md:py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg md:rounded-2xl flex items-center gap-1.5 md:gap-2 text-slate-400 hover:text-white transition-all font-black text-[7px] md:text-[10px] uppercase tracking-widest shadow-xl active:scale-95 font-inter"
             >
-              <User className="w-3 h-3 md:w-4 md:h-4 text-orange-500" />
-              Giriş Yap
+              <User className="w-2.5 h-2.5 md:w-4 md:h-4 text-orange-500" />
+              Giriş
             </button>
           )}
         </div>
@@ -1365,7 +1368,24 @@ function App() {
         </aside>
 
         {/* Center: Grid Area */}
-        <div className="flex-1 flex flex-col gap-3 min-w-0 h-full">
+        <div className="flex-1 flex flex-col gap-2 md:gap-3 min-w-0 h-full">
+
+          {/* Word Display Area - Mobile visible only */}
+          <div className={`
+            md:hidden flex items-center justify-center px-4 py-2 rounded-xl backdrop-blur-3xl border-2 transition-all duration-500 mx-auto
+            ${currentWord.length >= 3
+              ? 'bg-sky-500/10 border-sky-400/50 shadow-[0_0_15px_rgba(56,189,248,0.1)]'
+              : 'bg-slate-900/40 border-white/5'
+            }
+          `}>
+            <span className={`
+              text-lg font-black tracking-[0.3em] transition-all
+              ${currentWord.length >= 3 ? 'text-white drop-shadow-[0_0_10px_rgba(56,189,248,0.3)]' : 'text-slate-500'}
+            `}>
+              {currentWord || '..........'}
+            </span>
+          </div>
+
           <div className="flex-1 flex items-center justify-center min-h-0 relative">
             <div className={`
                 relative max-h-full w-full max-w-[min(100%,(72vh*11/9))] aspect-[11/9] bg-slate-950/40 rounded-xl md:rounded-3xl border-2 shadow-2xl overflow-hidden transition-all duration-300
