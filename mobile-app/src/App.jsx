@@ -9,7 +9,7 @@ import {
   ChevronRight, Play, CheckCircle2, Award, History,
   LayoutGrid, RotateCcw, Coins, Calendar, Box,
   ListTodo, Gift, ShoppingBag, BarChart3, Share2,
-  User, LogOut, Mail, Lock, UserPlus, LogIn
+  User, LogOut, Mail, Lock, UserPlus, LogIn, Clock, Home
 } from 'lucide-react';
 import { LEVELS } from './logic/Levels';
 import { LETTER_POINTS } from './logic/Constants';
@@ -135,7 +135,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess, t = (s) => s }) => {
 
 
 const Dashboard = ({
-  onSelectMission, onSelectArcade, currentLevel, coins, tools, streakCount,
+  onSelectMission, onSelectArcade, onSelectZen, currentLevel, coins, tools, streakCount,
   levels = [], isLoading, user, profile, onOpenAuth, language, setLanguage, t = (s) => s,
   isMuted, toggleMute, difficulty, changeDifficulty, dailyReward, claimGift, STREAK_REWARDS = [],
   showDailyGift, energy, nextEnergyIn, buyTool,
@@ -144,6 +144,9 @@ const Dashboard = ({
   const [view, setView] = React.useState('modes');
   const [selectedLevelIdx, setSelectedLevelIdx] = React.useState(null);
   const [selectedBoosters, setSelectedBoosters] = React.useState({ bomb: false, row: false, col: false });
+  const [arcadeSubMode, setArcadeSubMode] = React.useState('moves'); // 'moves' | 'time'
+  const [arcadeValue, setArcadeValue] = React.useState(15);
+  const [showMemberOnlyModal, setShowMemberOnlyModal] = React.useState(false);
   const [showMissionLock, setShowMissionLock] = React.useState(false);
 
   console.log('--- DASHBOARD RENDER ---');
@@ -251,17 +254,101 @@ const Dashboard = ({
               <h2 className="text-xl md:text-3xl font-black text-white italic tracking-tighter uppercase">{isArcade ? t('arcade') : `${t('level')} ${selectedLevel.id}`}</h2>
             </div>
 
+            {/* Member Only Warning Toast/Modal */}
+            {showMemberOnlyModal && (
+              <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[600] w-[90%] max-w-sm animate-in zoom-in-95 fade-in duration-300">
+                <div className="bg-amber-500 border border-white/20 p-4 rounded-2xl shadow-2xl flex items-center gap-4">
+                  <div className="bg-white/20 p-2 rounded-xl">
+                    <User size={24} className="text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[10px] font-black text-amber-900 uppercase tracking-widest leading-none mb-1">{t('member_required_title')}</div>
+                    <div className="text-xs font-bold text-amber-950 leading-tight">{t('member_required_desc')}</div>
+                  </div>
+                  <button onClick={() => setShowMemberOnlyModal(false)} className="text-amber-950 font-black">OK</button>
+                </div>
+              </div>
+            )}
+
             <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 backdrop-blur-md space-y-4 md:space-y-8 flex-1 overflow-y-auto no-scrollbar">
               <div className="text-center shrink-0">
                 <h3 className="text-lg md:text-xl font-black text-white italic tracking-tighter uppercase mb-2">{selectedLevel.title}</h3>
-                <div className="flex justify-center flex-wrap gap-4">
-                  {selectedLevel.goals.map((g, i) => (
-                    <div key={i} className="bg-slate-950/50 px-4 py-2 rounded-xl text-[10px] font-black text-sky-400 border border-sky-400/20 uppercase tracking-widest">
-                      {t(`goal_${g.type}`)}: {g.count || g.value}
-                    </div>
-                  ))}
-                </div>
+                {!isArcade && (
+                  <div className="flex justify-center flex-wrap gap-4">
+                    {selectedLevel.goals.map((g, i) => (
+                      <div key={i} className="bg-slate-950/50 px-4 py-2 rounded-xl text-[10px] font-black text-sky-400 border border-sky-400/20 uppercase tracking-widest">
+                        {t(`goal_${g.type}`)}: {g.count || g.value}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
+
+              {isArcade && (
+                <div className="space-y-6">
+                  {/* Sub-mode Selection */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => { setArcadeSubMode('time'); setArcadeValue(30); }}
+                      className={`py-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${arcadeSubMode === 'time' ? 'bg-sky-500/20 border-sky-400 text-sky-400 shadow-xl shadow-sky-500/10 scale-[1.02]' : 'bg-slate-800/40 border-white/5 text-slate-500 hover:bg-slate-800'}`}
+                    >
+                      <Clock size={20} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">{t('time_trial')}</span>
+                    </button>
+                    <button
+                      onClick={() => { setArcadeSubMode('moves'); setArcadeValue(15); }}
+                      className={`py-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${arcadeSubMode === 'moves' ? 'bg-indigo-500/20 border-indigo-400 text-indigo-400 shadow-xl shadow-indigo-500/10 scale-[1.02]' : 'bg-slate-800/40 border-white/5 text-slate-500 hover:bg-slate-800'}`}
+                    >
+                      <Gamepad2 size={20} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">{t('move_limited')}</span>
+                    </button>
+                  </div>
+
+                  {/* Value Selection */}
+                  <div className="space-y-3">
+                    <div className="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2 font-inter">
+                      {arcadeSubMode === 'time' ? t('seconds')?.toUpperCase() : t('moves_unit')?.toUpperCase()}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {arcadeSubMode === 'time' ? (
+                        [30, 45, 60].map(val => {
+                          const isLocked = !user && val > 30;
+                          return (
+                            <button
+                              key={val}
+                              onClick={() => {
+                                if (isLocked) setShowMemberOnlyModal(true);
+                                else setArcadeValue(val);
+                              }}
+                              className={`relative py-3 rounded-xl border font-black transition-all ${arcadeValue === val ? 'bg-white text-slate-950 border-white shadow-lg' : 'bg-slate-800/60 border-white/5 text-slate-400 hover:bg-slate-800'}`}
+                            >
+                              {val}
+                              {isLocked && <Lock size={10} className="absolute top-1 right-1 text-amber-500" />}
+                            </button>
+                          );
+                        })
+                      ) : (
+                        [15, 30, 45].map(val => {
+                          const isLocked = !user && val > 15;
+                          return (
+                            <button
+                              key={val}
+                              onClick={() => {
+                                if (isLocked) setShowMemberOnlyModal(true);
+                                else setArcadeValue(val);
+                              }}
+                              className={`relative py-3 rounded-xl border font-black transition-all ${arcadeValue === val ? 'bg-white text-slate-950 border-white shadow-lg' : 'bg-slate-800/60 border-white/5 text-slate-400 hover:bg-slate-800'}`}
+                            >
+                              {val}
+                              {isLocked && <Lock size={10} className="absolute top-1 right-1 text-amber-500" />}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2 md:space-y-4 shrink-0">
                 <div className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1 md:ml-2 font-inter">{t('select_boosters')}</div>
@@ -295,7 +382,7 @@ const Dashboard = ({
                   onClick={() => {
                     if (energy > 0) {
                       if (isArcade) {
-                        onSelectArcade(selectedBoosters);
+                        onSelectArcade(selectedBoosters, arcadeSubMode, arcadeValue);
                       } else {
                         onSelectMission(selectedLevelIdx, selectedBoosters);
                       }
@@ -625,33 +712,19 @@ const Dashboard = ({
                   className="group relative flex-1 overflow-hidden rounded-t-[1.5rem] lg:rounded-t-[2rem] border border-white/8 transition-all duration-500 active:scale-[0.99]"
                   style={{ background: 'linear-gradient(135deg, #0a0e1a 0%, #0d1526 50%, #0a1020 100%)' }}
                 >
-                  {/* Glow orbs */}
                   <div className="absolute -top-20 -left-20 w-64 h-64 bg-sky-500/10 rounded-full blur-[80px] transition-all duration-700 group-hover:bg-sky-500/20 group-hover:scale-110" />
                   <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-blue-600/8 rounded-full blur-[60px]" />
-
-                  {/* Noise texture overlay */}
                   <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")', backgroundSize: '128px' }} />
-
-                  {/* Top accent line */}
                   <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-sky-500/50 to-transparent" />
-
                   <div className="relative z-10 h-full flex flex-col items-center justify-center p-6 lg:p-10 gap-4">
-                    {/* Icon */}
                     <div className="w-14 h-14 lg:w-20 lg:h-20 bg-sky-500/15 border border-sky-500/25 rounded-2xl lg:rounded-3xl flex items-center justify-center text-sky-400 group-hover:scale-110 group-hover:bg-sky-500/25 group-hover:border-sky-500/50 transition-all duration-500 shadow-[0_0_30px_rgba(14,165,233,0.15)]">
                       <History size={28} className="lg:hidden" />
                       <History size={40} className="hidden lg:block" />
                     </div>
-
                     <div className="text-center">
-                      <h3 className="text-2xl lg:text-5xl font-black text-white tracking-[-0.04em] uppercase leading-none font-outfit group-hover:text-sky-100 transition-colors">
-                        {t('arcade')}
-                      </h3>
-                      <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-[0.2em] mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">
-                        {t('arcade_desc')}
-                      </p>
+                      <h3 className="text-2xl lg:text-5xl font-black text-white tracking-[-0.04em] uppercase leading-none font-outfit group-hover:text-sky-100 transition-colors">{t('arcade')}</h3>
+                      <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-[0.2em] mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">{t('arcade_desc')}</p>
                     </div>
-
-                    {/* CTA pill */}
                     <div className="flex items-center gap-2 bg-sky-500/10 border border-sky-500/20 rounded-full px-4 py-1.5 group-hover:bg-sky-500/20 group-hover:border-sky-500/40 transition-all">
                       <Play size={10} className="text-sky-400 fill-sky-400" />
                       <span className="text-sky-400 text-[9px] lg:text-[10px] font-black uppercase tracking-widest">OYNA</span>
@@ -659,53 +732,73 @@ const Dashboard = ({
                   </div>
                 </button>
 
-                {/* ── DIVIDER ── */}
                 <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
                 {/* ── SEVİYE ── */}
                 <button
                   onClick={() => { if (!user) setShowMissionLock(true); else setView('levels'); }}
-                  className="group relative flex-1 overflow-hidden rounded-b-[1.5rem] lg:rounded-b-[2rem] border border-white/8 border-t-0 transition-all duration-500 active:scale-[0.99]"
+                  className="group relative flex-1 overflow-hidden border border-white/8 border-t-0 transition-all duration-500 active:scale-[0.99]"
                   style={{ background: 'linear-gradient(135deg, #0f0a00 0%, #1a0e00 50%, #100800 100%)' }}
                 >
-                  {/* Glow orbs */}
                   <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-orange-500/10 rounded-full blur-[80px] transition-all duration-700 group-hover:bg-orange-500/20 group-hover:scale-110" />
                   <div className="absolute -top-10 -right-10 w-48 h-48 bg-red-600/8 rounded-full blur-[60px]" />
-
-                  {/* Noise texture overlay */}
                   <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")', backgroundSize: '128px' }} />
-
-                  {/* Bottom accent line */}
                   <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
-
-                  {/* Lock badge for guests */}
                   {!user && (
                     <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 bg-slate-950/80 border border-white/10 rounded-full px-3 py-1.5 backdrop-blur-md">
                       <Lock size={10} className="text-orange-400" />
                       <span className="text-[9px] font-black text-orange-400 uppercase tracking-widest">Üye Ol</span>
                     </div>
                   )}
-
                   <div className="relative z-10 h-full flex flex-col items-center justify-center p-6 lg:p-10 gap-4">
-                    {/* Icon */}
                     <div className="w-14 h-14 lg:w-20 lg:h-20 bg-orange-500/15 border border-orange-500/25 rounded-2xl lg:rounded-3xl flex items-center justify-center text-orange-400 group-hover:scale-110 group-hover:bg-orange-500/25 group-hover:border-orange-500/50 transition-all duration-500 shadow-[0_0_30px_rgba(249,115,22,0.2)]">
                       <Trophy size={28} className="lg:hidden" />
                       <Trophy size={40} className="hidden lg:block" />
                     </div>
-
                     <div className="text-center">
-                      <h3 className="text-2xl lg:text-5xl font-black text-white tracking-[-0.04em] uppercase leading-none font-outfit group-hover:text-orange-100 transition-colors">
-                        {t('mission')}
-                      </h3>
-                      <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-[0.2em] mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">
-                        {t('mission_desc')}
-                      </p>
+                      <h3 className="text-2xl lg:text-5xl font-black text-white tracking-[-0.04em] uppercase leading-none font-outfit group-hover:text-orange-100 transition-colors">{t('mission')}</h3>
+                      <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-[0.2em] mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">{t('mission_desc')}</p>
                     </div>
-
-                    {/* CTA pill */}
                     <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-1.5 group-hover:bg-orange-500/20 group-hover:border-orange-500/40 transition-all">
                       {user ? <Play size={10} className="text-orange-400 fill-orange-400" /> : <Lock size={10} className="text-orange-400" />}
                       <span className="text-orange-400 text-[9px] lg:text-[10px] font-black uppercase tracking-widest">{user ? 'OYNA' : 'GİRİŞ YAP'}</span>
+                    </div>
+                  </div>
+                </button>
+
+                <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+                {/* ── ZEN MODU ── */}
+                <button
+                  onClick={() => {
+                    if (!user) setShowMissionLock(true);
+                    else onSelectZen();
+                  }}
+                  className="group relative flex-1 overflow-hidden rounded-b-[1.5rem] lg:rounded-b-[2rem] border border-white/8 border-t-0 transition-all duration-500 active:scale-[0.99]"
+                  style={{ background: 'linear-gradient(135deg, #051a10 0%, #0a261a 50%, #051a10 100%)' }}
+                >
+                  <div className="absolute inset-0 bg-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] transition-all duration-700 group-hover:bg-emerald-500/20 group-hover:scale-110" />
+
+                  {/* Lock badge for guests */}
+                  {!user && (
+                    <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 bg-slate-950/80 border border-white/10 rounded-full px-3 py-1.5 backdrop-blur-md">
+                      <Lock size={10} className="text-emerald-400" />
+                      <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Üye Ol</span>
+                    </div>
+                  )}
+                  <div className="relative z-10 h-full flex flex-col items-center justify-center p-4 lg:p-8 gap-3">
+                    <div className="w-12 h-12 lg:w-16 lg:h-16 bg-emerald-500/15 border border-emerald-500/25 rounded-2xl flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-all duration-500 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+                      <Sparkles size={24} className="lg:hidden" />
+                      <Sparkles size={32} className="hidden lg:block" />
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-xl lg:text-3xl font-black text-white tracking-tight uppercase font-outfit leading-none mb-1">{t('zen_mode')}</h3>
+                      <p className="text-slate-500 text-[9px] lg:text-[10px] font-bold uppercase tracking-widest group-hover:text-slate-400 transition-colors">{t('zen_desc')}</p>
+                    </div>
+                    <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-1.5 group-hover:bg-emerald-500/20 transition-all">
+                      {user ? <Play size={10} className="text-emerald-400 fill-emerald-400" /> : <Lock size={10} className="text-emerald-400" />}
+                      <span className="text-emerald-400 text-[9px] font-black uppercase tracking-widest italic">{user ? 'RAHATLA' : 'GİRİŞ YAP'}</span>
                     </div>
                   </div>
                 </button>
@@ -866,7 +959,7 @@ const Dashboard = ({
                 <div className="absolute top-1 right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-slate-950 animate-pulse" />
               </button>
             </div>
-          </div>
+          </div >
         );
     }
   };
@@ -935,28 +1028,37 @@ const Dashboard = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-1 md:gap-1.5 ml-1 md:ml-4 font-inter shrink-0">
-            <div className="flex items-center gap-0.5 md:gap-1.5 bg-slate-900/40 p-0.5 md:p-1 rounded-md md:rounded-lg border border-white/5">
+          <div className="flex flex-col items-center gap-2 ml-1 md:ml-4 font-inter shrink-0">
+            <button
+              onClick={toggleMute}
+              className={`w-6 h-6 md:w-8 md:h-8 rounded-md md:rounded-lg flex items-center justify-center transition-all active:scale-95 border ${isMuted ? 'bg-rose-500/10 border-rose-500/30 text-rose-500' : 'bg-slate-900/40 border-white/5 text-slate-500 hover:text-white hover:bg-white/5'}`}
+            >
+              {isMuted ? <VolumeX className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <Volume2 className="w-3.5 h-3.5 md:w-4 md:h-4" />}
+            </button>
+
+            <div className="flex items-center gap-1 md:gap-1.5 font-inter shrink-0">
+              <div className="flex items-center gap-0.5 md:gap-1.5 bg-slate-900/40 p-0.5 md:p-1 rounded-md md:rounded-lg border border-white/5">
+                <button
+                  onClick={() => setLanguage('tr')}
+                  className={`px-1.5 md:px-2 py-0.5 text-[8px] md:text-[9px] font-black rounded transition-all ${language === 'tr' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                  TR
+                </button>
+                <button
+                  onClick={() => setLanguage('en')}
+                  className={`px-1.5 md:px-2 py-0.5 text-[8px] md:text-[9px] font-black rounded transition-all ${language === 'en' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                  EN
+                </button>
+              </div>
+
               <button
-                onClick={() => setLanguage('tr')}
-                className={`px-1.5 md:px-2 py-0.5 text-[8px] md:text-[9px] font-black rounded transition-all ${language === 'tr' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                onClick={() => setView('settings')}
+                className="w-6 h-6 md:w-8 md:h-8 bg-slate-900/40 hover:bg-white/5 border border-white/5 rounded-md md:rounded-lg flex items-center justify-center text-slate-500 hover:text-white transition-all active:scale-95 group"
               >
-                TR
-              </button>
-              <button
-                onClick={() => setLanguage('en')}
-                className={`px-1.5 md:px-2 py-0.5 text-[8px] md:text-[9px] font-black rounded transition-all ${language === 'en' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-              >
-                EN
+                <Settings className="w-3 h-3 md:w-4 md:h-4 group-hover:rotate-45 transition-transform" />
               </button>
             </div>
-
-            <button
-              onClick={() => setView('settings')}
-              className="w-6 h-6 md:w-8 md:h-8 bg-slate-900/40 hover:bg-white/5 border border-white/5 rounded-md md:rounded-lg flex items-center justify-center text-slate-500 hover:text-white transition-all active:scale-95 group"
-            >
-              <Settings className="w-3 h-3 md:w-4 md:h-4 group-hover:rotate-45 transition-transform" />
-            </button>
           </div>
         </div>
 
@@ -1213,6 +1315,56 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool }) => {
   );
 };
 
+const ZenGarden = ({ gardenState }) => {
+  if (!gardenState) return null;
+  return (
+    <div className="absolute inset-0 pointer-events-none opacity-40 overflow-hidden z-0">
+      {/* Ripples (Bottom area) */}
+      {Array.from({ length: Math.min(15, gardenState.ripples || 0) }).map((_, i) => (
+        <div
+          key={`ripple-${i}`}
+          className="absolute border-2 border-emerald-400/20 rounded-full animate-ping"
+          style={{
+            width: `${60 + (i % 3) * 40}px`,
+            height: `${20 + (i % 3) * 10}px`,
+            left: `${(i * 17) % 80 + 10}%`,
+            bottom: `${(i * 11) % 40 + 5}%`,
+            animationDuration: '4s'
+          }}
+        />
+      ))}
+      {/* Stones */}
+      {Array.from({ length: Math.min(12, gardenState.stones || 0) }).map((_, i) => (
+        <div
+          key={`stone-${i}`}
+          className="absolute bg-gradient-to-br from-slate-600 to-slate-800 rounded-2xl border border-white/10 shadow-lg"
+          style={{
+            width: `${25 + (i % 4) * 8}px`,
+            height: `${15 + (i % 3) * 6}px`,
+            left: `${(i * 23) % 85 + 5}%`,
+            top: `${(i * 31) % 85 + 5}%`,
+            transform: `rotate(${(i * 55) % 360}deg)`
+          }}
+        />
+      ))}
+      {/* Flowers/Sparkles */}
+      {Array.from({ length: Math.min(10, gardenState.flowers || 0) }).map((_, i) => (
+        <div
+          key={`flower-${i}`}
+          className="absolute text-pink-300/60 animate-pulse"
+          style={{
+            left: `${(i * 37) % 90 + 5}%`,
+            top: `${(i * 13) % 90 + 5}%`,
+            animationDelay: `${i * 0.4}s`
+          }}
+        >
+          <Sparkles size={20 + (i % 3) * 8} />
+        </div>
+      ))}
+    </div>
+  );
+};
+
 function App() {
   const {
     grid, selectedPath, animatingCells, score, moves, difficulty,
@@ -1224,7 +1376,9 @@ function App() {
     user, profile, completedLevels,
     language, setLanguage, t,
     energy, nextEnergyIn, setEnergy, setLastEnergyRefill,
-    totalScore, wordsFoundCount, gamesPlayed, highScore
+    totalScore, wordsFoundCount, gamesPlayed, highScore,
+    arcadeSubMode, arcadeValue, timeLeft, totalMovesMade, zenDuration,
+    gardenState, setGameState
   } = useGame();
 
   const [isMuted, setIsMuted] = useState(false);
@@ -1391,13 +1545,13 @@ function App() {
           onOpenAuth={() => setIsAuthModalOpen(true)}
           energy={energy}
           nextEnergyIn={nextEnergyIn}
-          onSelectArcade={(boosters) => {
+          onSelectArcade={(boosters, subMode, subValue) => {
             if (energy > 0) {
               setEnergy(prev => prev - 1);
               if (energy === 5) setLastEnergyRefill(Date.now());
               changeDifficulty('normal');
               setShowDashboard(false);
-              resetGame(boosters, 'arcade');
+              resetGame(boosters, 'arcade', subMode, subValue);
             }
           }}
           onSelectMission={(idx, boosters) => {
@@ -1406,6 +1560,15 @@ function App() {
               if (energy === 5) setLastEnergyRefill(Date.now());
               startMission(idx, boosters);
               setShowDashboard(false);
+            }
+          }}
+          onSelectZen={() => {
+            if (energy > 0) {
+              setEnergy(prev => prev - 1);
+              if (energy === 5) setLastEnergyRefill(Date.now());
+              changeDifficulty('normal');
+              setShowDashboard(false);
+              resetGame({}, 'zen');
             }
           }}
           totalScore={totalScore}
@@ -1447,16 +1610,24 @@ function App() {
               </span>
             </div>
 
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2 md:gap-3 shrink-0">
+              {gameMode === 'zen' && (
+                <button
+                  onClick={() => setGameState('gameover')}
+                  className="px-4 md:px-6 py-2 md:py-2.5 bg-emerald-500 text-white font-black text-[10px] md:text-xs rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:bg-emerald-400 transition-all uppercase tracking-widest"
+                >
+                  {t('enough_button')}
+                </button>
+              )}
               <button
                 onClick={() => setShowDashboard(true)}
                 className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-slate-400 hover:text-white"
               >
-                <Settings size={20} />
+                <Home size={20} />
               </button>
 
               <button
-                onClick={resetGame}
+                onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)}
                 className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-slate-400 hover:text-white"
               >
                 <RotateCcw size={20} />
@@ -1474,9 +1645,26 @@ function App() {
                     <div className="text-xl font-black text-sky-400 tabular-nums">{score}</div>
                   </div>
                   <div className="bg-slate-950/60 p-3 rounded-2xl border border-white/5 relative overflow-hidden group">
-                    <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">Hamle</div>
-                    <div className="text-xl font-black text-amber-400 tabular-nums">{moves}</div>
+                    {gameMode === 'arcade' && arcadeSubMode === 'time' ? (
+                      <>
+                        <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">{t('time_left')}</div>
+                        <div className={`text-xl font-black tabular-nums ${timeLeft < 10 ? 'text-rose-500 animate-pulse' : 'text-amber-400'}`}>
+                          {timeLeft}s
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">Hamle</div>
+                        <div className="text-xl font-black text-amber-400 tabular-nums">{moves}</div>
+                      </>
+                    )}
                   </div>
+                  {gameMode === 'arcade' && arcadeSubMode === 'time' && (
+                    <div className="bg-slate-950/60 p-3 rounded-2xl border border-white/5 relative overflow-hidden group col-span-2">
+                      <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">{t('total_moves')}</div>
+                      <div className="text-xl font-black text-indigo-400 tabular-nums">{totalMovesMade}</div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1518,6 +1706,7 @@ function App() {
                   relative max-h-full w-full max-w-[min(100%,(72vh*11/9))] aspect-[11/9] bg-slate-950/40 rounded-xl md:rounded-3xl border-2 shadow-2xl overflow-hidden transition-all duration-300
                   ${activeTool ? 'border-purple-500 ring-[8px] ring-purple-500/10' : 'border-white/5'}
                 `}>
+                  {gameMode === 'zen' && <ZenGarden gardenState={gardenState} />}
                   <PremiumCanvas
                     grid={grid}
                     selectedPath={selectedPath}
@@ -1526,6 +1715,7 @@ function App() {
                     createdSpecial={createdSpecial}
                     onSelectCell={selectCell}
                     onFinishTurn={finishTurn}
+                    gameMode={gameMode}
                   />
 
                   {/* Victory / GameOver Overlays */}
@@ -1538,8 +1728,11 @@ function App() {
                         <h2 className="text-4xl font-black text-white italic tracking-tighter mb-2 uppercase">
                           {gameState === 'victory' ? 'TEBRİKLER!' : 'MAALESEF'}
                         </h2>
-                        <button onClick={resetGame} className="w-full py-4 bg-sky-500 text-white font-black rounded-2xl">
+                        <button onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)} className="w-full py-4 bg-sky-500 text-white font-black rounded-2xl mb-2">
                           {gameState === 'victory' ? 'DEVAM ET' : 'TEKRAR DENE'}
+                        </button>
+                        <button onClick={() => setShowDashboard(true)} className="w-full py-4 bg-white/5 text-slate-400 font-black rounded-2xl hover:bg-white/10 transition-all">
+                          ANA MENÜ
                         </button>
                       </div>
                     </div>
@@ -1552,14 +1745,19 @@ function App() {
                 <button onClick={shuffle} className="shrink-0 w-14 h-14 bg-slate-900 rounded-2xl border border-white/5 flex items-center justify-center">
                   <RefreshCw className="w-6 h-6 text-amber-400" />
                 </button>
-                {['cell', 'bomb', 'row', 'col', 'swap'].map(id => (
-                  <button key={id} disabled={tools[id] === 0} onClick={() => setActiveTool(activeTool === id ? null : id)} className={`shrink-0 w-14 h-14 rounded-2xl border flex items-center justify-center relative ${activeTool === id ? 'bg-amber-400/10 border-amber-400' : 'bg-slate-900 border-white/5'}`}>
-                    <span className={`${id === 'bomb' ? 'text-amber-400' : 'text-sky-400'}`}>
-                      {id === 'bomb' ? <Sparkles className="w-6 h-6" /> : <Target className="w-6 h-6" />}
-                    </span>
-                    {tools[id] > 0 && <span className="absolute -top-1.5 -right-1.5 bg-white text-slate-950 text-[9px] font-black w-5 h-5 rounded-full border-2 border-slate-950 flex items-center justify-center">{tools[id]}</span>}
-                  </button>
-                ))}
+                {['cell', 'bomb', 'row', 'col', 'swap'].map(id => {
+                  const Icon = id === 'bomb' ? Zap : id === 'row' ? MoveHorizontal : id === 'col' ? MoveVertical : id === 'swap' ? RefreshCw : Target;
+                  const colorClass = id === 'bomb' ? 'text-amber-400' : id === 'row' ? 'text-rose-400' : id === 'col' ? 'text-emerald-400' : id === 'swap' ? 'text-sky-400' : 'text-purple-400';
+
+                  return (
+                    <button key={id} disabled={tools[id] === 0} onClick={() => setActiveTool(activeTool === id ? null : id)} className={`shrink-0 w-14 h-14 rounded-2xl border flex items-center justify-center relative ${activeTool === id ? 'bg-amber-400/10 border-amber-400' : 'bg-slate-900 border-white/5'}`}>
+                      <span className={colorClass}>
+                        <Icon className="w-6 h-6" />
+                      </span>
+                      {tools[id] > 0 && <span className="absolute -top-1.5 -right-1.5 bg-white text-slate-950 text-[9px] font-black w-5 h-5 rounded-full border-2 border-slate-950 flex items-center justify-center">{tools[id]}</span>}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -1568,16 +1766,21 @@ function App() {
               <button onClick={shuffle} className="p-3 bg-slate-950 rounded-xl border border-white/5 text-amber-400 hover:bg-slate-900 transition-all">
                 <RefreshCw size={20} />
               </button>
-              {['cell', 'bomb', 'row', 'col', 'swap'].map(id => (
-                <button
-                  key={id}
-                  onClick={() => setActiveTool(activeTool === id ? null : id)}
-                  className={`w-14 h-14 rounded-xl border flex items-center justify-center relative transition-all ${activeTool === id ? 'bg-amber-400/10 border-amber-400' : 'bg-slate-950 border-white/5'}`}
-                >
-                  <span className="text-sky-400">{id === 'bomb' ? <Sparkles /> : <Box />}</span>
-                  <span className="absolute -top-1 -right-1 bg-white text-slate-950 text-[8px] font-black w-4 h-4 rounded-full border border-slate-950 flex items-center justify-center">{tools[id]}</span>
-                </button>
-              ))}
+              {['cell', 'bomb', 'row', 'col', 'swap'].map(id => {
+                const Icon = id === 'bomb' ? Zap : id === 'row' ? MoveHorizontal : id === 'col' ? MoveVertical : id === 'swap' ? RefreshCw : Target;
+                const colorClass = id === 'bomb' ? 'text-amber-400' : id === 'row' ? 'text-rose-400' : id === 'col' ? 'text-emerald-400' : id === 'swap' ? 'text-sky-400' : 'text-purple-400';
+
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setActiveTool(activeTool === id ? null : id)}
+                    className={`w-14 h-14 rounded-xl border flex items-center justify-center relative transition-all ${activeTool === id ? 'bg-amber-400/10 border-amber-400' : 'bg-slate-950 border-white/5'}`}
+                  >
+                    <span className={colorClass}><Icon size={20} /></span>
+                    <span className="absolute -top-1 -right-1 bg-white text-slate-950 text-[8px] font-black w-4 h-4 rounded-full border border-slate-950 flex items-center justify-center">{tools[id]}</span>
+                  </button>
+                );
+              })}
             </aside>
           </main>
 
@@ -1585,19 +1788,59 @@ function App() {
           {gameState === 'gameover' && (
             <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-xl">
               <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 text-center animate-in fade-in zoom-in duration-500">
-                <Trophy className="w-16 h-16 text-sky-400 mx-auto mb-4" />
-                <h2 className="text-3xl font-black text-white italic tracking-tighter mb-4">OYUN BİTTİ</h2>
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                  <div className="bg-slate-800 p-4 rounded-2xl">
-                    <div className="text-[10px] text-slate-500 font-black uppercase mb-1">Skor</div>
-                    <div className="text-2xl font-black text-white">{score}</div>
-                  </div>
-                  <div className="bg-slate-800 p-4 rounded-2xl">
-                    <div className="text-[10px] text-slate-500 font-black uppercase mb-1">Hamle</div>
-                    <div className="text-2xl font-black text-white">{moves}</div>
-                  </div>
-                </div>
-                <button onClick={resetGame} className="w-full py-5 bg-sky-500 text-white font-black rounded-2xl shadow-xl">TEKRAR DENE</button>
+                {gameMode === 'zen' ? (
+                  <>
+                    <Sparkles className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
+                    <h2 className="text-3xl font-black text-white italic tracking-tighter mb-2 uppercase">{t('zen_analysis')}</h2>
+                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-6 italic">HARİKA BİR HUZUR SEANSIYDI</p>
+
+                    <div className="grid grid-cols-2 gap-3 mb-8">
+                      <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 shadow-inner">
+                        <div className="text-[10px] text-slate-500 font-black uppercase mb-1">{t('session_duration')}</div>
+                        <div className="text-xl font-black text-white tabular-nums">
+                          {Math.floor(zenDuration / 60)}:{String(zenDuration % 60).padStart(2, '0')}
+                        </div>
+                      </div>
+                      <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 shadow-inner">
+                        <div className="text-[10px] text-slate-500 font-black uppercase mb-1">{t('session_moves')}</div>
+                        <div className="text-xl font-black text-white tabular-nums">{totalMovesMade}</div>
+                      </div>
+                      <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 shadow-inner col-span-2">
+                        <div className="text-[10px] text-slate-500 font-black uppercase mb-1">{t('words_found')}</div>
+                        <div className="text-xl font-black text-emerald-400 tabular-nums">{wordsFoundCount}</div>
+                      </div>
+                    </div>
+
+                    <button onClick={() => resetGame({}, 'zen')} className="w-full py-5 bg-emerald-500 text-white font-black rounded-2xl shadow-xl mb-3 uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-[0.98]">YENİ SEANS</button>
+                    <button onClick={() => setShowDashboard(true)} className="w-full py-4 bg-white/5 text-slate-400 font-black rounded-2xl hover:bg-white/10 transition-all underline decoration-emerald-500/30 underline-offset-4">ANA MENÜYE DÖN</button>
+                  </>
+                ) : (
+                  <>
+                    <Trophy className="w-16 h-16 text-sky-400 mx-auto mb-4" />
+                    <h2 className="text-3xl font-black text-white italic tracking-tighter mb-4">OYUN BİTTİ</h2>
+                    <div className="grid grid-cols-2 gap-4 mb-8">
+                      <div className="bg-slate-800 p-4 rounded-2xl">
+                        <div className="text-[10px] text-slate-500 font-black uppercase mb-1">Skor</div>
+                        <div className="text-2xl font-black text-white italic">{score}</div>
+                      </div>
+                      <div className="bg-slate-800 p-4 rounded-2xl">
+                        {gameMode === 'arcade' && arcadeSubMode === 'time' ? (
+                          <>
+                            <div className="text-[10px] text-slate-500 font-black uppercase mb-1">{t('total_moves')}</div>
+                            <div className="text-2xl font-black text-white">{totalMovesMade}</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="text-[10px] text-slate-500 font-black uppercase mb-1">Hamle</div>
+                            <div className="text-2xl font-black text-white tabular-nums">{moves}</div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <button onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)} className="w-full py-5 bg-sky-500 text-white font-black rounded-2xl shadow-xl mb-3">TEKRAR DENE</button>
+                    <button onClick={() => setShowDashboard(true)} className="w-full py-4 bg-white/5 text-slate-400 font-black rounded-2xl hover:bg-white/10 transition-all underline decoration-sky-500/30 underline-offset-4">ANA MENÜYE DÖN</button>
+                  </>
+                )}
               </div>
             </div>
           )}

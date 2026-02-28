@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     games_played INTEGER DEFAULT 0,
     high_score INTEGER DEFAULT 0,
     avatar_id TEXT DEFAULT 'default',
+    mode_stats JSONB DEFAULT '{"zen": {"words": 0, "moves": 0, "duration": 0, "game_count": 0}, "arcade": {"words": 0, "moves": 0, "duration": 0, "game_count": 0}, "mission": {"words": 0, "moves": 0, "duration": 0, "game_count": 0}}'::jsonb,
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -67,12 +68,13 @@ VALUES
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, username, coins, tools)
+  INSERT INTO public.profiles (id, username, coins, tools, mode_stats)
   VALUES (
     new.id, 
     COALESCE(new.raw_user_meta_data->>'username', SPLIT_PART(new.email, '@', 1)), 
     500, 
-    '{"bomb": 1, "swap": 2, "row": 1, "col": 1, "cell": 3}'::jsonb
+    '{"bomb": 1, "swap": 2, "row": 1, "col": 1, "cell": 3}'::jsonb,
+    '{"zen": {"words": 0, "moves": 0, "duration": 0, "game_count": 0}, "arcade": {"words": 0, "moves": 0, "duration": 0, "game_count": 0}, "mission": {"words": 0, "moves": 0, "duration": 0, "game_count": 0}}'::jsonb
   );
   RETURN new;
 END;

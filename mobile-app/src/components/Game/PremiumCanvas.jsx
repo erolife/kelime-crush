@@ -3,7 +3,7 @@ import confetti from 'canvas-confetti';
 import { soundManager } from '../../logic/SoundManager';
 import { LETTER_POINTS } from '../../logic/Constants';
 
-const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, createdSpecial, onSelectCell, onFinishTurn }) => {
+const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, createdSpecial, onSelectCell, onFinishTurn, gameMode }) => {
     const canvasRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const particlesRef = useRef([]);
@@ -51,16 +51,20 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
 
                 // Spawn particles for a visual "poof"
                 const count = cell.type === 'match' ? 10 : 25;
+                const isZen = gameMode === 'zen';
+
                 for (let i = 0; i < count; i++) {
                     particlesRef.current.push({
                         x: centerX,
                         y: centerY,
-                        vx: (Math.random() - 0.5) * (cell.type === 'match' ? 8 : 15),
-                        vy: (Math.random() - 0.5) * (cell.type === 'match' ? 8 : 15),
+                        vx: isZen ? (Math.random() - 0.5) * 4 : (Math.random() - 0.5) * (cell.type === 'match' ? 8 : 15),
+                        vy: isZen ? -Math.random() * 5 - 2 : (Math.random() - 0.5) * (cell.type === 'match' ? 8 : 15),
                         life: 1.0,
-                        decay: 0.02 + Math.random() * 0.03,
+                        decay: isZen ? 0.01 + Math.random() * 0.01 : 0.02 + Math.random() * 0.03,
                         size: 2 + Math.random() * 4,
-                        color: color
+                        color: isZen ? (Math.random() > 0.5 ? '#f472b6' : '#ffffff') : color,
+                        angle: Math.random() * Math.PI * 2,
+                        spin: (Math.random() - 0.5) * 0.2
                     });
                 }
             });
@@ -336,11 +340,26 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
             p.x += p.vx;
             p.y += p.vy;
             p.life -= p.decay;
+            if (gameMode === 'zen') {
+                p.angle += p.spin;
+                p.vx += Math.sin(time / 500) * 0.05; // Gentle sway
+            }
+
             ctx.save();
             ctx.globalAlpha = Math.max(0, p.life);
             ctx.fillStyle = p.color;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, Math.max(0, p.size * p.life), 0, Math.PI * 2);
+            ctx.translate(p.x, p.y);
+
+            if (gameMode === 'zen') {
+                ctx.rotate(p.angle);
+                // Draw petal shape
+                ctx.beginPath();
+                ctx.ellipse(0, 0, Math.max(0, p.size * p.life), Math.max(0, p.size * 0.6 * p.life), 0, 0, Math.PI * 2);
+            } else {
+                ctx.beginPath();
+                ctx.arc(0, 0, Math.max(0, p.size * p.life), 0, Math.PI * 2);
+            }
+
             ctx.fill();
             ctx.restore();
         });

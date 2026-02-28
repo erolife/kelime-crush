@@ -75,6 +75,45 @@ export const SupabaseService = {
         }
     },
 
+    // Mod bazlı istatistikleri güncelle (Zen, Arcade, Mission)
+    async updateModeStats(userId, mode, sessionStats) {
+        try {
+            // Mevcut profil verisini al
+            const { data: profile, error: getError } = await supabase
+                .from('profiles')
+                .select('mode_stats')
+                .eq('id', userId)
+                .single();
+
+            if (getError) throw getError;
+
+            const modeStats = profile.mode_stats || {};
+            const currentModeData = modeStats[mode] || { words: 0, moves: 0, duration: 0, game_count: 0 };
+
+            // İstatistikleri kümülatif olarak güncelle
+            modeStats[mode] = {
+                words: currentModeData.words + (sessionStats.words || 0),
+                moves: currentModeData.moves + (sessionStats.moves || 0),
+                duration: currentModeData.duration + (sessionStats.duration || 0),
+                game_count: (currentModeData.game_count || 0) + 1
+            };
+
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({
+                    mode_stats: modeStats,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', userId);
+
+            if (updateError) throw updateError;
+            return true;
+        } catch (error) {
+            console.error('Mod istatistikleri güncellenirken hata oluştu:', error.message);
+            return false;
+        }
+    },
+
     // Auth durumunu izle
     onAuthStateChange(callback) {
         return supabase.auth.onAuthStateChange(callback);

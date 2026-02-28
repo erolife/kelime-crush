@@ -1,7 +1,19 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
-**Son Güncelleme:** 2026-02-28
-## Proje Durumu: v4.7.0 (Dashboard Onarımı & Görsel Derinlik)
+**Son Güncelleme:** 2026-03-01
+## Proje Durumu: v4.10.0 (Zen Bahçesi & Detaylı İstatistikler)
+- **Feature (v4.10.0)**: Zen Modu görsel geliştirmeleri: "Zen Bahçesi" (biriken öğeler) ve "Uçuşan Ruhlar" (yaprak efekti).
+- **Feature (v4.10.0)**: Mod bazlı detaylı istatistik takibi (JSONB) veritabanına entegre edildi (Zen, Arcade, Mission için kelime, hamle, süre).
+- **Feature (v4.9.3)**: Zen modu giriş davranışı Seviye (Mission) modu ile hizalandı.
+- **Feature (v4.9.2)**: Dashboard Zen Modu kartına görsel üyelik uyarısı ("Üye Ol" rozeti) ve dinamik CTA butonu eklendi.
+- **Fix (v4.9.1)**: Zen modunun başlatılamaması sorunu (eksik prop) giderildi.
+- **Feature (v4.9.1)**: Zen moduna giriş için üye girişi zorunluluğu getirildi.
+- **Feature (v4.9.0)**: Dashboard ana ekranına "Zen Modu" eklendi. Süresiz, hamle sınırsız ve stressiz bir deneyim sunar.
+- **Feature (v4.9.0)**: Zen moduna özel "YETERLİ" butonu ve seans sonu analiz (süre, hamle, kelime) ekranı eklendi.
+- **Feature (v4.8.1)**: Dashboard header alanına ses açma/kapama (mute) butonu eklendi.
+- **Feature (v4.8.0)**: Arcade moduna "Zamana Karşı" ve "Hamle Sınırlı" seçenekleri eklendi.
+- **Feature (v4.8.0)**: Misafir kullanıcılar için arcade kısıtlamaları (30sn / 15 hamle) ve üyelik teşvik uyarısı eklendi.
+- **Visual (v4.8.0)**: Zamana karşı modunda hamlelerin azalmaması, ancak takibinin yapılması sağlandı. Kalan süre için görsel uyarılar eklendi.
 - **Hotfix (v4.7.0)**: Dashboard `renderView` switch-case yapısındaki JSX `div` hiyerarşisi (eksik/fazla kapanış etiketleri) onarıldı. Dashboard'un boş görünmesi ve Header'ın kaybolması/çiftleşmesi sorunları giderildi.
 - **Visual (v4.7.0)**: Uygulamaya premium animated "falling letters" (düşen harfler) arka plan katmanı eklendi. z-index hiyerarşisi (z-0 background, z-10 main content) stabilize edildi.
 - **Feature (v4.6.0)**: Mobil cihazlarda (md breakpoint altı) Header padding, logo ve font boyutları daraltıldı. Dashboard ikincil sayfaları (envanter, günlük ödül vb.) dikey kaydırılabilir (overflow-y-auto) hale getirildi.
