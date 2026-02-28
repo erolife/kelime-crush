@@ -255,7 +255,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         setGamesPlayed(prev => prev + 1);
     }, [cloudLevels]);
 
-    const updateGoals = useCallback((type, value) => {
+    const updateGoals = useCallback((type, value, currentScore) => {
         if (gameMode !== 'mission') return;
 
         setLevelGoals(prev => {
@@ -265,7 +265,7 @@ export const useGame = (initialDifficulty = 'normal') => {
                         return { ...goal, current: Math.min(goal.count, goal.current + 1) };
                     }
                     if (type === GOAL_TYPES.SCORE) {
-                        return { ...goal, current: Math.min(goal.value, score + value) };
+                        return { ...goal, current: Math.min(goal.value, currentScore) };
                     }
                     if (type === GOAL_TYPES.USE_TOOL && goal.value === value) {
                         return { ...goal, current: Math.min(goal.count, goal.current + 1) };
@@ -279,7 +279,7 @@ export const useGame = (initialDifficulty = 'normal') => {
 
             // Check if all goals completed
             const allDone = next.every(g => {
-                if (g.type === GOAL_TYPES.SCORE) return (score + (type === GOAL_TYPES.SCORE ? value : 0)) >= g.value;
+                if (g.type === GOAL_TYPES.SCORE) return currentScore >= g.value;
                 return g.current >= g.count;
             });
 
@@ -308,7 +308,7 @@ export const useGame = (initialDifficulty = 'normal') => {
             }
             return next;
         });
-    }, [gameMode, score, gameState, currentLevelIndex, cloudLevels]);
+    }, [gameMode, gameState, currentLevelIndex, cloudLevels, completedLevels]);
 
     const changeDifficulty = useCallback((newDiff) => {
         const settings = DIFFICULTY_SETTINGS[newDiff];
@@ -445,14 +445,15 @@ export const useGame = (initialDifficulty = 'normal') => {
             setCoins(c => c + coinReward);
 
             // Update Mission Goals
-            updateGoals(GOAL_TYPES.WORD_COUNT, 1);
-            updateGoals(GOAL_TYPES.WORD_LENGTH, word.length);
-            updateGoals(GOAL_TYPES.SCORE, turnScore);
+            const newScore = score + turnScore;
+            updateGoals(GOAL_TYPES.WORD_COUNT, 1, newScore);
+            updateGoals(GOAL_TYPES.WORD_LENGTH, word.length, newScore);
+            updateGoals(GOAL_TYPES.SCORE, turnScore, newScore);
 
             // Update stats
             setWordsFoundCount(prev => prev + 1);
             setTotalScore(prev => prev + turnScore);
-            setHighScore(prev => Math.max(prev, turnScore)); // Update high score if this turn is better
+            // highScore, oyun bitiminde (gameover/victory useEffect) güncellenecek
 
             return true;
         }
@@ -520,11 +521,15 @@ export const useGame = (initialDifficulty = 'normal') => {
         setGamesPlayed(prev => prev + 1);
     }, [engine, difficulty, gameMode, currentLevelIndex, startMission]);
 
+    // Game Over / Victory: Update highScore based on final session score
     useEffect(() => {
+        if ((gameState === 'gameover' || gameState === 'victory') && score > 0) {
+            setHighScore(prev => Math.max(prev, score));
+        }
         if (moves <= 0 && gameState === 'playing') {
             setGameState('gameover');
         }
-    }, [moves, gameState]);
+    }, [moves, gameState, score]);
 
     const buyTool = useCallback((toolId, price) => {
         if (coins >= price) {

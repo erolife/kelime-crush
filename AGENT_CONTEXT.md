@@ -1,10 +1,10 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
 **Son Güncelleme:** 2026-02-27
-## Proje Durumu: v4.4.2 (Guest UI Cleanup)
+## Proje Durumu: v4.5.0 (Dashboard UI Redesign)
+- **Feature (v4.5.0)**: Dashboard ana ekranı tamamen yeniden tasarlandı. Mobil-first layout, gradient kartlar, noise texture, XP bar, CTA pill'ler, responsive profil şeridi eklendi.
+- **Hotfix (v4.4.3)**: highScore oyun sonu mantığı düzeltildi, score closure sorunu giderildi.
 - **Feature (v4.4.2)**: Misafirler için Header'daki Altın/Enerji gizlendi; Leaderboard erişimi açıldı.
-- **Hotfix (v4.4.1)**: Misafir kullanıcıların yanlış verileri (seviye/envanter) görmesi engellendi, profil butonları kilitlendi.
-- **Feature (v4.4.0)**: Misafir kullanıcıların Seviye moduna erişimi kısıtlandı.
 - **Hotfix (v4.0.3)**: Bomba oluşumu sırasında yaşanan 'result is not defined' hatası giderildi ve 'Pulse' animasyonu eklendi.
 - **Hotfix (v4.0.2)**: Seviye seçiminde ve MissionTracker'da yaşanan 't is not a function' (Translation) hatası giderildi.
 - **Hotfix (v4.0.1)**: Canlı yayım sonrası tespit edilen 'Seviye Modunda Boş Ekran' ve 'Mobil Görünümde Izgara Kaybolması' hataları giderildi.

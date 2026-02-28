@@ -8,14 +8,12 @@ import {
   Target, MoveHorizontal, MoveVertical, X,
   ChevronRight, Play, CheckCircle2, Award, History,
   LayoutGrid, RotateCcw, Coins, Calendar, Box,
-  ListTodo, Gift, ShoppingBag, BarChart3, Share2
+  ListTodo, Gift, ShoppingBag, BarChart3, Share2,
+  User, LogOut, Mail, Lock, UserPlus, LogIn
 } from 'lucide-react';
 import { LEVELS } from './logic/Levels';
 import { LETTER_POINTS } from './logic/Constants';
 import { AuthService } from './logic/AuthService';
-import {
-  User, LogOut, Mail, Lock, UserPlus, LogIn
-} from 'lucide-react';
 import { SupabaseService } from './logic/SupabaseService';
 
 
@@ -141,7 +139,7 @@ const Dashboard = ({
   levels = [], isLoading, user, profile, onOpenAuth, language, setLanguage, t = (s) => s,
   isMuted, toggleMute, difficulty, changeDifficulty, dailyReward, claimGift, STREAK_REWARDS = [],
   showDailyGift, energy, nextEnergyIn,
-  totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId
+  totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId, completedLevels
 }) => {
   const [view, setView] = React.useState('modes');
   const [selectedLevelIdx, setSelectedLevelIdx] = React.useState(null);
@@ -236,15 +234,15 @@ const Dashboard = ({
 
       case 'pregame':
         const isArcade = selectedLevelIdx === null;
-        const level = isArcade ? { id: t('arcade'), title: t('arcade_desc'), goals: [] } : levels[selectedLevelIdx];
-        if (!level) return null;
+        const selectedLevel = isArcade ? { id: t('arcade'), title: t('arcade_desc'), goals: [] } : levels[selectedLevelIdx];
+        if (!selectedLevel) return null;
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto">
             <div className="flex items-center gap-4 mb-8">
               <button onClick={() => setView(isArcade ? 'modes' : 'levels')} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
                 <X size={24} />
               </button>
-              <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">{isArcade ? t('arcade') : `${t('level')} ${level.id}`}</h2>
+              <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">{isArcade ? t('arcade') : `${t('level')} ${selectedLevel.id}`}</h2>
             </div>
 
             <div className="bg-slate-900/60 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-md space-y-8">
@@ -454,7 +452,7 @@ const Dashboard = ({
                         isToday ? 'bg-amber-500/20 border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.3)] scale-110 z-10 text-amber-500' :
                           'bg-slate-800/40 border-white/5 text-slate-600'}
                       `}>
-                      <span className="text-[10px] font-black opacity-60 mb-2 uppercase tracking-widest">{t('language') === 'tr' ? 'GÜN' : 'DAY'} {i + 1}</span>
+                      <span className="text-[10px] font-black opacity-60 mb-2 uppercase tracking-widest">{language === 'tr' ? 'GÜN' : 'DAY'} {i + 1}</span>
                       {isDone ? <CheckCircle2 size={24} /> : reward.icon}
                       {isToday && <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full animate-ping" />}
                     </div>
@@ -504,7 +502,7 @@ const Dashboard = ({
                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">{t('member_since')}: {new Date(user?.created_at).toLocaleDateString()}</p>
 
                   {user ? (
-                    <button onClick={onOpenAuth} className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl text-xs font-black text-slate-400 hover:text-white transition-all uppercase tracking-widest italic">
+                    <button onClick={() => AuthService.signOut()} className="w-full py-4 bg-white/5 hover:bg-red-500/10 hover:border-red-500/30 border border-white/5 rounded-2xl text-xs font-black text-slate-400 hover:text-red-400 transition-all uppercase tracking-widest italic">
                       {t('logout')}
                     </button>
                   ) : (
@@ -566,113 +564,240 @@ const Dashboard = ({
 
       default: // 'modes'
         return (
-          <div className="flex flex-row gap-2 lg:gap-6 items-center animate-in fade-in zoom-in duration-700 max-w-6xl mx-auto w-full px-2 lg:px-4 h-full min-h-0">
-            {/* MODES COLUMN - Gapless stack centered */}
-            <div className="flex-1 flex flex-col justify-center items-center gap-0 h-full overflow-y-auto no-scrollbar pb-20 lg:pb-0">
-              {/* ARCADE MODE */}
-              <button
-                onClick={() => {
-                  setSelectedLevelIdx(null);
-                  setView('pregame');
-                }}
-                className="group relative w-full max-w-md h-28 lg:h-64 bg-slate-900/60 hover:bg-slate-900/80 border border-white/10 hover:border-blue-500/50 rounded-t-[1rem] lg:rounded-t-[2.5rem] p-3 lg:p-8 transition-all duration-500 flex flex-col items-center justify-center text-center overflow-hidden shadow-2xl"
-              >
-                <div className="absolute top-0 right-0 w-24 h-24 lg:w-32 lg:h-32 bg-blue-500/10 blur-[40px] lg:blur-[60px] -mr-12 -mt-12 lg:-mr-16 lg:-mt-16 rounded-full transition-all group-hover:bg-blue-500/20" />
-                <div className="relative z-10 flex flex-col items-center">
-                  <div className="w-8 h-8 lg:w-16 lg:h-16 bg-blue-500/20 rounded-lg lg:rounded-[1.25rem] flex items-center justify-center text-blue-400 mb-1 lg:mb-5 group-hover:scale-110 group-hover:bg-blue-500 transition-all group-hover:text-white shadow-xl shadow-blue-500/20">
-                    <History size={18} className="lg:hidden" />
-                    <History size={32} className="hidden lg:block" />
+          <div className="w-full h-full flex flex-col lg:flex-row gap-0 lg:gap-6 max-w-7xl mx-auto px-3 lg:px-6 animate-in fade-in duration-500">
+
+            {/* ── MOBİL + DESKTOP ortak iç container ── */}
+            <div className="flex-1 flex flex-row gap-2 lg:gap-6 min-h-0 overflow-hidden">
+
+              {/* ── MOD KARTLARI ── */}
+              <div className="flex-1 flex flex-col gap-0 min-h-0 overflow-hidden">
+                {/* ── ARCADE ── */}
+                <button
+                  onClick={() => { setSelectedLevelIdx(null); setView('pregame'); }}
+                  className="group relative flex-1 overflow-hidden rounded-t-[1.5rem] lg:rounded-t-[2rem] border border-white/8 transition-all duration-500 active:scale-[0.99]"
+                  style={{ background: 'linear-gradient(135deg, #0a0e1a 0%, #0d1526 50%, #0a1020 100%)' }}
+                >
+                  {/* Glow orbs */}
+                  <div className="absolute -top-20 -left-20 w-64 h-64 bg-sky-500/10 rounded-full blur-[80px] transition-all duration-700 group-hover:bg-sky-500/20 group-hover:scale-110" />
+                  <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-blue-600/8 rounded-full blur-[60px]" />
+
+                  {/* Noise texture overlay */}
+                  <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")', backgroundSize: '128px' }} />
+
+                  {/* Top accent line */}
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-sky-500/50 to-transparent" />
+
+                  <div className="relative z-10 h-full flex flex-col items-center justify-center p-6 lg:p-10 gap-4">
+                    {/* Icon */}
+                    <div className="w-14 h-14 lg:w-20 lg:h-20 bg-sky-500/15 border border-sky-500/25 rounded-2xl lg:rounded-3xl flex items-center justify-center text-sky-400 group-hover:scale-110 group-hover:bg-sky-500/25 group-hover:border-sky-500/50 transition-all duration-500 shadow-[0_0_30px_rgba(14,165,233,0.15)]">
+                      <History size={28} className="lg:hidden" />
+                      <History size={40} className="hidden lg:block" />
+                    </div>
+
+                    <div className="text-center">
+                      <h3 className="text-2xl lg:text-5xl font-black text-white tracking-[-0.04em] uppercase leading-none font-outfit group-hover:text-sky-100 transition-colors">
+                        {t('arcade')}
+                      </h3>
+                      <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-[0.2em] mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">
+                        {t('arcade_desc')}
+                      </p>
+                    </div>
+
+                    {/* CTA pill */}
+                    <div className="flex items-center gap-2 bg-sky-500/10 border border-sky-500/20 rounded-full px-4 py-1.5 group-hover:bg-sky-500/20 group-hover:border-sky-500/40 transition-all">
+                      <Play size={10} className="text-sky-400 fill-sky-400" />
+                      <span className="text-sky-400 text-[9px] lg:text-[10px] font-black uppercase tracking-widest">OYNA</span>
+                    </div>
                   </div>
-                  <h3 className="text-sm lg:text-3xl font-black text-white italic tracking-tighter uppercase leading-none font-outfit">{t('arcade')}</h3>
-                  <p className="hidden lg:block text-slate-400 text-[10px] font-medium max-w-[200px] leading-relaxed uppercase tracking-widest opacity-80 font-inter mt-2">{t('arcade_desc')}</p>
-                </div>
-              </button>
+                </button>
 
-              {/* MISSION MODE */}
-              <button
-                onClick={() => {
-                  if (!user) {
-                    setShowMissionLock(true);
-                  } else {
-                    setView('levels');
-                  }
-                }}
-                className="group relative w-full max-w-md h-28 lg:h-64 bg-slate-900/60 hover:bg-slate-900/80 border border-white/10 border-t-0 hover:border-orange-500/50 rounded-b-[1rem] lg:rounded-b-[2.5rem] p-3 lg:p-8 transition-all duration-500 flex flex-col items-center justify-center text-center overflow-hidden shadow-2xl"
-              >
-                <div className="absolute top-0 right-0 w-24 h-24 lg:w-32 lg:h-32 bg-orange-500/10 blur-[40px] lg:blur-[60px] -mr-12 -mt-12 lg:-mr-16 lg:-mt-16 rounded-full transition-all group-hover:bg-orange-500/20" />
-                <div className="relative z-10 flex flex-col items-center">
-                  <div className="w-8 h-8 lg:w-16 lg:h-16 bg-orange-500/20 rounded-lg lg:rounded-[1.25rem] flex items-center justify-center text-orange-400 mb-1 lg:mb-5 group-hover:scale-110 group-hover:bg-orange-500 transition-all group-hover:text-white shadow-xl shadow-orange-500/20">
-                    <Trophy size={18} className="lg:hidden" />
-                    <Trophy size={32} className="hidden lg:block" />
+                {/* ── DIVIDER ── */}
+                <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+                {/* ── SEVİYE ── */}
+                <button
+                  onClick={() => { if (!user) setShowMissionLock(true); else setView('levels'); }}
+                  className="group relative flex-1 overflow-hidden rounded-b-[1.5rem] lg:rounded-b-[2rem] border border-white/8 border-t-0 transition-all duration-500 active:scale-[0.99]"
+                  style={{ background: 'linear-gradient(135deg, #0f0a00 0%, #1a0e00 50%, #100800 100%)' }}
+                >
+                  {/* Glow orbs */}
+                  <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-orange-500/10 rounded-full blur-[80px] transition-all duration-700 group-hover:bg-orange-500/20 group-hover:scale-110" />
+                  <div className="absolute -top-10 -right-10 w-48 h-48 bg-red-600/8 rounded-full blur-[60px]" />
+
+                  {/* Noise texture overlay */}
+                  <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")', backgroundSize: '128px' }} />
+
+                  {/* Bottom accent line */}
+                  <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
+
+                  {/* Lock badge for guests */}
+                  {!user && (
+                    <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 bg-slate-950/80 border border-white/10 rounded-full px-3 py-1.5 backdrop-blur-md">
+                      <Lock size={10} className="text-orange-400" />
+                      <span className="text-[9px] font-black text-orange-400 uppercase tracking-widest">Üye Ol</span>
+                    </div>
+                  )}
+
+                  <div className="relative z-10 h-full flex flex-col items-center justify-center p-6 lg:p-10 gap-4">
+                    {/* Icon */}
+                    <div className="w-14 h-14 lg:w-20 lg:h-20 bg-orange-500/15 border border-orange-500/25 rounded-2xl lg:rounded-3xl flex items-center justify-center text-orange-400 group-hover:scale-110 group-hover:bg-orange-500/25 group-hover:border-orange-500/50 transition-all duration-500 shadow-[0_0_30px_rgba(249,115,22,0.2)]">
+                      <Trophy size={28} className="lg:hidden" />
+                      <Trophy size={40} className="hidden lg:block" />
+                    </div>
+
+                    <div className="text-center">
+                      <h3 className="text-2xl lg:text-5xl font-black text-white tracking-[-0.04em] uppercase leading-none font-outfit group-hover:text-orange-100 transition-colors">
+                        {t('mission')}
+                      </h3>
+                      <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-[0.2em] mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">
+                        {t('mission_desc')}
+                      </p>
+                    </div>
+
+                    {/* CTA pill */}
+                    <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-1.5 group-hover:bg-orange-500/20 group-hover:border-orange-500/40 transition-all">
+                      {user ? <Play size={10} className="text-orange-400 fill-orange-400" /> : <Lock size={10} className="text-orange-400" />}
+                      <span className="text-orange-400 text-[9px] lg:text-[10px] font-black uppercase tracking-widest">{user ? 'OYNA' : 'GİRİŞ YAP'}</span>
+                    </div>
                   </div>
-                  <h3 className="text-sm lg:text-3xl font-black text-white italic tracking-tighter uppercase leading-none font-outfit">{t('mission')}</h3>
-                  <p className="hidden lg:block text-slate-400 text-[10px] font-medium max-w-[200px] leading-relaxed uppercase tracking-widest opacity-80 font-inter mt-2">{t('mission_desc')}</p>
-                </div>
-              </button>
-            </div>
+                </button>
+              </div>
 
-            {/* SIDEBAR COLUMN - Fixed on the right */}
-            <div className="w-[140px] lg:w-80 shrink-0 space-y-2 lg:space-y-4 h-full overflow-y-auto no-scrollbar pb-20 lg:pb-0">
-              {/* Profile Card */}
-              <button
-                onClick={() => {
-                  if (!user) setShowMissionLock(true);
-                  else setView('profile');
-                }}
-                className="w-full bg-slate-900/60 hover:bg-slate-900/80 border border-white/5 hover:border-sky-500/30 rounded-[1.5rem] lg:rounded-[2.5rem] p-3 lg:p-6 transition-all group flex items-center gap-4 text-left shadow-2xl"
-              >
-                <div className="w-10 h-10 lg:w-16 lg:h-16 bg-gradient-to-br from-sky-500 to-purple-600 rounded-xl lg:rounded-3xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
-                  <User size={24} className="lg:hidden" />
-                  <User size={32} className="hidden lg:block" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[8px] lg:text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">PROGRES</div>
-                  <div className="text-xs lg:text-xl font-black text-white italic tracking-tighter truncate uppercase">{user?.user_metadata?.username || user?.email?.split('@')[0] || t('player')}</div>
-                  <div className="text-[8px] lg:text-[10px] font-black text-sky-400 uppercase tracking-widest mt-1">{user ? `Lvl ${currentLevel + 1}` : 'Guest'}</div>
-                </div>
-                <ChevronRight size={16} className="text-slate-600 group-hover:text-white group-hover:translate-x-1 transition-all" />
-              </button>
+              {/* ── DESKTOP SIDEBAR ── */}
+              <div className="hidden lg:flex w-80 xl:w-96 shrink-0 flex-col gap-4">
 
-              {/* RANK & INVENTORY ROW */}
-              <div className="grid grid-cols-2 gap-2">
+                {/* Profil Kartı */}
+                <button
+                  onClick={() => { if (!user) setShowMissionLock(true); else setView('profile'); }}
+                  className="group relative overflow-hidden rounded-[2rem] border border-white/8 p-6 text-left transition-all duration-300 hover:border-white/15 active:scale-[0.98]"
+                  style={{ background: 'linear-gradient(135deg, #111827 0%, #0f172a 100%)' }}
+                >
+                  {/* Top shimmer */}
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="relative">
+                      <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-rose-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-[0_0_20px_rgba(249,115,22,0.4)]">
+                        {user ? (profile?.username?.[0] || user?.email?.[0])?.toUpperCase() : '?'}
+                      </div>
+                      {user && (
+                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-orange-500 rounded-lg border-2 border-slate-950 flex items-center justify-center shadow-lg">
+                          <span className="text-[8px] font-black text-white leading-none">{currentLevel + 1}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] leading-none mb-1">PROFIL</div>
+                      <div className="text-lg font-black text-white uppercase tracking-tight truncate leading-none">
+                        {user ? (profile?.username || user?.email?.split('@')[0]) : t('player')}
+                      </div>
+                      <div className="text-[10px] font-black text-orange-400 uppercase tracking-widest mt-1">
+                        {user ? `Seviye ${currentLevel + 1}` : '— Misafir —'}
+                      </div>
+                    </div>
+                    <ChevronRight size={16} className="text-slate-700 group-hover:text-white group-hover:translate-x-1 transition-all shrink-0" />
+                  </div>
+
+                  {/* XP / Level Progress Bar */}
+                  {user && (
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">İLERLEME</span>
+                        <span className="text-[9px] font-black text-orange-400">{currentLevel}/{levels.length || '--'}</span>
+                      </div>
+                      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-orange-500 to-rose-500 rounded-full transition-all duration-1000"
+                          style={{ width: `${Math.min(100, ((currentLevel) / (levels.length || 1)) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {!user && (
+                    <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-xl px-3 py-2.5">
+                      <Lock size={12} className="text-orange-400 shrink-0" />
+                      <span className="text-[10px] font-black text-orange-300 leading-tight">İlerleme kaydetmek için giriş yapın</span>
+                    </div>
+                  )}
+                </button>
+
+                {/* RANK Kartı (full width, herkese açık) */}
                 <button
                   onClick={() => setView('leaderboard')}
-                  className="bg-slate-900/40 hover:bg-white/5 border border-white/5 rounded-[1rem] lg:rounded-[1.5rem] p-2 lg:p-4 backdrop-blur-md flex flex-col items-center justify-center group active:scale-95 transition-all"
+                  className="group relative overflow-hidden rounded-[1.5rem] border border-white/8 p-5 flex items-center gap-4 text-left transition-all duration-300 hover:border-sky-500/30 active:scale-[0.98]"
+                  style={{ background: 'linear-gradient(135deg, #0a1020 0%, #080e1a 100%)' }}
                 >
-                  <div className="text-[6px] lg:text-[8px] font-black text-slate-500 uppercase leading-none mb-1 group-hover:text-sky-400 transition-colors">RANK</div>
-                  <div className="text-base lg:text-xl font-black text-white italic leading-none">#--</div>
+                  <div className="w-12 h-12 bg-sky-500/10 border border-sky-500/20 rounded-xl flex items-center justify-center group-hover:bg-sky-500/20 group-hover:border-sky-500/40 transition-all shrink-0">
+                    <BarChart3 size={20} className="text-sky-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-0.5">KÜRESEL</div>
+                    <div className="text-lg font-black text-white uppercase tracking-tight leading-none">{t('leaderboard') || 'SIRALAMA'}</div>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-700 group-hover:text-sky-400 group-hover:translate-x-1 transition-all shrink-0" />
                 </button>
 
-                <button
-                  onClick={() => {
-                    if (!user) setShowMissionLock(true);
-                    else setView('inventory');
-                  }}
-                  className="bg-slate-900/40 hover:bg-purple-500/10 border border-white/5 hover:border-purple-500/30 rounded-[1rem] lg:rounded-[1.5rem] p-2 lg:p-4 backdrop-blur-md flex flex-col items-center justify-center transition-all group active:scale-95"
-                >
-                  <Box size={14} className="text-purple-400 mb-1 group-hover:scale-110 transition-transform" />
-                  <div className="text-[6px] lg:text-[8px] font-black text-white uppercase leading-none italic">{t('inventory')}</div>
-                </button>
+                {/* ENVANTER + DAILY (2 col grid) */}
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => { if (!user) setShowMissionLock(true); else setView('inventory'); }}
+                    className="group relative overflow-hidden rounded-[1.5rem] border border-white/8 p-5 flex flex-col items-center gap-3 transition-all duration-300 hover:border-purple-500/30 active:scale-[0.98]"
+                    style={{ background: 'linear-gradient(135deg, #0d0a14 0%, #0a0810 100%)' }}
+                  >
+                    <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center justify-center group-hover:bg-purple-500/20 group-hover:border-purple-500/40 transition-all">
+                      <Box size={20} className="text-purple-400" />
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm font-black text-white uppercase tracking-tight leading-none">{t('inventory')}</div>
+                      <div className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-1">{!user ? '🔒' : `${(tools?.bomb || 0) + (tools?.swap || 0)} ARAÇ`}</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setView('daily')}
+                    className="group relative overflow-hidden rounded-[1.5rem] border border-white/8 p-5 flex flex-col items-center gap-3 transition-all duration-300 hover:border-amber-500/30 active:scale-[0.98]"
+                    style={{ background: 'linear-gradient(135deg, #12090a 0%, #0e0608 100%)' }}
+                  >
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-center group-hover:bg-amber-500/20 group-hover:border-amber-500/40 transition-all">
+                        <Gift size={20} className="text-amber-400" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-slate-950 animate-pulse" />
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm font-black text-white uppercase tracking-tight leading-none">DAILY</div>
+                      <div className="text-[9px] text-amber-500 font-black uppercase tracking-widest mt-1">GÜN {streakCount + 1}</div>
+                    </div>
+                  </button>
+                </div>
               </div>
 
-              {/* DAILY REWARD & MISSIONS ROW */}
-              <div className="grid grid-cols-2 gap-2">
+              {/* ── MOBİL: Sağ Icon Kolonu (sadece mobile) ── */}
+              <div className="lg:hidden flex flex-col gap-2 w-12 shrink-0">
+                <button
+                  onClick={() => setView('leaderboard')}
+                  className="w-12 h-12 bg-white/5 border border-white/8 rounded-xl flex items-center justify-center active:scale-95 transition-all hover:border-sky-500/30"
+                >
+                  <BarChart3 size={18} className="text-sky-400" />
+                </button>
+                <button
+                  onClick={() => { if (!user) setShowMissionLock(true); else setView('inventory'); }}
+                  className="w-12 h-12 bg-white/5 border border-white/8 rounded-xl flex items-center justify-center active:scale-95 transition-all hover:border-purple-500/30"
+                >
+                  <Box size={18} className="text-purple-400" />
+                </button>
                 <button
                   onClick={() => setView('daily')}
-                  className="group bg-slate-900/40 hover:bg-amber-500/10 border border-white/5 hover:border-amber-500/30 rounded-[1rem] lg:rounded-[2rem] p-2 lg:p-4 backdrop-blur-md transition-all text-center flex flex-col items-center justify-center active:scale-95"
+                  className="relative w-12 h-12 bg-white/5 border border-white/8 rounded-xl flex items-center justify-center active:scale-95 transition-all hover:border-amber-500/30"
                 >
-                  <Gift size={14} className="text-amber-500 mb-1 group-hover:scale-110 transition-transform" />
-                  <div className="text-[6px] lg:text-[8px] font-black text-slate-500 uppercase leading-none mb-0.5">DAILY</div>
-                  <div className="text-[8px] lg:text-xs font-black text-white italic uppercase leading-none">Day {streakCount + 1}</div>
-                </button>
-
-                <button className="group bg-slate-900/40 hover:bg-emerald-500/10 border border-white/5 hover:border-emerald-500/30 rounded-[1rem] lg:rounded-[2rem] p-2 lg:p-4 backdrop-blur-md transition-all text-center flex flex-col items-center justify-center opacity-70 cursor-not-allowed">
-                  <ListTodo size={14} className="text-emerald-500 mb-1 group-hover:scale-110 transition-transform" />
-                  <div className="text-[6px] lg:text-[8px] font-black text-slate-500 uppercase leading-none mb-0.5">MISSION</div>
-                  <div className="text-[8px] lg:text-xs font-black text-white italic uppercase leading-none opacity-50">Locked</div>
+                  <Gift size={18} className="text-amber-400" />
+                  <div className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-slate-950 animate-pulse" />
                 </button>
               </div>
+
             </div>
+
           </div>
         );
     }
@@ -796,8 +921,14 @@ const Dashboard = ({
 
           {user ? (
             <div className="flex items-center gap-3 bg-slate-900/60 border border-white/5 p-1 pr-4 rounded-2xl group transition-all hover:border-sky-500/50 font-outfit">
-              <div className="w-10 h-10 bg-sky-500/20 rounded-xl flex items-center justify-center text-sky-400 font-black italic">
-                {profile?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
+              <div className="relative">
+                <div className="w-10 h-10 bg-sky-500/20 rounded-xl flex items-center justify-center text-sky-400 font-black italic">
+                  {profile?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
+                </div>
+                {/* Level Badge */}
+                <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white text-[7px] font-black leading-none px-1.5 py-0.5 rounded-md border-2 border-slate-950 shadow-lg">
+                  {completedLevels + 1}
+                </div>
               </div>
               <div className="flex flex-col">
                 <span className="text-xs font-black text-white leading-none truncate max-w-[80px]">
@@ -1100,6 +1231,7 @@ function App() {
           levels={cloudLevels}
           isLoading={isLoadingLevels}
           currentLevel={completedLevels}
+          completedLevels={completedLevels}
           coins={coins}
           tools={tools}
           streakCount={streakCount}
