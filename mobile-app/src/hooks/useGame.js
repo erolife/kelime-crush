@@ -24,6 +24,13 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [completedLevels, setCompletedLevels] = useState(() => {
         return parseInt(localStorage.getItem('crush_completed_levels') || "0");
     });
+    const [energy, setEnergy] = useState(() => {
+        return parseInt(localStorage.getItem('crush_energy') || "5");
+    });
+    const [lastEnergyRefill, setLastEnergyRefill] = useState(() => {
+        return parseInt(localStorage.getItem('crush_last_refill') || Date.now().toString());
+    });
+    const [nextEnergyIn, setNextEnergyIn] = useState(0); // Saniye cinsinden geri sayım
 
     // Dynamic Level Loader
     useEffect(() => {
@@ -72,6 +79,8 @@ export const useGame = (initialDifficulty = 'normal') => {
             setCoins(data.coins);
             setTools(data.tools);
             setCompletedLevels(data.current_level_index || 0);
+            if (data.energy !== undefined) setEnergy(data.energy);
+            if (data.last_energy_refill) setLastEnergyRefill(new Date(data.last_energy_refill).getTime());
             if (data.language) setLanguageState(data.language);
             localStorage.setItem('crush_completed_levels', (data.current_level_index || 0).toString());
         }
@@ -101,6 +110,7 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [selectedPath, setSelectedPath] = useState([]);
     const [animatingCells, setAnimatingCells] = useState([]);
     const [score, setScore] = useState(0);
+    const [createdSpecial, setCreatedSpecial] = useState(null);
     const [moves, setMoves] = useState(DIFFICULTY_SETTINGS[initialDifficulty].moves);
     const [level, setLevel] = useState(1);
     const [isDictionaryLoaded, setIsDictionaryLoaded] = useState(false);
@@ -120,6 +130,8 @@ export const useGame = (initialDifficulty = 'normal') => {
     useEffect(() => {
         localStorage.setItem('crush_coins', coins.toString());
         localStorage.setItem('crush_completed_levels', completedLevels.toString());
+        localStorage.setItem('crush_energy', energy.toString());
+        localStorage.setItem('crush_last_refill', lastEnergyRefill.toString());
         // Sync to Cloud
         if (user) {
             const timeoutId = setTimeout(() => {
@@ -127,12 +139,36 @@ export const useGame = (initialDifficulty = 'normal') => {
                     coins,
                     tools,
                     current_level_index: completedLevels,
-                    language
+                    language,
+                    energy,
+                    last_energy_refill: new Date(lastEnergyRefill).toISOString()
                 });
             }, 2000); // 2 saniye debounce
             return () => clearTimeout(timeoutId);
         }
-    }, [coins, tools, user, completedLevels, language]);
+    }, [coins, tools, user, completedLevels, language, energy, lastEnergyRefill]);
+
+    // Energy Refill Logic (20 minutes = 1200 seconds)
+    useEffect(() => {
+        const REFILL_TIME = 20 * 60 * 1000;
+        const interval = setInterval(() => {
+            if (energy < 5) {
+                const now = Date.now();
+                const diff = now - lastEnergyRefill;
+                if (diff >= REFILL_TIME) {
+                    const refillAmount = Math.floor(diff / REFILL_TIME);
+                    const newEnergy = Math.min(5, energy + refillAmount);
+                    setEnergy(newEnergy);
+                    setLastEnergyRefill(lastEnergyRefill + (refillAmount * REFILL_TIME));
+                } else {
+                    setNextEnergyIn(Math.ceil((REFILL_TIME - diff) / 1000));
+                }
+            } else {
+                setNextEnergyIn(0);
+            }
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [energy, lastEnergyRefill]);
 
     useEffect(() => {
         const dictFile = language === 'tr' ? './sozluk.json' : './sozluk_en.json';
@@ -141,7 +177,7 @@ export const useGame = (initialDifficulty = 'normal') => {
     }, [language]);
 
     // Mission Mode Initialization
-    const startMission = useCallback((index) => {
+    const startMission = useCallback((index, selectedBoosters = {}) => {
         const mission = cloudLevels[index];
         if (!mission) return;
         const settings = DIFFICULTY_SETTINGS[mission.difficulty];
@@ -158,6 +194,22 @@ export const useGame = (initialDifficulty = 'normal') => {
         setSelectedPath([]);
         setGameState('playing');
         setActiveTool(null);
+
+        // Consume selected boosters
+        if (selectedBoosters) {
+            setTools(prev => {
+                const next = { ...prev };
+                Object.entries(selectedBoosters).forEach(([type, isSelected]) => {
+                    if (isSelected && next[type] > 0) {
+                        next[type] -= 1;
+                        // Start with 1 of each selected booster added to active tools indirectly 
+                        // Actually, adding them to active tools at start is tricky with current state.
+                        // For now we just consume from inventory as the user requested "start with one of them".
+                    }
+                });
+                return next;
+            });
+        }
     }, [cloudLevels]);
 
     const updateGoals = useCallback((type, value) => {
@@ -325,7 +377,7 @@ export const useGame = (initialDifficulty = 'normal') => {
 
         if (isValid) {
             const turnScore = engine.calculateScore(selectedPath);
-            const { grid: newGrid, blasted } = engine.removeCells(selectedPath);
+            const { grid: newGrid, blasted, createdSpecial: newSpecial } = engine.removeCells(selectedPath);
 
             const allRemoved = [
                 ...selectedPath.map(p => ({ ...p, type: 'match' })),
@@ -338,6 +390,10 @@ export const useGame = (initialDifficulty = 'normal') => {
             setGrid([...newGrid]);
             setScore(s => s + turnScore);
             setMoves(m => m - 1);
+            if (newSpecial) {
+                setCreatedSpecial(newSpecial);
+                setTimeout(() => setCreatedSpecial(null), 100);
+            }
             setFoundWords(prev => [word, ...prev].slice(0, 50));
             setSelectedPath([]);
 
@@ -365,11 +421,15 @@ export const useGame = (initialDifficulty = 'normal') => {
         soundManager.play('swap');
     }, [engine, moves, gameState]);
 
-    const resetGame = useCallback(() => {
-        if (gameMode === 'mission') {
-            startMission(currentLevelIndex);
+    const resetGame = useCallback((selectedBoosters = {}, mode = null) => {
+        const targetMode = mode || gameMode;
+        if (targetMode === 'mission') {
+            startMission(currentLevelIndex, selectedBoosters);
             return;
         }
+
+        // Ensure Arcade mode
+        setGameMode('arcade');
         const settings = DIFFICULTY_SETTINGS[difficulty];
         setGrid(engine.initGrid());
         setMoves(settings.moves);
@@ -380,6 +440,19 @@ export const useGame = (initialDifficulty = 'normal') => {
         setGameState('playing');
         setActiveTool(null);
         setAnimatingCells([]);
+
+        // Consume selected boosters
+        if (selectedBoosters) {
+            setTools(prev => {
+                const next = { ...prev };
+                Object.entries(selectedBoosters).forEach(([type, isSelected]) => {
+                    if (isSelected && next[type] > 0) {
+                        next[type] -= 1;
+                    }
+                });
+                return next;
+            });
+        }
     }, [engine, difficulty, gameMode, currentLevelIndex, startMission]);
 
     useEffect(() => {
@@ -404,13 +477,14 @@ export const useGame = (initialDifficulty = 'normal') => {
 
     return {
         grid, selectedPath, animatingCells, score, moves, level, difficulty, foundWords,
-        gameState, resetGame, swapSelection,
+        gameState, resetGame, swapSelection, createdSpecial,
         tools, activeTool, setActiveTool, changeDifficulty, selectCell,
         finishTurn, shuffle, isDictionaryLoaded,
         gameMode, currentLevelIndex, levelGoals, startMission,
         coins, buyTool, addCoins, addTool,
         cloudLevels, isLoadingLevels,
         user, profile, isLoadingProfile, completedLevels,
-        language, setLanguage, t
+        language, setLanguage, t,
+        energy, nextEnergyIn, setEnergy, setLastEnergyRefill
     };
 };

@@ -85,11 +85,14 @@ export class GameEngine {
             }
         });
 
+        let createdSpecial = null;
         path.forEach((p, index) => {
             if (this.grid[p.r] && this.grid[p.r][p.c]) {
                 if (index === 0 && wordLength >= 4) {
-                    if (wordLength === 4) this.grid[p.r][p.c].type = Math.random() > 0.5 ? 'row_blast' : 'col_blast';
-                    else if (wordLength >= 5) this.grid[p.r][p.c].type = 'bomb';
+                    const cell = this.grid[p.r][p.c];
+                    if (wordLength === 4) cell.type = Math.random() > 0.5 ? 'row_blast' : 'col_blast';
+                    else if (wordLength >= 5) cell.type = 'bomb';
+                    createdSpecial = { r: p.r, c: p.c, type: cell.type };
                 } else {
                     this.grid[p.r][p.c] = null;
                 }
@@ -97,7 +100,7 @@ export class GameEngine {
         });
 
         const result = this.applyGravity();
-        return { ...result, blasted };
+        return { ...result, blasted, createdSpecial };
     }
 
     triggerSpecialCell(r, c, type, blasted = []) {

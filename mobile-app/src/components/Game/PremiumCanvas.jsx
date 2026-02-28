@@ -3,10 +3,11 @@ import confetti from 'canvas-confetti';
 import { soundManager } from '../../logic/SoundManager';
 import { LETTER_POINTS } from '../../logic/Constants';
 
-const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, onSelectCell, onFinishTurn }) => {
+const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, createdSpecial, onSelectCell, onFinishTurn }) => {
     const canvasRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const particlesRef = useRef([]);
+    const pulsesRef = useRef([]); // v4.0.3: Pulse animations
 
     const COLORS = {
         bg: '#020617',
@@ -65,6 +66,28 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, onSe
             });
         }
     }, [animatingCells, dimensions.width, grid]);
+
+    // v4.0.3: Watch for newly created special cells to trigger pulse
+    useEffect(() => {
+        if (createdSpecial && dimensions.width > 0) {
+            const cols = grid[0]?.length || 10;
+            const cellSize = dimensions.width / cols;
+            const centerX = createdSpecial.c * cellSize + cellSize / 2;
+            const centerY = createdSpecial.r * cellSize + cellSize / 2;
+
+            let color = '#a855f7'; // Default bomb color
+            if (createdSpecial.type?.includes('blast')) color = '#f59e0b';
+
+            // Add 3 pulses with staggered initial progress
+            pulsesRef.current.push({ x: centerX, y: centerY, progress: 0, color });
+            setTimeout(() => {
+                pulsesRef.current.push({ x: centerX, y: centerY, progress: 0, color });
+            }, 150);
+            setTimeout(() => {
+                pulsesRef.current.push({ x: centerX, y: centerY, progress: 0, color });
+            }, 300);
+        }
+    }, [createdSpecial, dimensions.width, grid]);
 
     useEffect(() => {
         const parent = canvasRef.current?.parentElement;
@@ -319,6 +342,23 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, onSe
             ctx.beginPath();
             ctx.arc(p.x, p.y, Math.max(0, p.size * p.life), 0, Math.PI * 2);
             ctx.fill();
+            ctx.restore();
+        });
+
+        // v4.0.3: Draw and Update Pulse Rings
+        pulsesRef.current = pulsesRef.current.filter(p => p.progress < 1);
+        pulsesRef.current.forEach(p => {
+            p.progress += 0.02; // Speed of expansion
+            const radius = cellSize * 0.5 + (cellSize * 1.5 * p.progress);
+            const opacity = 1 - p.progress;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+            ctx.strokeStyle = p.color;
+            ctx.lineWidth = 4 * (1 - p.progress);
+            ctx.globalAlpha = opacity * 0.6;
+            ctx.stroke();
             ctx.restore();
         });
     }, [dimensions, grid, selectedPath, animatingCells]);

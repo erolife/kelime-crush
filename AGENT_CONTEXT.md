@@ -1,8 +1,15 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
 **Son Güncelleme:** 2026-02-27
-## Proje Durumu: v4.0.0 (Full Screen Experience)
-- **Ana Hedef**: Kullanıcı deneyimini modernleştirmek için modal tabanlı yapıdan tam ekran görünümlere geçiş yapıldı.
+## Proje Durumu: v4.1.2 (Energy Fix)
+- **Hotfix (v4.1.2)**: "Oyun Başlat" butonunun çalışmama sorunu (energy'nin undefined olması) giderildi.
+- [x] v4.1.1: Arcade moduna geçiş mantığı ve bomba seçmeden başlama düzeltmesi
+- [x] v4.1.2: Oyun başlatma sorunu (Missing return values) düzeltmesi
+- [x] v4.1.2 "Final Energy Fix" Doğrulaması
+- **Hotfix (v4.0.3)**: Bomba oluşumu sırasında yaşanan 'result is not defined' hatası giderildi ve 'Pulse' animasyonu eklendi.
+- **Hotfix (v4.0.2)**: Seviye seçiminde ve MissionTracker'da yaşanan 't is not a function' (Translation) hatası giderildi.
+- **Hotfix (v4.0.1)**: Canlı yayım sonrası tespit edilen 'Seviye Modunda Boş Ekran' ve 'Mobil Görünümde Izgara Kaybolması' hataları giderildi.
+- **Ana Hedef (v4.0.0)**: Kullanıcı deneyimini modernleştirmek için modal tabanlı yapıdan tam ekran görünümlere geçiş yapıldı.
 - **Navigasyon**: Dashboard artık 'modes', 'levels', 'inventory', 'leaderboard', 'daily' ve 'settings' görünümlerini tam ekran olarak yönetiyor.
 - **Modal Stratejisi**: Modallar sadece oyun sonuçları (Victory/GameOver), kritik bildirimler ve onay diyalogları için ayrıldı.
 - **UI/UX**: Dashboard tasarımı sidebar yapısı ile zenginleştirildi, Rank ve Envanter bilgileri doğrudan Dashboard üzerinden erişilebilir hale getirildi.
@@ -38,3 +45,5 @@
 ## Teknik Notlar (Premium Canvas):
 - **Sizing:** `ResizeObserver` ile %100 responsive dikdörtgen oyun alanı.
 - **Performans:** Canvas API ile 60 FPS akıcılık. Hücre hit detection radius: 38%.
+- **Sizing Correction (v4.0.1):** Mobil cihazlarda ızgara görünürlüğü için `aspect-[11/9]` zorunlu kılındı ve kök div `h-screen w-screen` ile sabitlendi.
+- **Prop Logic Correction (v4.0.2):** Alt bileşenlere `t = (s) => s` ve `levels = []` gibi fallback propları eklenerek JS çökmeleri (TypeError) kalıcı olarak engellendi.

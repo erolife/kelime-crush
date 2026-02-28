@@ -19,7 +19,7 @@ import {
 import { SupabaseService } from './logic/SupabaseService';
 
 
-const AuthModal = ({ isOpen, onClose, onAuthSuccess, t }) => {
+const AuthModal = ({ isOpen, onClose, onAuthSuccess, t = (s) => s }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -138,11 +138,13 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess, t }) => {
 
 const Dashboard = ({
   onSelectMission, onSelectArcade, currentLevel, coins, tools, streakCount,
-  levels, isLoading, user, profile, onOpenAuth, language, setLanguage, t,
-  isMuted, toggleMute, difficulty, changeDifficulty, dailyReward, claimGift, STREAK_REWARDS,
-  showDailyGift
+  levels = [], isLoading, user, profile, onOpenAuth, language, setLanguage, t = (s) => s,
+  isMuted, toggleMute, difficulty, changeDifficulty, dailyReward, claimGift, STREAK_REWARDS = [],
+  showDailyGift, energy, nextEnergyIn,
 }) => {
-  const [view, setView] = React.useState('modes'); // 'modes' | 'levels' | 'inventory' | 'leaderboard' | 'daily' | 'settings'
+  const [view, setView] = React.useState('modes');
+  const [selectedLevelIdx, setSelectedLevelIdx] = React.useState(null);
+  const [selectedBoosters, setSelectedBoosters] = React.useState({ bomb: false, row: false, col: false });
 
   // Falling letters background logic
   const [fallingLetters, setFallingLetters] = React.useState([]);
@@ -195,7 +197,10 @@ const Dashboard = ({
                   return (
                     <button
                       key={level.id}
-                      onClick={() => onSelectMission(idx)}
+                      onClick={() => {
+                        setSelectedLevelIdx(idx);
+                        setView('pregame');
+                      }}
                       disabled={isLocked}
                       className={`
                         relative group aspect-square rounded-xl border transition-all duration-500 p-2 flex flex-col justify-between overflow-hidden
@@ -223,6 +228,91 @@ const Dashboard = ({
                   );
                 })
               )}
+            </div>
+          </div>
+        );
+
+      case 'pregame':
+        const isArcade = selectedLevelIdx === null;
+        const level = isArcade ? { id: t('arcade'), title: t('arcade_desc'), goals: [] } : levels[selectedLevelIdx];
+        if (!level) return null;
+        return (
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto">
+            <div className="flex items-center gap-4 mb-8">
+              <button onClick={() => setView(isArcade ? 'modes' : 'levels')} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
+                <X size={24} />
+              </button>
+              <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">{isArcade ? t('arcade') : `${t('level')} ${level.id}`}</h2>
+            </div>
+
+            <div className="bg-slate-900/60 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-md space-y-8">
+              <div className="text-center">
+                <h3 className="text-xl font-black text-white italic tracking-tighter uppercase mb-2">{level.title}</h3>
+                <div className="flex justify-center flex-wrap gap-4">
+                  {level.goals.map((g, i) => (
+                    <div key={i} className="bg-slate-950/50 px-4 py-2 rounded-xl text-[10px] font-black text-sky-400 border border-sky-400/20 uppercase tracking-widest">
+                      {t(`goal_${g.type}`)}: {g.count || g.value}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2 font-inter">{t('select_boosters')}</div>
+                <div className="grid grid-cols-3 gap-4">
+                  {['bomb', 'row', 'col'].map(type => {
+                    const count = tools?.[type] || 0;
+                    const isSelected = selectedBoosters[type];
+                    const Icon = type === 'bomb' ? Zap : type === 'row' ? MoveHorizontal : MoveVertical;
+                    return (
+                      <button
+                        key={type}
+                        disabled={count === 0}
+                        onClick={() => setSelectedBoosters(prev => ({ ...prev, [type]: !prev[type] }))}
+                        className={`
+                          relative p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 group
+                          ${isSelected ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-xl shadow-amber-500/10' :
+                            count > 0 ? 'bg-slate-800/40 border-white/5 text-slate-400 hover:bg-slate-800' : 'bg-slate-900/20 border-white/5 opacity-40 grayscale'}
+                        `}
+                      >
+                        <Icon size={24} className={isSelected ? 'animate-bounce' : ''} />
+                        <span className="text-[10px] font-black uppercase tracking-widest leading-none">{t(type)}</span>
+                        <span className="absolute -top-2 -right-2 bg-white text-slate-950 text-[10px] font-black w-6 h-6 rounded-full border-2 border-slate-950 flex items-center justify-center">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <button
+                  onClick={() => {
+                    if (energy > 0) {
+                      if (isArcade) {
+                        onSelectArcade(selectedBoosters);
+                      } else {
+                        onSelectMission(selectedLevelIdx, selectedBoosters);
+                      }
+                      // Reset local states for next time
+                      setSelectedLevelIdx(null);
+                      setSelectedBoosters({ bomb: false, row: false, col: false });
+                    }
+                  }}
+                  disabled={energy <= 0}
+                  className={`
+                    w-full py-6 rounded-2xl font-black text-xl italic tracking-[0.2em] uppercase transition-all active:scale-95 shadow-2xl flex items-center justify-center gap-3
+                    ${energy > 0 ? 'bg-gradient-to-r from-orange-500 to-red-600 text-slate-950 hover:from-orange-400 hover:to-red-500 shadow-orange-500/20' : 'bg-slate-800 text-slate-500 cursor-not-allowed'}
+                  `}
+                >
+                  <Play size={24} fill="currentColor" />
+                  {t('start_game')} (-1 ⚡)
+                </button>
+                {energy <= 0 && (
+                  <p className="text-center text-rose-500 text-[10px] font-black uppercase tracking-widest mt-4 animate-pulse">
+                    Enerji bitti! Bekle: {Math.floor(nextEnergyIn / 60)}:{(nextEnergyIn % 60).toString().padStart(2, '0')}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -393,7 +483,10 @@ const Dashboard = ({
             <div className="flex-1 grid grid-cols-1 gap-0 h-full overflow-y-auto no-scrollbar pb-20 lg:pb-0">
               {/* ARCADE MODE */}
               <button
-                onClick={onSelectArcade}
+                onClick={() => {
+                  setSelectedLevelIdx(null);
+                  setView('pregame');
+                }}
                 className="group relative h-28 lg:h-56 bg-slate-900/60 hover:bg-slate-900/80 border border-white/10 hover:border-blue-500/50 rounded-t-[1rem] lg:rounded-t-[2.5rem] p-3 lg:p-8 transition-all duration-500 flex flex-col items-center justify-center text-center overflow-hidden shadow-2xl"
               >
                 <div className="absolute top-0 right-0 w-24 h-24 lg:w-32 lg:h-32 bg-blue-500/10 blur-[40px] lg:blur-[60px] -mr-12 -mt-12 lg:-mr-16 lg:-mt-16 rounded-full transition-all group-hover:bg-blue-500/20" />
@@ -516,7 +609,6 @@ const Dashboard = ({
         })}
       </div>
 
-      {/* Header */}
       <header className="relative z-10 px-8 py-6 flex justify-between items-center bg-slate-950/20 backdrop-blur-md border-b border-white/5">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center p-2 backdrop-blur-md border border-white/20">
@@ -556,6 +648,21 @@ const Dashboard = ({
         </div>
 
         <div className="flex items-center gap-4">
+          <div className="bg-slate-900/60 border border-white/5 px-4 py-2 rounded-2xl flex items-center gap-3 group transition-all hover:border-sky-500/50 relative overflow-hidden">
+            {energy < 5 && (
+              <div className="absolute bottom-0 left-0 h-1 bg-sky-500/30 transition-all duration-1000" style={{ width: `${(1 - (nextEnergyIn / 1200)) * 100}%` }} />
+            )}
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${energy > 0 ? 'bg-sky-500/20 text-sky-400' : 'bg-rose-500/20 text-rose-400'} group-hover:scale-110 transition-transform`}>
+              <Zap size={18} fill={energy > 0 ? "currentColor" : "none"} />
+            </div>
+            <div className="flex flex-col font-outfit min-w-[40px]">
+              <span className="text-xs font-black text-white leading-none">{energy}/5</span>
+              <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight">
+                {energy < 5 ? `${Math.floor(nextEnergyIn / 60)}:${(nextEnergyIn % 60).toString().padStart(2, '0')}` : 'Full'}
+              </span>
+            </div>
+          </div>
+
           <div className="bg-slate-900/60 border border-white/5 px-4 py-2 rounded-2xl flex items-center gap-2 group transition-all hover:border-amber-500/50">
             <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform">
               <Coins size={18} />
@@ -601,12 +708,12 @@ const Dashboard = ({
           {renderView()}
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
 // Helper component for Leaderboard view to encapsulate its state
-const LeaderboardView = ({ t, profile }) => {
+const LeaderboardView = ({ t = (s) => s, profile }) => {
   const [loading, setLoading] = React.useState(true);
   const [data, setData] = React.useState([]);
 
@@ -672,7 +779,7 @@ const LeaderboardView = ({ t, profile }) => {
   );
 };
 
-const MissionTracker = ({ goals, t }) => (
+const MissionTracker = ({ goals = [], t = (s) => s }) => (
   <div className="flex flex-col gap-1.5">
     <div className="flex items-center gap-2 mb-1">
       <Target className="text-orange-400" size={14} />
@@ -707,10 +814,11 @@ function App() {
     foundWords, gameState, resetGame, swapSelection, tools, activeTool,
     setActiveTool, changeDifficulty, selectCell, finishTurn, shuffle,
     isDictionaryLoaded, gameMode, currentLevelIndex, levelGoals, startMission,
-    coins, buyTool, addCoins, addTool,
+    coins, buyTool, addCoins, addTool, createdSpecial,
     cloudLevels, isLoadingLevels,
     user, profile, isLoadingProfile, completedLevels,
-    language, setLanguage, t
+    language, setLanguage, t,
+    energy, nextEnergyIn, setEnergy, setLastEnergyRefill
   } = useGame();
 
   const [isMuted, setIsMuted] = useState(false);
@@ -795,7 +903,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-100 font-outfit select-none overflow-hidden flex flex-col">
+    <div className="h-screen w-screen bg-[#020617] text-slate-100 font-outfit select-none overflow-hidden flex flex-col">
       {/* Auth Modal stays as utility */}
       <AuthModal
         isOpen={isAuthModalOpen}
@@ -826,14 +934,24 @@ function App() {
           showDailyGift={showDailyGift}
           STREAK_REWARDS={STREAK_REWARDS}
           onOpenAuth={() => setIsAuthModalOpen(true)}
-          onSelectArcade={() => {
-            changeDifficulty('normal');
-            setShowDashboard(false);
-            resetGame();
+          energy={energy}
+          nextEnergyIn={nextEnergyIn}
+          onSelectArcade={(boosters) => {
+            if (energy > 0) {
+              setEnergy(prev => prev - 1);
+              if (energy === 5) setLastEnergyRefill(Date.now());
+              changeDifficulty('normal');
+              setShowDashboard(false);
+              resetGame(boosters, 'arcade');
+            }
           }}
-          onSelectMission={(idx) => {
-            startMission(idx);
-            setShowDashboard(false);
+          onSelectMission={(idx, boosters) => {
+            if (energy > 0) {
+              setEnergy(prev => prev - 1);
+              if (energy === 5) setLastEnergyRefill(Date.now());
+              startMission(idx, boosters);
+              setShowDashboard(false);
+            }
           }}
         />
       )}
@@ -846,10 +964,10 @@ function App() {
           </div>
           <div className="min-w-[140px]">
             <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent italic uppercase leading-none mb-1">
-              {gameMode === 'mission' ? `${t('mission')} ${cloudLevels[currentLevelIndex].id}` : 'WORDLENGE'}
+              {gameMode === 'mission' ? `${t('mission')} ${cloudLevels?.[currentLevelIndex]?.id || ''}` : 'WORDLENGE'}
             </h1>
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate font-inter">
-              {gameMode === 'mission' ? cloudLevels[currentLevelIndex].title : t('arcade')}
+              {gameMode === 'mission' ? cloudLevels?.[currentLevelIndex]?.title : t('arcade')}
             </p>
           </div>
         </div>
@@ -906,7 +1024,7 @@ function App() {
 
           <div className="flex-1 bg-slate-900/40 backdrop-blur-xl p-4 rounded-3xl border border-white/5 shadow-2xl flex flex-col min-h-0">
             {gameMode === 'mission' ? (
-              <MissionTracker goals={levelGoals} />
+              <MissionTracker goals={levelGoals} t={t} />
             ) : (
               <>
                 <div className="flex justify-between items-center border-b border-white/5 pb-2 shrink-0">
@@ -929,7 +1047,7 @@ function App() {
         <div className="flex-1 flex flex-col gap-3 min-w-0 h-full">
           <div className="flex-1 flex items-center justify-center min-h-0 relative">
             <div className={`
-                relative max-h-full w-full max-w-[min(100%,(72vh*11/9))] md:aspect-[11/9] bg-slate-950/40 rounded-xl md:rounded-3xl border-2 shadow-2xl overflow-hidden transition-all duration-300
+                relative max-h-full w-full max-w-[min(100%,(72vh*11/9))] aspect-[11/9] bg-slate-950/40 rounded-xl md:rounded-3xl border-2 shadow-2xl overflow-hidden transition-all duration-300
                 ${activeTool ? 'border-purple-500 ring-[8px] ring-purple-500/10' : 'border-white/5'}
             `}>
               <PremiumCanvas
@@ -937,6 +1055,7 @@ function App() {
                 selectedPath={selectedPath}
                 animatingCells={animatingCells}
                 swapSelection={swapSelection}
+                createdSpecial={createdSpecial}
                 onSelectCell={selectCell}
                 onFinishTurn={finishTurn}
               />
@@ -1045,7 +1164,6 @@ function App() {
             );
           })}
         </aside>
-
       </main>
 
       {/* Game Over Modal */}
@@ -1126,7 +1244,7 @@ function App() {
           animation-iteration-count: infinite;
         }
       `}</style>
-    </div>
+    </div >
   );
 }
 
