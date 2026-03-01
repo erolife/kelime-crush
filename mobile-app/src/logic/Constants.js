@@ -27,14 +27,22 @@ export const DIFFICULTY_SETTINGS = {
     }
 };
 
-export const BASE_LETTER_WEIGHTS = {
+export const TR_LETTER_WEIGHTS = {
     'A': 25, 'E': 22, 'İ': 18, 'I': 12, 'O': 10, 'Ö': 8, 'U': 10, 'Ü': 8,
     'K': 12, 'L': 12, 'M': 10, 'N': 12, 'R': 12, 'S': 10, 'T': 10, 'Y': 10,
     'B': 6, 'C': 5, 'Ç': 5, 'D': 8, 'G': 5, 'Ğ': 3, 'H': 5, 'P': 5, 'Ş': 5, 'V': 4, 'Z': 5,
     'F': 2, 'J': 1
 };
 
-export const LETTER_POINTS = {
+export const EN_LETTER_WEIGHTS = {
+    'E': 25, 'T': 20, 'A': 18, 'O': 16, 'I': 16, 'N': 15, 'S': 15, 'R': 14, 'H': 12, 'D': 10,
+    'L': 10, 'U': 8, 'C': 8, 'M': 7, 'F': 6, 'Y': 6, 'W': 6, 'G': 5, 'P': 5, 'B': 5,
+    'V': 3, 'K': 2, 'X': 2, 'J': 2, 'Q': 2, 'Z': 2
+};
+
+export const BASE_LETTER_WEIGHTS = TR_LETTER_WEIGHTS; // Fallback
+
+export const TR_LETTER_POINTS = {
     'A': 1, 'E': 1, 'İ': 1, 'K': 1, 'L': 1, 'M': 1, 'N': 1, 'R': 1, 'S': 1, 'T': 1,
     'B': 2, 'D': 2, 'O': 2, 'U': 2,
     'G': 3, 'Ş': 3, 'Z': 3, 'I': 3,
@@ -45,7 +53,21 @@ export const LETTER_POINTS = {
     'J': 10, 'Ğ': 10
 };
 
-export const VOWELS = ['A', 'E', 'İ', 'I', 'O', 'Ö', 'U', 'Ü'];
+export const EN_LETTER_POINTS = {
+    'E': 1, 'T': 1, 'A': 1, 'O': 1, 'I': 1, 'N': 1, 'S': 1, 'R': 1,
+    'H': 2, 'D': 2, 'L': 2, 'U': 2,
+    'C': 3, 'M': 3, 'P': 3, 'G': 3,
+    'F': 4, 'Y': 4, 'W': 4, 'B': 4, 'V': 4,
+    'K': 5,
+    'X': 8, 'J': 8,
+    'Q': 10, 'Z': 10
+};
+
+export const LETTER_POINTS = TR_LETTER_POINTS; // Fallback
+
+export const TR_VOWELS = ['A', 'E', 'İ', 'I', 'O', 'Ö', 'U', 'Ü'];
+export const EN_VOWELS = ['A', 'E', 'I', 'O', 'U'];
+export const VOWELS = TR_VOWELS; // Fallback
 
 export const MAX_ENERGY = 5;
 export const ENERGY_REGEN_TIME = 20 * 60 * 1000; // 20 minutes

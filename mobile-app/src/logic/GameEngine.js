@@ -1,11 +1,20 @@
-import { BASE_LETTER_WEIGHTS, VOWELS } from './Constants';
+import {
+    TR_LETTER_WEIGHTS, EN_LETTER_WEIGHTS,
+    TR_LETTER_POINTS, EN_LETTER_POINTS,
+    TR_VOWELS, EN_VOWELS
+} from './Constants';
 
 export class GameEngine {
-    constructor(rows = 10, cols = 10, vowelBonus = 1.0) {
+    constructor(rows = 10, cols = 10, vowelBonus = 1.0, language = 'tr') {
         this.rows = rows;
         this.cols = cols;
         this.vowelBonus = vowelBonus;
+        this.language = language;
         this.grid = [];
+    }
+
+    setLanguage(lang) {
+        this.language = lang;
     }
 
     createCell(r, c, letter) {
@@ -38,13 +47,21 @@ export class GameEngine {
     }
 
     getRandomLetter() {
+        const weights = this.language === 'tr' ? TR_LETTER_WEIGHTS : EN_LETTER_WEIGHTS;
+        const vowels = this.language === 'tr' ? TR_VOWELS : EN_VOWELS;
+
         const pool = [];
-        for (let [letter, weight] of Object.entries(BASE_LETTER_WEIGHTS)) {
+        for (let [letter, weight] of Object.entries(weights)) {
             let finalWeight = weight;
-            if (VOWELS.includes(letter)) finalWeight = Math.round(weight * this.vowelBonus);
+            if (vowels.includes(letter)) finalWeight = Math.round(weight * this.vowelBonus);
             for (let i = 0; i < finalWeight; i++) pool.push(letter);
         }
         return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    getLetterPoint(letter) {
+        const points = this.language === 'tr' ? TR_LETTER_POINTS : EN_LETTER_POINTS;
+        return points[letter] || 1;
     }
 
     calculateScore(path) {

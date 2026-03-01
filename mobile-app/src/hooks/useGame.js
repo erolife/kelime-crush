@@ -133,7 +133,7 @@ export const useGame = (initialDifficulty = 'normal') => {
 
     const [engine, setEngine] = useState(() => {
         const settings = DIFFICULTY_SETTINGS[initialDifficulty];
-        return new GameEngine(settings.rows, settings.cols, settings.vowelBonus);
+        return new GameEngine(settings.rows, settings.cols, settings.vowelBonus, language);
     });
 
     const [grid, setGrid] = useState(() => engine.initGrid());
@@ -256,19 +256,21 @@ export const useGame = (initialDifficulty = 'normal') => {
     useEffect(() => {
         const dictFile = language === 'tr' ? './sozluk.json' : './sozluk_en.json';
         setIsDictionaryLoaded(false);
+        engine.setLanguage(language);
         dictionary.load(dictFile).then(() => setIsDictionaryLoaded(true));
-    }, [language]);
+    }, [language, engine]);
 
     // Mission Mode Initialization
     const startMission = useCallback((index, selectedBoosters = {}) => {
         const mission = cloudLevels[index];
         if (!mission) return;
         const settings = DIFFICULTY_SETTINGS[mission.difficulty];
-        const newEngine = new GameEngine(settings.rows, settings.cols, settings.vowelBonus);
+        const newEngine = new GameEngine(settings.rows, settings.cols, settings.vowelBonus, language);
 
         setGameMode('mission');
         setCurrentLevelIndex(index);
         setLevelGoals(mission.goals.map(g => ({ ...g, current: 0 })));
+        newEngine.setLanguage(language);
         setEngine(newEngine);
         const newGrid = newEngine.initGrid();
         setGrid(newGrid);
@@ -366,9 +368,10 @@ export const useGame = (initialDifficulty = 'normal') => {
 
     const changeDifficulty = useCallback((newDiff) => {
         const settings = DIFFICULTY_SETTINGS[newDiff];
-        const newEngine = new GameEngine(settings.rows, settings.cols, settings.vowelBonus);
+        const newEngine = new GameEngine(settings.rows, settings.cols, settings.vowelBonus, language);
         setGameMode('arcade');
         setDifficultyState(newDiff);
+        newEngine.setLanguage(language);
         setEngine(newEngine);
         setGrid(newEngine.initGrid());
         setMoves(settings.moves);
@@ -583,6 +586,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         }
 
         const settings = DIFFICULTY_SETTINGS[difficulty];
+        engine.setLanguage(language);
         const initialGrid = engine.initGrid();
         setGrid(initialGrid);
         setScore(0);

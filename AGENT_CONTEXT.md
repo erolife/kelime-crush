@@ -1,14 +1,16 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
 **Son Güncelleme:** 2026-03-01
-## Proje Durumu: v4.10.0 (Zen Bahçesi & Detaylı İstatistikler)
-- **Feature (v4.10.0)**: Zen Modu görsel geliştirmeleri: "Zen Bahçesi" (biriken öğeler) ve "Uçuşan Ruhlar" (yaprak efekti).
-- **Feature (v4.10.0)**: Mod bazlı detaylı istatistik takibi (JSONB) veritabanına entegre edildi (Zen, Arcade, Mission için kelime, hamle, süre).
-- **Feature (v4.9.3)**: Zen modu giriş davranışı Seviye (Mission) modu ile hizalandı.
-- **Feature (v4.9.2)**: Dashboard Zen Modu kartına görsel üyelik uyarısı ("Üye Ol" rozeti) ve dinamik CTA butonu eklendi.
-- **Fix (v4.9.1)**: Zen modunun başlatılamaması sorunu (eksik prop) giderildi.
-- **Feature (v4.9.1)**: Zen moduna giriş için üye girişi zorunluluğu getirildi.
-- **Feature (v4.9.0)**: Dashboard ana ekranına "Zen Modu" eklendi. Süresiz, hamle sınırsız ve stressiz bir deneyim sunar.
+## Proje Durumu: v5.0.1 (English Dictionary Upgrade)
+- **Feature (v5.0.1)**: İngilizce kelime listesi (~5MB) 274 kelimeden on binlerce kelimeye çıkarıldı.
+- **Feature (v5.0.0)**: Çok dilli (TR/EN) Seviye Yönetimi (CRUD) ve JSONB veritabanı altyapısı kuruldu.
+- **Feature (v5.0.0)**: Oyun içi seviye numaralandırma "ID" yerine "Sıra No" (İndeks bazlı) mantığına geçirildi.
+- **Visual (v5.0.0)**: MISSION modu için özel kırmızı temalı "GÖREV BAŞARISIZ" ekranı eklendi.
+- **UX (v5.0.0)**: Tamamlanmış seviyelerin (Mission) tekrar oynanması kısıtlandı.
+- **Fix (v5.0.0)**: Supabase `levels` tablosu RLS politikaları (Admin INSERT/UPDATE) onarıldı.
+- **Fix (v5.0.0)**: App.jsx / Dashboard ReferenceError ve i18n render hataları giderildi.
+- **Fix (v5.0.0)**: `USE_TOOL` görevlerinde `bomb` ve `blast` takibi veri tipi bazında düzeltildi.
+- **Feature (v4.10.0)**: Zen Modu görsel geliştirmeleri: "Zen Bahçesi" ve "Uçuşan Ruhlar".
 - **Feature (v4.9.0)**: Zen moduna özel "YETERLİ" butonu ve seans sonu analiz (süre, hamle, kelime) ekranı eklendi.
 - **Feature (v4.8.1)**: Dashboard header alanına ses açma/kapama (mute) butonu eklendi.
 - **Feature (v4.8.0)**: Arcade moduna "Zamana Karşı" ve "Hamle Sınırlı" seçenekleri eklendi.

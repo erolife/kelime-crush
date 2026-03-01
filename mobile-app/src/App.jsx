@@ -158,7 +158,9 @@ const Dashboard = ({
   const [fallingLetters, setFallingLetters] = React.useState([]);
 
   React.useEffect(() => {
-    const letters = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
+    const trLetters = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
+    const enLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const letters = language === 'tr' ? trLetters : enLetters;
     const newLetters = Array.from({ length: 25 }, (_, i) => ({
       id: i,
       char: letters[Math.floor(Math.random() * letters.length)],
@@ -168,7 +170,7 @@ const Dashboard = ({
       size: 14 + Math.random() * 30
     }));
     setFallingLetters(newLetters);
-  }, []);
+  }, [language]);
 
   // Auto-show daily reward screen on mount if needed
   React.useEffect(() => {
