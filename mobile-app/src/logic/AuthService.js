@@ -1,5 +1,10 @@
 import { supabase } from './supabaseClient';
 
+const getRedirectUrl = () => {
+    // In production, use the actual domain; in dev, use localhost
+    return window.location.origin;
+};
+
 export const AuthService = {
     // Kayıt ol
     async signUp(email, password, username) {
@@ -10,7 +15,8 @@ export const AuthService = {
                 options: {
                     data: {
                         username: username
-                    }
+                    },
+                    emailRedirectTo: getRedirectUrl()
                 }
             });
 
@@ -28,6 +34,22 @@ export const AuthService = {
             const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password
+            });
+            if (error) throw error;
+            return { data, error: null };
+        } catch (error) {
+            return { data: null, error: error.message };
+        }
+    },
+
+    // Google ile giriş yap
+    async signInWithGoogle() {
+        try {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: getRedirectUrl()
+                }
             });
             if (error) throw error;
             return { data, error: null };

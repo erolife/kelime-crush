@@ -1,9 +1,19 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
 **Son Güncelleme:** 2026-03-01
-## Proje Durumu: v5.1.1 (Mobile Dashboard & Navigation Refined)
-- **Fix (v5.1.1)**: Dashboard mod kartlarının yatay (landscape) modda navigasyon barı ile çakışması (overlap) giderildi.
-- **Feature (v5.1.0)**: Mobil alt navigasyon sayfaları (Sıralama, Envanter, Market, Günlük Ödül) hem dikey hem yatay mod için radikal şekilde optimize edildi.
+## Proje Durumu: v5.2.0 (Full Landscape Mode Optimization)
+- **Feature (v5.2.0)**: Tüm ekranlar yatay mod (landscape) için optimize edildi:
+  - Market: Badge sistemi, bakiye başlığa taşındı, subtitle kaldırıldı
+  - Günlük Ödül: Tüm elemanlar küçültüldü, buton görünür hale getirildi
+  - Dashboard Kartları: Kart yüksekliği sınırlandı, iç elemanlar kompakt
+  - Profil: Avatar yatay layout, 4 sütun istatistik grid
+  - Ayarlar: Toggle/butonlar küçültüldü, hardcoded TR metinler i18n'e bağlandı
+  - Seviye Listesi: 12 kolon grid, küçük başlık ve butonlar
+  - Pregame: Açıklama başlığa taşındı, tüm butonlar kompakt
+  - Oyun Ekranı: Header/stats/tools küçültüldü, grid 78vh'ye genişletildi
+  - Araç Badge'leri: w-5 h-5 text-[10px] ile okunabilir hale getirildi
+  - Victory/Game Over: Tüm modallar landscape-uyumlu
+- **i18n (v5.2.0)**: `sound_music`, `difficulty_level` ve diğer hardcoded TR metinler çeviri sistemiyle desteklendi
 - **Fix (v5.0.3)**: Mobil cihazlar için Dashboard, Daily Reward ve Gameplay UI (Stats/Goals) optimize edildi.
 - **Fix (v5.0.2)**: Seviye sonu (Victory/GameOver), Sidebar ve Zen sonuç ekranlarındaki sert kodlanmış Türkçe metinler i18n sistemine (TR/EN) bağlandı.
 - **Feature (v5.0.0)**: Çok dilli (TR/EN) Seviye Yönetimi (CRUD) ve JSONB veritabanı altyapısı kuruldu.

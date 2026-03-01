@@ -84,82 +84,118 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess, t = (s) => s }) => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const result = await AuthService.signInWithGoogle();
+      if (result.error) {
+        setError(result.error);
+        setLoading(false);
+      }
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-[600] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-2xl animate-in fade-in duration-300">
-      <div className="w-full max-w-md bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden">
-        <button onClick={onClose} className="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors">
-          <X size={24} />
+    <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 landscape:p-2 md:p-6 bg-slate-950/90 backdrop-blur-2xl animate-in fade-in duration-300">
+      <div className="w-full max-w-md bg-slate-900 border border-white/10 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] p-5 landscape:p-3 md:p-10 shadow-2xl relative overflow-y-auto max-h-[95vh] landscape:max-h-[92vh] no-scrollbar">
+        <button onClick={onClose} className="absolute top-3 landscape:top-2 md:top-6 right-3 landscape:right-2 md:right-6 text-slate-500 hover:text-white transition-colors z-10">
+          <X size={20} className="md:w-6 md:h-6" />
         </button>
 
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-orange-500/20">
-            {isLogin ? <LogIn className="text-white" size={32} /> : <UserPlus className="text-white" size={32} />}
+        <div className="text-center mb-4 landscape:mb-2 md:mb-8">
+          <div className="w-12 h-12 landscape:w-10 landscape:h-10 md:w-16 md:h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl landscape:rounded-lg md:rounded-2xl flex items-center justify-center mx-auto mb-2 landscape:mb-1.5 md:mb-4 shadow-xl shadow-orange-500/20">
+            {isLogin ? <LogIn className="text-white" size={24} /> : <UserPlus className="text-white" size={24} />}
           </div>
-          <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">
+          <h2 className="text-2xl landscape:text-xl md:text-3xl font-black text-white italic tracking-tighter uppercase">
             {isLogin ? t('login') : t('signup')}
           </h2>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-2">
+          <p className="text-slate-500 text-[9px] landscape:text-[8px] md:text-xs font-bold uppercase tracking-widest mt-1 landscape:mt-0.5 md:mt-2">
             {t('join_world')}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Google OAuth */}
+        <button
+          onClick={handleGoogleLogin}
+          disabled={loading}
+          className="w-full py-3 landscape:py-2 md:py-4 bg-white hover:bg-gray-100 text-slate-800 font-bold rounded-xl landscape:rounded-lg md:rounded-2xl transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2 landscape:gap-1.5 md:gap-3 mb-3 landscape:mb-2 md:mb-6 text-sm landscape:text-xs md:text-base"
+        >
+          <svg className="w-5 h-5 landscape:w-4 landscape:h-4" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+          </svg>
+          Google {isLogin ? t('signin_button') : t('signup_button')}
+        </button>
+
+        <div className="flex items-center gap-3 landscape:gap-2 mb-3 landscape:mb-2 md:mb-6">
+          <div className="flex-1 h-px bg-white/10" />
+          <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-600 uppercase tracking-widest">{t('or') || 'VEYA'}</span>
+          <div className="flex-1 h-px bg-white/10" />
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3 landscape:space-y-1.5 md:space-y-4">
           {!isLogin && (
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Kullanıcı Adı</label>
+            <div className="space-y-1 landscape:space-y-0.5">
+              <label className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">{t('username') || 'Kullanıcı Adı'}</label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <User className="absolute left-3 landscape:left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
                 <input
                   type="text" required value={username} onChange={e => setUsername(e.target.value)}
-                  className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all outline-none font-bold"
+                  className="w-full bg-slate-950/50 border border-white/5 rounded-xl landscape:rounded-lg md:rounded-2xl py-3 landscape:py-2 md:py-4 pl-10 landscape:pl-8 md:pl-12 pr-4 text-white text-sm landscape:text-xs md:text-base focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all outline-none font-bold"
                   placeholder="oyuncu_adi"
                 />
               </div>
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">E-Posta</label>
+          <div className="space-y-1 landscape:space-y-0.5">
+            <label className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">E-Posta</label>
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+              <Mail className="absolute left-3 landscape:left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
               <input
                 type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all outline-none font-bold"
+                className="w-full bg-slate-950/50 border border-white/5 rounded-xl landscape:rounded-lg md:rounded-2xl py-3 landscape:py-2 md:py-4 pl-10 landscape:pl-8 md:pl-12 pr-4 text-white text-sm landscape:text-xs md:text-base focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all outline-none font-bold"
                 placeholder="ornek@mail.com"
               />
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Şifre</label>
+          <div className="space-y-1 landscape:space-y-0.5">
+            <label className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">{t('password') || 'Şifre'}</label>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+              <Lock className="absolute left-3 landscape:left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
               <input
                 type="password" required value={password} onChange={e => setPassword(e.target.value)}
-                className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all outline-none font-bold"
+                className="w-full bg-slate-950/50 border border-white/5 rounded-xl landscape:rounded-lg md:rounded-2xl py-3 landscape:py-2 md:py-4 pl-10 landscape:pl-8 md:pl-12 pr-4 text-white text-sm landscape:text-xs md:text-base focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all outline-none font-bold"
                 placeholder="••••••••"
               />
             </div>
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-red-400 text-[10px] font-bold uppercase tracking-wider text-center">
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg landscape:rounded-md md:rounded-xl p-2 landscape:p-1.5 md:p-3 text-red-400 text-[9px] landscape:text-[8px] md:text-[10px] font-bold uppercase tracking-wider text-center">
               {error}
             </div>
           )}
 
           <button
             type="submit" disabled={loading}
-            className="w-full py-5 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-slate-950 font-black rounded-2xl transition-all active:scale-95 shadow-xl shadow-orange-500/20 tracking-[0.2em] uppercase italic text-lg mt-4"
+            className="w-full py-3.5 landscape:py-2 md:py-5 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-slate-950 font-black rounded-xl landscape:rounded-lg md:rounded-2xl transition-all active:scale-95 shadow-xl shadow-orange-500/20 tracking-[0.2em] uppercase italic text-base landscape:text-sm md:text-lg mt-2 landscape:mt-1 md:mt-4"
           >
             {loading ? t('processing') : (isLogin ? t('signin_button') : t('signup_button'))}
           </button>
         </form>
 
-        <div className="mt-8 text-center">
+        <div className="mt-4 landscape:mt-2 md:mt-8 text-center">
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-slate-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
+            className="text-slate-500 hover:text-white text-[9px] landscape:text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-colors"
           >
             {isLogin ? t('no_account') : t('have_account')}
           </button>
@@ -222,16 +258,16 @@ const Dashboard = ({
       case 'levels':
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-6xl mx-auto">
-            <div className="flex items-center gap-4 mb-8">
+            <div className="flex items-center gap-2 landscape:gap-2 md:gap-4 mb-3 landscape:mb-2 md:mb-8">
               <button
                 onClick={() => setView('modes')}
-                className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
+                className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
               >
-                <X size={24} />
+                <X size={20} className="md:w-6 md:h-6" />
               </button>
-              <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">{t('level_selection')}</h2>
+              <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase">{t('level_selection')}</h2>
             </div>
-            <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-10 gap-2 max-h-[60vh] overflow-y-auto no-scrollbar pr-4">
+            <div className="grid grid-cols-4 sm:grid-cols-6 landscape:grid-cols-12 lg:grid-cols-10 gap-2 landscape:gap-1.5 max-h-[60vh] landscape:max-h-[70vh] overflow-y-auto no-scrollbar pr-4 landscape:pr-2">
               {isLoading ? (
                 <div className="col-span-full py-20 flex flex-col items-center justify-center text-slate-500 animate-pulse">
                   <RefreshCw size={48} className="animate-spin mb-4 opacity-20" />
@@ -259,18 +295,18 @@ const Dashboard = ({
                       `}
                     >
                       <div className="flex justify-between items-start">
-                        <span className={`text-lg font-black italic tracking-tighter ${isLocked ? 'text-slate-700' : isCompleted ? 'text-green-500' : 'text-sky-500'}`}>
+                        <span className={`text-lg landscape:text-sm md:text-lg font-black italic tracking-tighter ${isLocked ? 'text-slate-700' : isCompleted ? 'text-green-500' : 'text-sky-500'}`}>
                           {idx + 1}
                         </span>
                         {isCompleted ? <CheckCircle2 className="text-green-500" size={12} /> :
                           isLocked ? <div className="p-0.5 bg-slate-800 rounded-sm"><Sparkles size={8} className="text-slate-600" /></div> :
                             <div className="p-0.5 bg-sky-500/20 rounded-sm animate-pulse"><Play size={8} className="text-sky-400" /></div>}
                       </div>
-                      <div className="relative z-10 text-left text-xs">
+                      <div className="relative z-10 text-left text-xs landscape:text-[8px] md:text-xs">
                         <h4 className={`font-bold leading-tight truncate ${isLocked ? 'text-slate-600' : 'text-white'}`}>
                           {typeof level.title === 'object' ? (level.title[language] || level.title['tr']) : level.title}
                         </h4>
-                        <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest mt-0.5">
+                        <p className="text-[8px] landscape:text-[6px] md:text-[8px] text-slate-500 uppercase font-black tracking-widest mt-0.5">
                           {isLocked ? t('locked') : isCompleted ? t('completed') : (typeof level.difficulty === 'object' ? (level.difficulty[language] || level.difficulty['tr']) : level.difficulty)}
                         </p>
                       </div>
@@ -289,11 +325,17 @@ const Dashboard = ({
         if (!selectedLevel) return null;
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full max-h-screen">
-            <div className="flex items-center gap-2 md:gap-4 mb-2 md:mb-6 shrink-0 pt-2 md:pt-0">
-              <button onClick={() => setView(isArcade ? 'modes' : 'levels')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
-                <X size={20} className="md:w-6 md:h-6" />
-              </button>
-              <h2 className="text-xl md:text-3xl font-black text-white italic tracking-tighter uppercase">{isArcade ? t('arcade') : `${t('level')} ${selectedLevelIdx + 1}`}</h2>
+            <div className="flex items-center justify-between gap-2 md:gap-4 mb-2 landscape:mb-1 md:mb-6 shrink-0 pt-2 md:pt-0">
+              <div className="flex items-center gap-2 md:gap-4 min-w-0">
+                <button onClick={() => setView(isArcade ? 'modes' : 'levels')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
+                  <X size={20} className="md:w-6 md:h-6" />
+                </button>
+                <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase truncate">{isArcade ? t('arcade') : `${t('level')} ${selectedLevelIdx + 1}`}</h2>
+              </div>
+              {/* Description in header - landscape only */}
+              <p className="hidden landscape:block text-[7px] md:text-[9px] font-black text-slate-500 italic tracking-wider uppercase text-right max-w-[200px] leading-tight shrink-0">
+                {typeof selectedLevel.title === 'object' ? (selectedLevel.title[language] || selectedLevel.title['tr']) : selectedLevel.title}
+              </p>
             </div>
 
             {/* Member Only Warning Toast/Modal */}
@@ -312,48 +354,59 @@ const Dashboard = ({
               </div>
             )}
 
-            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 backdrop-blur-md space-y-4 md:space-y-8 flex-1 overflow-y-auto no-scrollbar">
-              <div className="text-center shrink-0">
-                <h3 className="text-lg md:text-xl font-black text-white italic tracking-tighter uppercase mb-2">
+            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-3 landscape:p-2.5 md:p-8 backdrop-blur-md space-y-3 landscape:space-y-2 md:space-y-8 flex-1 overflow-y-auto no-scrollbar">
+              {/* Description inside card - portrait only */}
+              <div className="text-center shrink-0 landscape:hidden">
+                <h3 className="text-base md:text-xl font-black text-white italic tracking-tighter uppercase mb-1 md:mb-2">
                   {typeof selectedLevel.title === 'object' ? (selectedLevel.title[language] || selectedLevel.title['tr']) : selectedLevel.title}
                 </h3>
                 {!isArcade && (
-                  <div className="flex justify-center flex-wrap gap-2">
+                  <div className="flex justify-center flex-wrap gap-1.5 md:gap-2">
                     {selectedLevel.goals.map((g, i) => (
-                      <div key={i} className="bg-slate-950/50 px-3 py-1.5 rounded-xl text-[10px] font-black text-sky-400 border border-sky-400/20 uppercase tracking-widest">
+                      <div key={i} className="bg-slate-950/50 px-2.5 py-1 rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-black text-sky-400 border border-sky-400/20 uppercase tracking-widest">
                         {typeof g.text === 'object' ? (g.text[language] || g.text['tr']) : g.text}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
+              {/* Goals - landscape (shown separately without title) */}
+              {!isArcade && (
+                <div className="hidden landscape:flex justify-center flex-wrap gap-1 shrink-0">
+                  {selectedLevel.goals.map((g, i) => (
+                    <div key={i} className="bg-slate-950/50 px-2 py-0.5 rounded-md text-[8px] font-black text-sky-400 border border-sky-400/20 uppercase tracking-widest">
+                      {typeof g.text === 'object' ? (g.text[language] || g.text['tr']) : g.text}
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {isArcade && (
-                <div className="space-y-6">
+                <div className="space-y-3 landscape:space-y-2 md:space-y-6">
                   {/* Sub-mode Selection */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2 landscape:gap-1.5 md:gap-3">
                     <button
                       onClick={() => { setArcadeSubMode('time'); setArcadeValue(30); }}
-                      className={`py-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${arcadeSubMode === 'time' ? 'bg-sky-500/20 border-sky-400 text-sky-400 shadow-xl shadow-sky-500/10 scale-[1.02]' : 'bg-slate-800/40 border-white/5 text-slate-500 hover:bg-slate-800'}`}
+                      className={`py-3 landscape:py-2 md:py-4 rounded-xl landscape:rounded-lg md:rounded-2xl border transition-all flex flex-col items-center gap-1.5 landscape:gap-1 md:gap-2 ${arcadeSubMode === 'time' ? 'bg-sky-500/20 border-sky-400 text-sky-400 shadow-xl shadow-sky-500/10 scale-[1.02]' : 'bg-slate-800/40 border-white/5 text-slate-500 hover:bg-slate-800'}`}
                     >
-                      <Clock size={20} />
-                      <span className="text-[10px] font-black uppercase tracking-widest">{t('time_trial')}</span>
+                      <Clock size={18} className="landscape:w-4 landscape:h-4" />
+                      <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black uppercase tracking-widest">{t('time_trial')}</span>
                     </button>
                     <button
                       onClick={() => { setArcadeSubMode('moves'); setArcadeValue(15); }}
-                      className={`py-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${arcadeSubMode === 'moves' ? 'bg-indigo-500/20 border-indigo-400 text-indigo-400 shadow-xl shadow-indigo-500/10 scale-[1.02]' : 'bg-slate-800/40 border-white/5 text-slate-500 hover:bg-slate-800'}`}
+                      className={`py-3 landscape:py-2 md:py-4 rounded-xl landscape:rounded-lg md:rounded-2xl border transition-all flex flex-col items-center gap-1.5 landscape:gap-1 md:gap-2 ${arcadeSubMode === 'moves' ? 'bg-indigo-500/20 border-indigo-400 text-indigo-400 shadow-xl shadow-indigo-500/10 scale-[1.02]' : 'bg-slate-800/40 border-white/5 text-slate-500 hover:bg-slate-800'}`}
                     >
-                      <Gamepad2 size={20} />
-                      <span className="text-[10px] font-black uppercase tracking-widest">{t('move_limited')}</span>
+                      <Gamepad2 size={18} className="landscape:w-4 landscape:h-4" />
+                      <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black uppercase tracking-widest">{t('move_limited')}</span>
                     </button>
                   </div>
 
                   {/* Value Selection */}
-                  <div className="space-y-3">
-                    <div className="text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2 font-inter">
+                  <div className="space-y-2 landscape:space-y-1 md:space-y-3">
+                    <div className="text-[8px] landscape:text-[7px] md:text-[8px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2 font-inter">
                       {arcadeSubMode === 'time' ? t('seconds')?.toUpperCase() : t('moves_unit')?.toUpperCase()}
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-1.5 landscape:gap-1 md:gap-2">
                       {arcadeSubMode === 'time' ? (
                         [30, 45, 60].map(val => {
                           const isLocked = !user && val > 30;
@@ -364,7 +417,7 @@ const Dashboard = ({
                                 if (isLocked) setShowMemberOnlyModal(true);
                                 else setArcadeValue(val);
                               }}
-                              className={`relative py-3 rounded-xl border font-black transition-all ${arcadeValue === val ? 'bg-white text-slate-950 border-white shadow-lg' : 'bg-slate-800/60 border-white/5 text-slate-400 hover:bg-slate-800'}`}
+                              className={`relative py-2.5 landscape:py-1.5 md:py-3 rounded-lg landscape:rounded-md md:rounded-xl border font-black text-sm landscape:text-xs transition-all ${arcadeValue === val ? 'bg-white text-slate-950 border-white shadow-lg' : 'bg-slate-800/60 border-white/5 text-slate-400 hover:bg-slate-800'}`}
                             >
                               {val}
                               {isLocked && <Lock size={10} className="absolute top-1 right-1 text-amber-500" />}
@@ -381,7 +434,7 @@ const Dashboard = ({
                                 if (isLocked) setShowMemberOnlyModal(true);
                                 else setArcadeValue(val);
                               }}
-                              className={`relative py-3 rounded-xl border font-black transition-all ${arcadeValue === val ? 'bg-white text-slate-950 border-white shadow-lg' : 'bg-slate-800/60 border-white/5 text-slate-400 hover:bg-slate-800'}`}
+                              className={`relative py-2.5 landscape:py-1.5 md:py-3 rounded-lg landscape:rounded-md md:rounded-xl border font-black text-sm landscape:text-xs transition-all ${arcadeValue === val ? 'bg-white text-slate-950 border-white shadow-lg' : 'bg-slate-800/60 border-white/5 text-slate-400 hover:bg-slate-800'}`}
                             >
                               {val}
                               {isLocked && <Lock size={10} className="absolute top-1 right-1 text-amber-500" />}
@@ -394,9 +447,9 @@ const Dashboard = ({
                 </div>
               )}
 
-              <div className="space-y-2 md:space-y-4 shrink-0">
-                <div className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1 md:ml-2 font-inter">{t('select_boosters')}</div>
-                <div className="grid grid-cols-3 gap-2 md:gap-4">
+              <div className="space-y-1.5 landscape:space-y-1 md:space-y-4 shrink-0">
+                <div className="text-[8px] landscape:text-[7px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1 md:ml-2 font-inter">{t('select_boosters')}</div>
+                <div className="grid grid-cols-3 gap-1.5 landscape:gap-1 md:gap-4">
                   {['bomb', 'row', 'col'].map(type => {
                     const count = tools?.[type] || 0;
                     const isSelected = selectedBoosters[type];
@@ -407,21 +460,21 @@ const Dashboard = ({
                         disabled={count === 0}
                         onClick={() => setSelectedBoosters(prev => ({ ...prev, [type]: !prev[type] }))}
                         className={`
-                          relative p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 group
+                          relative p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border transition-all flex flex-col items-center gap-1.5 landscape:gap-1 md:gap-2 group
                           ${isSelected ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-xl shadow-amber-500/10' :
                             count > 0 ? 'bg-slate-800/40 border-white/5 text-slate-400 hover:bg-slate-800' : 'bg-slate-900/20 border-white/5 opacity-40 grayscale'}
                         `}
                       >
-                        <Icon className={`w-5 h-5 md:w-6 md:h-6 ${isSelected ? 'animate-bounce' : ''}`} />
-                        <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest leading-none">{t(type)}</span>
-                        <span className="absolute -top-1.5 -right-1.5 md:-top-2 md:-right-2 bg-white text-slate-950 text-[9px] md:text-[10px] font-black w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-slate-950 flex items-center justify-center">{count}</span>
+                        <Icon className={`w-5 h-5 landscape:w-4 landscape:h-4 md:w-6 md:h-6 ${isSelected ? 'animate-bounce' : ''}`} />
+                        <span className="text-[8px] landscape:text-[7px] md:text-[10px] font-black uppercase tracking-widest leading-none">{t(type)}</span>
+                        <span className="absolute -top-1.5 -right-1.5 md:-top-2 md:-right-2 bg-white text-slate-950 text-[9px] landscape:text-[8px] md:text-[10px] font-black w-5 h-5 landscape:w-4 landscape:h-4 md:w-6 md:h-6 rounded-full border-2 border-slate-950 flex items-center justify-center">{count}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              <div className="pt-2 md:pt-4 shrink-0 mt-auto pb-4 md:pb-0">
+              <div className="pt-1 landscape:pt-0 md:pt-4 shrink-0 mt-auto pb-2 landscape:pb-1 md:pb-0">
                 <button
                   onClick={() => {
                     if (energy > 0) {
@@ -437,16 +490,16 @@ const Dashboard = ({
                   }}
                   disabled={energy <= 0}
                   className={`
-                    w-full py-4 md:py-6 rounded-xl md:rounded-2xl font-black text-lg md:text-xl italic tracking-[0.2em] uppercase transition-all active:scale-95 shadow-xl md:shadow-2xl flex items-center justify-center gap-2 md:gap-3
+                    w-full py-3 landscape:py-2 md:py-6 rounded-xl md:rounded-2xl font-black text-base landscape:text-sm md:text-xl italic tracking-[0.2em] uppercase transition-all active:scale-95 shadow-xl md:shadow-2xl flex items-center justify-center gap-2 md:gap-3
                     ${energy > 0 ? 'bg-gradient-to-r from-orange-500 to-red-600 text-slate-950 hover:from-orange-400 hover:to-red-500 shadow-orange-500/20' : 'bg-slate-800 text-slate-500 cursor-not-allowed'}
                   `}
                 >
-                  <Play size={20} className="md:w-6 md:h-6" fill="currentColor" />
+                  <Play size={18} className="landscape:w-4 landscape:h-4 md:w-6 md:h-6" fill="currentColor" />
                   {t('start_game')} (-1 ⚡)
                 </button>
                 {energy <= 0 && (
                   <p className="text-center text-rose-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mt-2 md:mt-4 animate-pulse">
-                    Enerji bitti! Bekle: {Math.floor(nextEnergyIn / 60)}:{(nextEnergyIn % 60).toString().padStart(2, '0')}
+                    {language === 'tr' ? 'Enerji bitti!' : 'No energy!'} {language === 'tr' ? 'Bekle:' : 'Wait:'} {Math.floor(nextEnergyIn / 60)}:{(nextEnergyIn % 60).toString().padStart(2, '0')}
                   </p>
                 )}
               </div>
@@ -457,36 +510,44 @@ const Dashboard = ({
 
       case 'inventory':
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full overflow-y-auto no-scrollbar pb-6">
-            <div className="flex items-center gap-4 mb-4 md:mb-8 shrink-0">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full overflow-y-auto no-scrollbar pb-6 landscape:pb-20">
+            <div className="flex items-center gap-3 md:gap-4 mb-2 md:mb-8 shrink-0">
               <button
                 onClick={() => setView('modes')}
-                className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
+                className="p-1.5 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
               >
-                <X size={20} className="md:w-6 md:h-6" />
+                <X size={18} className="md:w-6 md:h-6" />
               </button>
-              <h2 className="text-xl md:text-3xl font-black text-white italic tracking-tighter uppercase leading-none">{t('inventory')}</h2>
+              <h2 className="text-base md:text-2xl font-black text-white italic tracking-tighter uppercase leading-none mr-auto">{t('inventory')}</h2>
+
+              <button
+                onClick={() => setView('shop')}
+                className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 px-3 py-1.5 rounded-xl flex items-center gap-2 transition-all active:scale-95 shadow-lg group"
+              >
+                <ShoppingBag size={14} className="md:w-4 md:h-4 group-hover:scale-110 transition-transform" />
+                <span className="text-[9px] md:text-xs font-black uppercase tracking-tight">{t('market') || 'Market'}</span>
+              </button>
             </div>
-            <div className="grid grid-cols-1 landscape:grid-cols-2 lg:grid-cols-2 gap-3 md:gap-4 shrink-0">
-              <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-3xl p-4 md:p-8 backdrop-blur-md flex flex-col items-center justify-center text-center">
-                <div className="w-10 h-10 md:w-16 md:h-16 bg-amber-500/20 rounded-xl md:rounded-2xl flex items-center justify-center text-amber-500 mb-2 md:mb-4">
-                  <Coins size={24} className="md:w-8 md:h-8" />
+            <div className="grid grid-cols-1 landscape:grid-cols-4 lg:grid-cols-4 gap-2 md:gap-4 shrink-0">
+              <div className="landscape:col-span-1 lg:col-span-1 bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-3xl p-3 md:p-8 backdrop-blur-md flex flex-col items-center justify-center text-center">
+                <div className="w-8 h-8 md:w-16 md:h-16 bg-amber-500/20 rounded-xl md:rounded-2xl flex items-center justify-center text-amber-500 mb-1 md:mb-4">
+                  <Coins size={20} className="md:w-8 md:h-8" />
                 </div>
-                <div className="text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{t('coins')}</div>
-                <div className="text-2xl md:text-4xl font-black text-white italic tracking-tighter leading-none">{coins}</div>
+                <div className="text-[7px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest mb-0.5">{t('coins')}</div>
+                <div className="text-xl md:text-3xl font-black text-white italic tracking-tighter leading-none">{coins}</div>
               </div>
-              <div className="bg-slate-900/40 border border-white/5 rounded-2xl md:rounded-3xl p-3 md:p-6 backdrop-blur-md grid grid-cols-2 gap-2 md:gap-3">
+              <div className="landscape:col-span-3 lg:col-span-3 bg-slate-900/40 border border-white/5 rounded-2xl md:rounded-3xl p-2 md:p-6 backdrop-blur-md grid grid-cols-2 landscape:grid-cols-3 lg:grid-cols-3 gap-2 md:gap-3">
                 {Object.entries(tools || {}).map(([key, count]) => {
                   const Icon = key === 'bomb' ? Zap : key === 'swap' ? AlignLeft : key === 'row' ? MoveHorizontal : key === 'col' ? MoveVertical : Target;
                   const colorCls = key === 'bomb' ? 'text-orange-400' : key === 'swap' ? 'text-blue-400' : key === 'row' ? 'text-purple-400' : key === 'col' ? 'text-green-400' : 'text-red-400';
                   return (
-                    <div key={key} className="bg-slate-950/30 border border-white/5 p-2 md:p-4 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-4 group hover:border-white/10 transition-all">
-                      <div className={`w-8 h-8 md:w-10 md:h-10 bg-white/5 rounded-lg md:rounded-xl flex items-center justify-center ${colorCls} border border-white/5 group-hover:scale-110 transition-transform`}>
-                        <Icon size={14} className="md:w-[18px] md:h-[18px]" />
+                    <div key={key} className="bg-slate-950/30 border border-white/5 p-1.5 md:p-4 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-4 group hover:border-white/10 transition-all">
+                      <div className={`w-7 h-7 md:w-10 md:h-10 bg-white/5 rounded-lg md:rounded-xl flex items-center justify-center ${colorCls} border border-white/5 group-hover:scale-110 transition-transform`}>
+                        <Icon size={12} className="md:w-[18px] md:h-[18px]" />
                       </div>
                       <div className="min-w-0">
-                        <div className="text-[7px] md:text-[8px] font-black text-slate-500 uppercase leading-none mb-0.5 md:mb-1 truncate">{key}</div>
-                        <div className="text-sm md:text-xl font-black text-white italic leading-none">{count}</div>
+                        <div className="text-[6px] md:text-[8px] font-black text-slate-500 uppercase leading-none mb-0.5 truncate">{key}</div>
+                        <div className="text-xs md:text-lg font-black text-white italic leading-none">{count}</div>
                       </div>
                     </div>
                   );
@@ -494,15 +555,7 @@ const Dashboard = ({
               </div>
             </div>
 
-            <div className="mt-4 md:mt-8 mb-4 flex justify-center w-full shrink-0">
-              <button
-                onClick={() => setView('shop')}
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black py-3 md:py-4 rounded-xl md:rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.2)] transition-all active:scale-95 uppercase tracking-widest text-[9px] md:text-[10px] hover:from-emerald-400 hover:to-teal-500 flex items-center justify-center gap-2"
-              >
-                <ShoppingBag size={14} className="md:w-4 md:h-4" />
-                {t('market') || 'Market'} EKRANINDAN ARAÇ SATIN AL
-              </button>
-            </div>
+
           </div>
         );
 
@@ -527,49 +580,49 @@ const Dashboard = ({
       case 'settings':
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto">
-            <div className="flex items-center gap-4 mb-8">
+            <div className="flex items-center gap-4 mb-4 landscape:mb-3 md:mb-8">
               <button
                 onClick={() => setView('modes')}
-                className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
+                className="p-2 landscape:p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
               >
-                <X size={24} />
+                <X size={20} className="md:w-6 md:h-6" />
               </button>
-              <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">{t('settings')}</h2>
+              <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase">{t('settings')}</h2>
             </div>
-            <div className="bg-slate-900/40 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-md space-y-8 shadow-2xl">
-              <div className="space-y-4">
-                <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] font-inter">SES VE MÜZİK</div>
+            <div className="bg-slate-900/40 border border-white/5 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] p-4 landscape:p-3 md:p-8 backdrop-blur-md space-y-4 landscape:space-y-3 md:space-y-8 shadow-2xl">
+              <div className="space-y-2 landscape:space-y-1.5 md:space-y-4">
+                <div className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] font-inter">{t('sound_music') || (language === 'tr' ? 'SES VE MÜZİK' : 'SOUND & MUSIC')}</div>
                 <button
                   onClick={toggleMute}
-                  className="w-full flex items-center justify-between p-6 bg-slate-800/50 rounded-2xl border border-white/5 hover:bg-slate-800 transition-all group"
+                  className="w-full flex items-center justify-between p-3 landscape:p-2.5 md:p-6 bg-slate-800/50 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5 hover:bg-slate-800 transition-all group"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-xl ${isMuted ? 'bg-rose-500/20 text-rose-400' : 'bg-sky-500/20 text-sky-400'} group-hover:scale-110 transition-transform`}>
-                      {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+                  <div className="flex items-center gap-3 landscape:gap-2 md:gap-4">
+                    <div className={`p-2 landscape:p-1.5 md:p-3 rounded-lg landscape:rounded-md md:rounded-xl ${isMuted ? 'bg-rose-500/20 text-rose-400' : 'bg-sky-500/20 text-sky-400'} group-hover:scale-110 transition-transform`}>
+                      {isMuted ? <VolumeX size={18} className="landscape:w-4 landscape:h-4 md:w-6 md:h-6" /> : <Volume2 size={18} className="landscape:w-4 landscape:h-4 md:w-6 md:h-6" />}
                     </div>
-                    <span className="text-lg font-bold text-white">{isMuted ? 'Sesler Kapalı' : 'Sesler Açık'}</span>
+                    <span className="text-sm landscape:text-xs md:text-lg font-bold text-white">{isMuted ? (language === 'tr' ? 'Sesler Kapalı' : 'Sounds Off') : (language === 'tr' ? 'Sesler Açık' : 'Sounds On')}</span>
                   </div>
-                  <div className={`w-14 h-7 rounded-full relative transition-colors ${isMuted ? 'bg-slate-700' : 'bg-sky-500'}`}>
-                    <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${isMuted ? 'left-1' : 'left-8'}`} />
+                  <div className={`w-11 h-6 landscape:w-9 landscape:h-5 md:w-14 md:h-7 rounded-full relative transition-colors ${isMuted ? 'bg-slate-700' : 'bg-sky-500'}`}>
+                    <div className={`absolute top-0.5 landscape:top-0.5 md:top-1 w-5 h-5 landscape:w-4 landscape:h-4 md:w-5 md:h-5 rounded-full bg-white transition-all ${isMuted ? 'left-0.5' : 'left-5 landscape:left-4 md:left-8'}`} />
                   </div>
                 </button>
               </div>
 
-              <div className="space-y-4">
-                <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] font-inter">ZORLUK SEVİYESİ</div>
-                <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-2 landscape:space-y-1.5 md:space-y-4">
+                <div className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] font-inter">{t('difficulty_level') || (language === 'tr' ? 'ZORLUK SEVİYESİ' : 'DIFFICULTY LEVEL')}</div>
+                <div className="grid grid-cols-3 gap-2 landscape:gap-1.5 md:gap-3">
                   {['easy', 'normal', 'pro'].map(d => (
                     <button
                       key={d}
                       onClick={() => changeDifficulty(d)}
                       className={`
-                        py-5 rounded-2xl text-xs font-black uppercase transition-all border
+                        py-3 landscape:py-2 md:py-5 rounded-xl landscape:rounded-lg md:rounded-2xl text-[10px] landscape:text-[9px] md:text-xs font-black uppercase transition-all border
                         ${difficulty === d
                           ? 'bg-orange-500 border-orange-400 text-white shadow-xl shadow-orange-500/20'
                           : 'bg-slate-800/50 border-white/5 text-slate-400 hover:bg-slate-800'}
                       `}
                     >
-                      {d === 'easy' ? 'Kolay' : d === 'normal' ? 'Normal' : 'Profesör'}
+                      {d === 'easy' ? (language === 'tr' ? 'Kolay' : 'Easy') : d === 'normal' ? 'Normal' : (language === 'tr' ? 'Profesör' : 'Pro')}
                     </button>
                   ))}
                 </div>
@@ -582,28 +635,21 @@ const Dashboard = ({
         console.log('--- RENDERING SHOP VIEW ---');
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto flex flex-col h-full max-h-[85vh]">
-            <div className="flex items-center gap-4 mb-4 md:mb-6 shrink-0 pt-2 md:pt-0">
-              <button onClick={() => setView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
-                <X size={20} className="md:w-6 md:h-6" />
-              </button>
-              <div>
-                <h2 className="text-xl md:text-3xl font-black bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent italic tracking-tighter uppercase leading-none">{t('market') || 'MARKET'}</h2>
-                <p className="text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] font-inter mt-1">GÜÇ VEYA ARAÇ SATIN AL</p>
+            <div className="flex items-center justify-between mb-4 md:mb-6 shrink-0 pt-2 md:pt-0">
+              <div className="flex items-center gap-4 min-w-0">
+                <button onClick={() => setView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
+                  <X size={20} className="md:w-6 md:h-6" />
+                </button>
+                <h2 className="text-xl md:text-3xl font-black bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent italic tracking-tighter uppercase leading-none pr-2">{t('market')}</h2>
+              </div>
+              <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-1.5 md:px-4 md:py-2 shadow-inner">
+                <Coins className="text-amber-500" size={14} />
+                <div className="text-sm md:text-lg font-black text-white tracking-tight leading-none">{coins}</div>
+                <span className="text-[7px] md:text-[9px] text-amber-500 font-black uppercase">{t('gold')}</span>
               </div>
             </div>
 
-            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 backdrop-blur-md flex-1 overflow-y-auto no-scrollbar flex flex-col">
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-3xl p-4 flex items-center justify-between shadow-inner w-full max-w-sm mx-auto mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
-                    <Coins className="text-amber-500" size={20} />
-                  </div>
-                  <div>
-                    <div className="text-[9px] font-black text-amber-500 uppercase tracking-widest">Mevcut Bakiye</div>
-                    <div className="text-xl font-black text-white tracking-tight leading-none mt-0.5">{coins} <span className="text-xs text-amber-500 font-bold ml-1">ALTIN</span></div>
-                  </div>
-                </div>
-              </div>
+            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 backdrop-blur-md flex-1 overflow-y-auto no-scrollbar flex flex-col landscape:pb-20">
               <ShopView t={t} coins={coins} tools={tools} buyTool={buyTool} />
             </div>
           </div>
@@ -613,42 +659,42 @@ const Dashboard = ({
         console.log('--- RENDERING DAILY VIEW ---');
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full flex flex-col items-center justify-center p-2">
-            <div className="w-full text-center p-4 md:p-8 bg-slate-900/60 border border-amber-500/30 rounded-2xl md:rounded-[3rem] shadow-[0_0_100px_rgba(245,158,11,0.1)] relative overflow-hidden max-h-full overflow-y-auto no-scrollbar">
+            <div className="w-full text-center p-4 md:p-8 landscape:p-3 bg-slate-900/60 border border-amber-500/30 rounded-2xl md:rounded-[3rem] shadow-[0_0_100px_rgba(245,158,11,0.1)] relative overflow-hidden max-h-full overflow-y-auto no-scrollbar">
               <button onClick={() => setView('modes')} className="absolute top-4 left-4 md:top-8 md:left-8 p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
                 <X size={20} className="md:w-6 md:h-6" />
               </button>
-              <h2 className="text-xl md:text-4xl font-black text-white italic tracking-tighter mb-4 md:mb-10 bg-gradient-to-r from-amber-400 to-orange-600 bg-clip-text text-transparent uppercase leading-tight">{t('daily_reward_title')}</h2>
+              <h2 className="text-lg landscape:text-base md:text-4xl font-black text-white italic tracking-tighter mb-3 landscape:mb-2 md:mb-10 bg-gradient-to-r from-amber-400 to-orange-600 bg-clip-text text-transparent uppercase leading-tight">{t('daily_reward_title')}</h2>
 
-              <div className="flex justify-center flex-wrap gap-1.5 md:gap-4 mb-4 md:mb-12">
+              <div className="flex justify-center flex-wrap gap-1.5 md:gap-4 landscape:gap-1 mb-3 landscape:mb-2 md:mb-12">
                 {STREAK_REWARDS.map((reward, i) => {
                   const currentDayIndex = streakCount % 7;
                   const isDone = i < currentDayIndex;
                   const isToday = i === currentDayIndex;
                   return (
                     <div key={i} className={`
-                        w-10 h-14 md:w-20 md:h-24 rounded-lg md:rounded-2xl border flex flex-col items-center justify-center transition-all duration-500 relative
+                        w-10 h-14 landscape:w-9 landscape:h-10 md:w-20 md:h-24 rounded-lg md:rounded-2xl border flex flex-col items-center justify-center transition-all duration-500 relative
                         ${isDone ? 'bg-green-500/10 border-green-500/40 text-green-500' :
                         isToday ? 'bg-amber-500/20 border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.3)] scale-110 z-10 text-amber-500' :
                           'bg-slate-800/40 border-white/5 text-slate-600'}
                       `}>
-                      <span className="text-[6px] md:text-[10px] font-black opacity-60 mb-1 md:mb-2 uppercase tracking-widest leading-none">{language === 'tr' ? 'GÜN' : 'DAY'} {i + 1}</span>
-                      {isDone ? <CheckCircle2 size={14} className="md:w-6 md:h-6" /> : React.cloneElement(reward.icon, { size: 14, className: 'md:w-6 md:h-6' })}
+                      <span className="text-[6px] landscape:text-[5px] md:text-[10px] font-black opacity-60 mb-0.5 landscape:mb-0 md:mb-2 uppercase tracking-widest leading-none">{language === 'tr' ? 'GÜN' : 'DAY'} {i + 1}</span>
+                      {isDone ? <CheckCircle2 size={12} className="landscape:w-3 landscape:h-3 md:w-6 md:h-6" /> : React.cloneElement(reward.icon, { size: 12, className: 'landscape:w-3 landscape:h-3 md:w-6 md:h-6' })}
                       {isToday && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 md:w-4 md:h-4 bg-amber-500 rounded-full animate-ping" />}
                     </div>
                   );
                 })}
               </div>
 
-              <div className="bg-slate-950/50 border border-white/5 rounded-xl md:rounded-[2.5rem] p-4 md:p-10 mb-4 md:mb-10 inline-block min-w-full md:min-w-[320px]">
+              <div className="bg-slate-950/50 border border-white/5 rounded-xl md:rounded-[2.5rem] p-3 landscape:p-2 md:p-10 mb-3 landscape:mb-2 md:mb-10 inline-block min-w-full md:min-w-[320px]">
                 <p className="text-slate-500 text-[8px] md:text-xs font-black uppercase tracking-[0.3em] md:tracking-[0.4em] mb-1 md:mb-4 leading-none">{t('today_reward')}</p>
-                <div className="text-xl md:text-5xl font-black text-white italic tracking-tighter mb-1 md:mb-3 animate-pulse leading-none">{dailyReward?.text}</div>
+                <div className="text-lg landscape:text-base md:text-5xl font-black text-white italic tracking-tighter mb-1 md:mb-3 animate-pulse leading-none">{dailyReward?.text}</div>
                 <div className="text-amber-500 font-bold text-[8px] md:text-sm tracking-widest uppercase opacity-80 leading-none">{t('streak_day', { day: streakCount + 1 })}</div>
               </div>
 
               <div className="w-full flex justify-center px-4">
                 <button
                   onClick={() => { claimGift(); setView('modes'); }}
-                  className="w-full max-w-md py-3 md:py-6 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-xl md:rounded-2xl transition-all active:scale-95 shadow-2xl shadow-amber-500/30 tracking-widest uppercase italic text-sm md:text-xl"
+                  className="w-full max-w-md py-2.5 landscape:py-2 md:py-6 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-xl md:rounded-2xl transition-all active:scale-95 shadow-2xl shadow-amber-500/30 tracking-widest uppercase italic text-xs landscape:text-xs md:text-xl"
                 >
                   {t('claim_reward')}
                 </button>
@@ -660,78 +706,80 @@ const Dashboard = ({
       case 'profile':
         console.log('--- RENDERING PROFILE VIEW ---');
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-20 px-4">
-            <div className="flex items-center gap-4 mb-8">
-              <button onClick={() => setView('modes')} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
-                <X size={24} />
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-20 landscape:pb-16 px-4 landscape:px-3">
+            <div className="flex items-center gap-4 mb-4 landscape:mb-3 md:mb-8">
+              <button onClick={() => setView('modes')} className="p-2 landscape:p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
+                <X size={20} className="md:w-6 md:h-6" />
               </button>
-              <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">{t('profile')}</h2>
+              <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase">{t('profile')}</h2>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-1 space-y-6">
-                <div className="bg-slate-900/60 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-md flex flex-col items-center text-center">
-                  <div className="relative mb-6 group">
-                    <div className="w-32 h-32 bg-gradient-to-br from-sky-500 to-purple-600 rounded-[2.5rem] flex items-center justify-center text-white shadow-2xl overflow-hidden">
-                      <User size={64} />
+            <div className="grid grid-cols-1 landscape:grid-cols-[auto_1fr] lg:grid-cols-3 gap-4 landscape:gap-3 md:gap-6">
+              <div className="lg:col-span-1 space-y-3 landscape:space-y-2 md:space-y-6">
+                <div className="bg-slate-900/60 border border-white/5 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] p-4 landscape:p-3 md:p-8 backdrop-blur-md flex flex-col landscape:flex-row items-center text-center landscape:text-left landscape:gap-3">
+                  <div className="relative mb-3 landscape:mb-0 group shrink-0">
+                    <div className="w-20 h-20 landscape:w-14 landscape:h-14 md:w-32 md:h-32 bg-gradient-to-br from-sky-500 to-purple-600 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] flex items-center justify-center text-white shadow-2xl overflow-hidden">
+                      <User size={36} className="landscape:w-7 landscape:h-7 md:w-16 md:h-16" />
                     </div>
-                    <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-amber-500 rounded-full border-4 border-slate-900 flex items-center justify-center text-slate-950 font-black text-xs shadow-lg">
+                    <div className="absolute -bottom-1 -right-1 landscape:-bottom-0.5 landscape:-right-0.5 w-7 h-7 landscape:w-5 landscape:h-5 md:w-10 md:h-10 bg-amber-500 rounded-full border-2 landscape:border-2 md:border-4 border-slate-900 flex items-center justify-center text-slate-950 font-black text-[9px] landscape:text-[7px] md:text-xs shadow-lg">
                       {currentLevel + 1}
                     </div>
                   </div>
-                  <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-1">{user?.user_metadata?.username || user?.email?.split('@')[0] || t('player')}</h3>
-                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">{user?.created_at ? `${t('member_since')}: ${new Date(user.created_at).toLocaleDateString()}` : t('member_since_guest')}</p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg landscape:text-sm md:text-2xl font-black text-white italic tracking-tighter uppercase mb-0.5 truncate">{user?.user_metadata?.username || user?.email?.split('@')[0] || t('player')}</h3>
+                    <p className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 landscape:mb-2 md:mb-6">{user?.created_at ? `${t('member_since')}: ${new Date(user.created_at).toLocaleDateString()}` : t('member_since_guest')}</p>
 
-                  {user ? (
-                    <button onClick={() => AuthService.signOut()} className="w-full py-4 bg-white/5 hover:bg-red-500/10 hover:border-red-500/30 border border-white/5 rounded-2xl text-xs font-black text-slate-400 hover:text-red-400 transition-all uppercase tracking-widest italic">
-                      {t('logout')}
-                    </button>
-                  ) : (
-                    <button onClick={onOpenAuth} className="w-full py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black rounded-2xl transition-all uppercase tracking-widest italic">
-                      {t('signin_button')}
-                    </button>
-                  )}
+                    {user ? (
+                      <button onClick={() => AuthService.signOut()} className="w-full py-2.5 landscape:py-1.5 md:py-4 bg-white/5 hover:bg-red-500/10 hover:border-red-500/30 border border-white/5 rounded-xl landscape:rounded-lg md:rounded-2xl text-[10px] landscape:text-[9px] md:text-xs font-black text-slate-400 hover:text-red-400 transition-all uppercase tracking-widest italic">
+                        {t('logout')}
+                      </button>
+                    ) : (
+                      <button onClick={onOpenAuth} className="w-full py-2.5 landscape:py-1.5 md:py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black rounded-xl landscape:rounded-lg md:rounded-2xl transition-all uppercase tracking-widest italic text-[10px] landscape:text-[9px] md:text-sm">
+                        {t('signin_button')}
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                <div className="bg-slate-900/40 border border-white/5 rounded-3xl p-6 backdrop-blur-md">
-                  <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 text-center">{t('level_progress')}</div>
-                  <div className="w-full h-3 bg-slate-950 rounded-full overflow-hidden border border-white/5">
+                <div className="bg-slate-900/40 border border-white/5 rounded-2xl landscape:rounded-xl md:rounded-3xl p-4 landscape:p-2.5 md:p-6 backdrop-blur-md">
+                  <div className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 landscape:mb-1.5 md:mb-4 text-center">{t('level_progress')}</div>
+                  <div className="w-full h-2 landscape:h-1.5 md:h-3 bg-slate-950 rounded-full overflow-hidden border border-white/5">
                     <div
                       className="h-full bg-gradient-to-r from-sky-500 to-purple-600 transition-all duration-1000"
                       style={{ width: `${Math.min(100, (currentLevel / (levels.length || 1)) * 100)}%` }}
                     />
                   </div>
-                  <div className="flex justify-between mt-2">
-                    <span className="text-[10px] font-black text-sky-500 italic">Lvl {currentLevel}</span>
-                    <span className="text-[10px] font-black text-slate-600 italic">Total {levels.length}</span>
+                  <div className="flex justify-between mt-1.5 landscape:mt-1">
+                    <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-sky-500 italic">Lvl {currentLevel}</span>
+                    <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-600 italic">Total {levels.length}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="lg:col-span-2 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="lg:col-span-2 space-y-3 landscape:space-y-2 md:space-y-6">
+                <div className="grid grid-cols-2 landscape:grid-cols-4 gap-2 landscape:gap-1.5 md:gap-4">
                   {[
-                    { label: t('total_score'), value: totalScore, icon: <Trophy size={20} />, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-                    { label: t('high_score'), value: highScore, icon: <Zap size={20} />, color: 'text-orange-500', bg: 'bg-orange-500/10' },
-                    { label: t('words_found'), value: wordsFoundCount, icon: <AlignLeft size={20} />, color: 'text-sky-500', bg: 'bg-sky-500/10' },
-                    { label: t('games_played'), value: gamesPlayed, icon: <Gamepad2 size={20} />, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+                    { label: t('total_score'), value: totalScore, icon: <Trophy size={16} className="landscape:w-4 landscape:h-4 md:w-5 md:h-5" />, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+                    { label: t('high_score'), value: highScore, icon: <Zap size={16} className="landscape:w-4 landscape:h-4 md:w-5 md:h-5" />, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+                    { label: t('words_found'), value: wordsFoundCount, icon: <AlignLeft size={16} className="landscape:w-4 landscape:h-4 md:w-5 md:h-5" />, color: 'text-sky-500', bg: 'bg-sky-500/10' },
+                    { label: t('games_played'), value: gamesPlayed, icon: <Gamepad2 size={16} className="landscape:w-4 landscape:h-4 md:w-5 md:h-5" />, color: 'text-purple-500', bg: 'bg-purple-500/10' },
                   ].map((stat, i) => (
-                    <div key={i} className="bg-slate-900/60 border border-white/5 rounded-[2rem] p-6 backdrop-blur-md flex flex-col items-center justify-center text-center group hover:border-white/20 transition-all">
-                      <div className={`w-12 h-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                    <div key={i} className="bg-slate-900/60 border border-white/5 rounded-xl landscape:rounded-lg md:rounded-[2rem] p-3 landscape:p-2 md:p-6 backdrop-blur-md flex flex-col items-center justify-center text-center group hover:border-white/20 transition-all">
+                      <div className={`w-8 h-8 landscape:w-7 landscape:h-7 md:w-12 md:h-12 ${stat.bg} ${stat.color} rounded-lg landscape:rounded-md md:rounded-2xl flex items-center justify-center mb-2 landscape:mb-1 md:mb-4 group-hover:scale-110 transition-transform`}>
                         {stat.icon}
                       </div>
-                      <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{stat.label}</div>
-                      <div className="text-3xl font-black text-white italic tracking-tighter leading-none">{stat.value?.toLocaleString()}</div>
+                      <div className="text-[8px] landscape:text-[7px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest mb-0.5">{stat.label}</div>
+                      <div className="text-lg landscape:text-base md:text-3xl font-black text-white italic tracking-tighter leading-none">{stat.value?.toLocaleString()}</div>
                     </div>
                   ))}
                 </div>
 
-                <div className="bg-slate-900/40 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-md">
-                  <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-6 font-inter">{t('achievements')}</div>
-                  <div className="flex flex-wrap gap-4">
+                <div className="bg-slate-900/40 border border-white/5 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] p-4 landscape:p-2.5 md:p-8 backdrop-blur-md">
+                  <div className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3 landscape:mb-2 md:mb-6 font-inter">{t('achievements')}</div>
+                  <div className="flex flex-wrap gap-2 landscape:gap-1.5 md:gap-4">
                     {[1, 2, 3, 4, 5].map(i => (
-                      <div key={i} className="w-16 h-16 bg-slate-950/50 border border-white/5 rounded-2xl flex items-center justify-center text-slate-700 opacity-40 grayscale group hover:opacity-100 transition-all">
-                        <Award size={32} />
+                      <div key={i} className="w-10 h-10 landscape:w-8 landscape:h-8 md:w-16 md:h-16 bg-slate-950/50 border border-white/5 rounded-xl landscape:rounded-lg md:rounded-2xl flex items-center justify-center text-slate-700 opacity-40 grayscale group hover:opacity-100 transition-all">
+                        <Award size={20} className="landscape:w-4 landscape:h-4 md:w-8 md:h-8" />
                       </div>
                     ))}
                   </div>
@@ -754,23 +802,23 @@ const Dashboard = ({
                   if (energy > 0) { setSelectedLevelIdx(null); setView('pregame'); }
                   else { setLockReason('energy'); setShowMissionLock(true); }
                 }}
-                className="relative w-[85vw] max-w-[280px] h-[65vh] landscape:h-[70vh] lg:h-[55vh] max-h-[320px] landscape:max-h-[240px] shrink-0 rounded-[2rem] border border-white/10 overflow-hidden transition-all active:scale-95 group shadow-2xl snap-center flex flex-col items-center justify-center p-4 landscape:p-3 text-center gap-3 landscape:gap-2"
+                className="relative w-[85vw] max-w-[280px] landscape:max-w-[240px] h-[65vh] landscape:h-auto lg:h-[55vh] max-h-[320px] landscape:max-h-[180px] shrink-0 rounded-[2rem] landscape:rounded-xl border border-white/10 overflow-hidden transition-all active:scale-95 group shadow-2xl snap-center flex flex-col items-center justify-center p-4 landscape:p-2.5 text-center gap-2 landscape:gap-1.5"
                 style={{ background: 'linear-gradient(225deg, #0f172a 0%, #020617 100%)' }}
               >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-sky-500/20 to-transparent pointer-events-none" />
 
-                <div className="relative z-10 w-10 h-10 bg-sky-500/10 rounded-xl border border-sky-400/20 flex items-center justify-center text-sky-400 shrink-0">
-                  <History className="w-5 h-5" />
+                <div className="relative z-10 w-10 h-10 landscape:w-8 landscape:h-8 bg-sky-500/10 rounded-xl border border-sky-400/20 flex items-center justify-center text-sky-400 shrink-0">
+                  <History className="w-5 h-5 landscape:w-4 landscape:h-4" />
                 </div>
 
                 <div className="relative z-10 flex flex-col items-center gap-0.5">
-                  <h3 className="text-lg landscape:text-xl lg:text-3xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg leading-tight">{t('arcade')}</h3>
-                  <p className="text-sky-400/80 text-[9px] lg:text-xs font-black uppercase tracking-[0.1em] leading-tight max-w-[160px] opacity-90">{t('arcade_desc')}</p>
+                  <h3 className="text-lg landscape:text-base lg:text-3xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg leading-tight">{t('arcade')}</h3>
+                  <p className="text-sky-400/80 text-[9px] landscape:text-[8px] lg:text-xs font-black uppercase tracking-[0.1em] leading-tight max-w-[160px] opacity-90">{t('arcade_desc')}</p>
                 </div>
 
-                <div className="relative z-10 bg-sky-500 text-slate-950 px-5 py-1.5 rounded-full font-black text-[9px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-[0_8px_20px_rgba(14,165,233,0.3)] shrink-0 mt-1">
-                  <Play size={9} fill="currentColor" /> {t('play') || 'OYNA'}
+                <div className="relative z-10 bg-sky-500 text-slate-950 px-4 landscape:px-3 py-1.5 landscape:py-1 rounded-full font-black text-[9px] landscape:text-[8px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-[0_8px_20px_rgba(14,165,233,0.3)] shrink-0">
+                  <Play size={9} fill="currentColor" /> {t('play')}
                 </div>
               </button>
 
@@ -781,23 +829,23 @@ const Dashboard = ({
                   else if (energy <= 0) { setLockReason('energy'); setShowMissionLock(true); }
                   else setView('levels');
                 }}
-                className="relative w-[85vw] max-w-[280px] h-[65vh] landscape:h-[70vh] lg:h-[55vh] max-h-[320px] landscape:max-h-[240px] shrink-0 rounded-[2rem] border border-white/10 overflow-hidden transition-all active:scale-95 group shadow-2xl snap-center flex flex-col items-center justify-center p-4 landscape:p-3 text-center gap-3 landscape:gap-2"
+                className="relative w-[85vw] max-w-[280px] landscape:max-w-[240px] h-[65vh] landscape:h-auto lg:h-[55vh] max-h-[320px] landscape:max-h-[180px] shrink-0 rounded-[2rem] landscape:rounded-xl border border-white/10 overflow-hidden transition-all active:scale-95 group shadow-2xl snap-center flex flex-col items-center justify-center p-4 landscape:p-2.5 text-center gap-2 landscape:gap-1.5"
                 style={{ background: 'linear-gradient(225deg, #1e0d08 0%, #0c0502 100%)' }}
               >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-orange-500/20 to-transparent pointer-events-none" />
 
-                <div className="relative z-10 w-10 h-10 bg-orange-500/10 rounded-xl border border-orange-400/20 flex items-center justify-center text-orange-400 shrink-0">
-                  <Trophy className="w-5 h-5" />
+                <div className="relative z-10 w-10 h-10 landscape:w-8 landscape:h-8 bg-orange-500/10 rounded-xl border border-orange-400/20 flex items-center justify-center text-orange-400 shrink-0">
+                  <Trophy className="w-5 h-5 landscape:w-4 landscape:h-4" />
                 </div>
 
                 <div className="relative z-10 flex flex-col items-center gap-0.5">
-                  <h3 className="text-lg landscape:text-xl lg:text-3xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg leading-tight">{t('mission')}</h3>
-                  <p className="text-orange-400/80 text-[9px] lg:text-xs font-black uppercase tracking-[0.1em] leading-tight max-w-[180px] opacity-90">{t('mission_desc')}</p>
+                  <h3 className="text-lg landscape:text-base lg:text-3xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg leading-tight">{t('mission')}</h3>
+                  <p className="text-orange-400/80 text-[9px] landscape:text-[8px] lg:text-xs font-black uppercase tracking-[0.1em] leading-tight max-w-[180px] opacity-90">{t('mission_desc')}</p>
                 </div>
 
-                <div className="relative z-10 bg-orange-500 text-slate-950 px-5 py-1.5 rounded-full font-black text-[9px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-[0_8px_20px_rgba(249,115,22,0.3)] shrink-0 mt-1">
-                  {user ? <Play size={9} fill="currentColor" /> : <Lock size={9} />} {user ? (t('play') || 'OYNA') : (t('login') || 'GİRİŞ')}
+                <div className="relative z-10 bg-orange-500 text-slate-950 px-4 landscape:px-3 py-1.5 landscape:py-1 rounded-full font-black text-[9px] landscape:text-[8px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-[0_8px_20px_rgba(249,115,22,0.3)] shrink-0">
+                  {user ? <Play size={9} fill="currentColor" /> : <Lock size={9} />} {user ? t('play') : t('login')}
                 </div>
               </button>
 
@@ -808,23 +856,23 @@ const Dashboard = ({
                   else if (energy <= 0) { setLockReason('energy'); setShowMissionLock(true); }
                   else onSelectZen();
                 }}
-                className="relative w-[85vw] max-w-[280px] h-[65vh] landscape:h-[70vh] lg:h-[55vh] max-h-[320px] landscape:max-h-[240px] shrink-0 rounded-[2rem] border border-white/10 overflow-hidden transition-all active:scale-95 group shadow-2xl snap-center flex flex-col items-center justify-center p-4 landscape:p-3 text-center gap-3 landscape:gap-2"
+                className="relative w-[85vw] max-w-[280px] landscape:max-w-[240px] h-[65vh] landscape:h-auto lg:h-[55vh] max-h-[320px] landscape:max-h-[180px] shrink-0 rounded-[2rem] landscape:rounded-xl border border-white/10 overflow-hidden transition-all active:scale-95 group shadow-2xl snap-center flex flex-col items-center justify-center p-4 landscape:p-2.5 text-center gap-2 landscape:gap-1.5"
                 style={{ background: 'linear-gradient(225deg, #061c12 0%, #020806 100%)' }}
               >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-emerald-500/20 to-transparent pointer-events-none" />
 
-                <div className="relative z-10 w-10 h-10 bg-emerald-500/10 rounded-xl border border-emerald-400/20 flex items-center justify-center text-emerald-400 shrink-0">
-                  <Sparkles className="w-5 h-5" />
+                <div className="relative z-10 w-10 h-10 landscape:w-8 landscape:h-8 bg-emerald-500/10 rounded-xl border border-emerald-400/20 flex items-center justify-center text-emerald-400 shrink-0">
+                  <Sparkles className="w-5 h-5 landscape:w-4 landscape:h-4" />
                 </div>
 
                 <div className="relative z-10 flex flex-col items-center gap-0.5">
-                  <h3 className="text-lg landscape:text-xl lg:text-3xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg leading-tight">{t('zen_mode')}</h3>
-                  <p className="text-emerald-400/80 text-[10px] lg:text-xs font-black uppercase tracking-[0.1em] leading-tight max-w-[180px] opacity-90">{t('zen_desc')}</p>
+                  <h3 className="text-lg landscape:text-base lg:text-3xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg leading-tight">{t('zen_mode')}</h3>
+                  <p className="text-emerald-400/80 text-[10px] landscape:text-[8px] lg:text-xs font-black uppercase tracking-[0.1em] leading-tight max-w-[180px] opacity-90">{t('zen_desc')}</p>
                 </div>
 
-                <div className="relative z-10 bg-emerald-500 text-slate-950 px-5 py-1.5 rounded-full font-black text-[9px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-[0_8px_20px_rgba(16,185,129,0.3)] shrink-0 mt-1">
-                  {user ? <Play size={9} fill="currentColor" /> : <Lock size={9} />} {user ? (language === 'tr' ? 'RAHATLA' : 'RELAX') : (t('login') || 'GİRİŞ')}
+                <div className="relative z-10 bg-emerald-500 text-slate-950 px-4 landscape:px-3 py-1.5 landscape:py-1 rounded-full font-black text-[9px] landscape:text-[8px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-[0_8px_20px_rgba(16,185,129,0.3)] shrink-0">
+                  {user ? <Play size={9} fill="currentColor" /> : <Lock size={9} />} {user ? (language === 'tr' ? 'RAHATLA' : 'RELAX') : t('login')}
                 </div>
               </button>
             </div>
@@ -1425,42 +1473,46 @@ const MissionTracker = ({ goals = [], t = (s) => s, language = 'tr', isCompact =
 
 const ShopView = ({ t = (s) => s, coins, tools, buyTool }) => {
   const items = [
-    { id: 'bomb', name: t('bomb'), desc: 'Seçili hücre ve etrafını patlatır', cost: 100, icon: <Zap size={20} className="text-amber-400 md:w-6 md:h-6" />, color: 'from-amber-500 to-orange-600' },
-    { id: 'row', name: t('row'), desc: 'Tüm yatay satırı temizler', cost: 150, icon: <MoveHorizontal size={20} className="text-rose-400 md:w-6 md:h-6" />, color: 'from-rose-500 to-pink-600' },
-    { id: 'col', name: t('col'), desc: 'Tüm dikey sütunu temizler', cost: 150, icon: <MoveVertical size={20} className="text-emerald-400 md:w-6 md:h-6" />, color: 'from-emerald-500 to-teal-600' },
-    { id: 'swap', name: t('swap'), desc: 'İki harfin yerini değiştirir', cost: 200, icon: <RefreshCw size={20} className="text-sky-400 md:w-6 md:h-6" />, color: 'from-sky-500 to-blue-600' },
-    { id: 'cell', name: t('cell'), desc: 'Tek bir harfi siler', cost: 50, icon: <Target size={20} className="text-purple-400 md:w-6 md:h-6" />, color: 'from-purple-500 to-violet-600' }
+    { id: 'bomb', name: t('bomb'), desc: t('bomb_desc') || 'Seçili hücre ve etrafını patlatır', cost: 100, icon: <Zap size={20} className="text-amber-400 md:w-6 md:h-6" />, color: 'from-amber-500 to-orange-600' },
+    { id: 'row', name: t('row'), desc: t('row_desc') || 'Tüm yatay satırı temizler', cost: 150, icon: <MoveHorizontal size={20} className="text-rose-400 md:w-6 md:h-6" />, color: 'from-rose-500 to-pink-600' },
+    { id: 'col', name: t('col'), desc: t('col_desc') || 'Tüm dikey sütunu temizler', cost: 150, icon: <MoveVertical size={20} className="text-emerald-400 md:w-6 md:h-6" />, color: 'from-emerald-500 to-teal-600' },
+    { id: 'swap', name: t('swap'), desc: t('swap_desc') || 'İki harfin yerini değiştirir', cost: 200, icon: <RefreshCw size={20} className="text-sky-400 md:w-6 md:h-6" />, color: 'from-sky-500 to-blue-600' },
+    { id: 'cell', name: t('cell'), desc: t('cell_desc') || 'Tek bir harfi siler', cost: 50, icon: <Target size={20} className="text-purple-400 md:w-6 md:h-6" />, color: 'from-purple-500 to-violet-600' }
   ];
 
   return (
-    <div className="flex-1 overflow-y-auto pr-1 no-scrollbar h-full max-h-[60vh] landscape:max-h-[50vh] lg:max-h-[70vh]">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3 pb-6">
+    <div className="flex-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-5 lg:grid-cols-3 gap-2 md:gap-4 pb-6">
         {items.map(item => {
           const canAfford = coins >= item.cost;
           return (
-            <div key={item.id} className="relative overflow-hidden bg-slate-900/40 border border-white/5 rounded-2xl md:rounded-3xl p-3 md:p-4 flex items-center gap-3 md:gap-4 transition-all group hover:border-white/10 shadow-lg">
-              <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center bg-slate-950/60 shadow-inner group-hover:scale-110 transition-transform shrink-0 border border-white/5`}>
-                {item.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-white font-black italic uppercase text-xs md:text-sm mb-0.5">{item.name}</h4>
-                <p className="text-[9px] md:text-[10px] text-slate-400 leading-tight pr-1 font-medium line-clamp-2 md:line-clamp-none">{item.desc}</p>
+            <div key={item.id} className="relative overflow-hidden bg-slate-900/40 border border-white/5 rounded-2xl md:rounded-3xl p-2 landscape:p-2.5 md:p-4 flex items-center landscape:flex-col lg:flex-row gap-2 md:gap-4 transition-all group hover:border-white/10 shadow-lg">
+              <div className="flex items-center gap-3 landscape:flex-col landscape:w-full">
+                <div className="relative shrink-0">
+                  <div className={`w-8 h-8 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center bg-slate-950/60 shadow-inner group-hover:scale-110 transition-transform border border-white/5`}>
+                    {React.cloneElement(item.icon, { size: 16, className: item.icon.props.className.replace('size={20}', '') })}
+                  </div>
+                  <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] md:min-w-[20px] md:h-[20px] bg-amber-500 rounded-full flex items-center justify-center border-2 border-slate-900 shadow-lg">
+                    <span className="text-[8px] md:text-[10px] font-black text-slate-950 leading-none">{tools?.[item.id] || 0}</span>
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0 landscape:w-full landscape:text-center">
+                  <h4 className="text-white font-black italic uppercase text-[10px] md:text-sm mb-0.5 truncate">{item.name}</h4>
+                  <p className="text-[8px] md:text-[10px] text-slate-400 leading-tight pr-1 font-medium line-clamp-1 md:line-clamp-none landscape:block lg:block">{item.desc}</p>
+                </div>
               </div>
 
-              <div className="flex flex-col items-center gap-1.5 md:gap-2 shrink-0">
-                <div className="bg-slate-950/60 px-1.5 py-0.5 md:px-2 md:py-1 rounded-lg text-[7px] md:text-[8px] font-black text-amber-500/80 uppercase tracking-widest border border-white/5 shadow-inner">
-                  {t('owned') || 'MEVCUT'}: {tools?.[item.id] || 0}
-                </div>
+              <div className="shrink-0 landscape:w-full landscape:mt-1">
                 <button
                   onClick={() => buyTool(item.id, item.cost)}
                   disabled={!canAfford}
-                  className={`flex flex-col items-center justify-center min-w-[70px] md:min-w-[80px] py-1.5 md:py-2 px-2 md:px-3 rounded-lg md:rounded-xl transition-all active:scale-95 border-2 ${canAfford ? 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 text-amber-500 shadow-lg' : 'bg-slate-800/50 border-transparent text-slate-500 cursor-not-allowed opacity-50'}`}
+                  className={`flex flex-col items-center justify-center w-full min-w-[60px] md:min-w-[80px] py-1 md:py-1.5 px-2 md:px-3 rounded-lg md:rounded-xl transition-all active:scale-95 border-2 ${canAfford ? 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 text-amber-500 shadow-lg' : 'bg-slate-800/50 border-transparent text-slate-500 cursor-not-allowed opacity-50'}`}
                 >
-                  <div className="flex items-center gap-1 md:gap-1.5">
-                    <span className="font-black text-[10px] md:text-xs italic">{item.cost}</span>
-                    <Coins size={9} className="text-amber-500 md:w-[10px] md:h-[10px]" />
+                  <div className="flex items-center gap-1">
+                    <span className="font-black text-[9px] md:text-xs italic">{item.cost}</span>
+                    <Coins size={8} className="text-amber-500" />
                   </div>
-                  <span className="text-[6px] md:text-[7px] uppercase font-black tracking-tighter opacity-70 group-hover:opacity-100">{t('buy') || 'SATIN AL'}</span>
+                  <span className="text-[5px] md:text-[7px] uppercase font-black tracking-tighter opacity-70 group-hover:opacity-100">{t('buy')}</span>
                 </button>
               </div>
             </div>
@@ -1737,16 +1789,16 @@ function App() {
       ) : (
         <>
           {/* Header */}
-          <header className="px-6 py-4 flex items-center justify-between border-b border-white/5 bg-slate-950/50 backdrop-blur-md shrink-0 gap-8">
+          <header className="px-4 landscape:px-3 md:px-6 py-2 landscape:py-1.5 md:py-4 flex items-center justify-between border-b border-white/5 bg-slate-950/50 backdrop-blur-md shrink-0 gap-4 landscape:gap-3 md:gap-8">
             <div className="flex items-center gap-4 shrink-0">
-              <div className="p-2 bg-gradient-to-br from-sky-500 to-purple-600 rounded-xl shadow-lg shadow-sky-500/20">
-                <LayoutGrid size={24} className="text-white" />
+              <div className="p-1.5 landscape:p-1 md:p-2 bg-gradient-to-br from-sky-500 to-purple-600 rounded-lg landscape:rounded-md md:rounded-xl shadow-lg shadow-sky-500/20">
+                <LayoutGrid size={18} className="landscape:w-4 landscape:h-4 md:w-6 md:h-6 text-white" />
               </div>
-              <div className="min-w-[140px]">
-                <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent italic uppercase leading-none mb-1">
+              <div className="min-w-[100px] landscape:min-w-[80px] md:min-w-[140px]">
+                <h1 className="text-lg landscape:text-base md:text-2xl font-black tracking-tight bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent italic uppercase leading-none mb-0.5 landscape:mb-0 md:mb-1">
                   {gameMode === 'mission' ? `${t('mission')} ${currentLevelIndex + 1}` : 'WORDLENGE'}
                 </h1>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate font-inter">
+                <p className="text-[9px] landscape:text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate font-inter">
                   {gameMode === 'mission' ? (typeof cloudLevels?.[currentLevelIndex]?.title === 'object' ? cloudLevels[currentLevelIndex].title[language] : cloudLevels?.[currentLevelIndex]?.title) : t('arcade')}
                 </p>
               </div>
@@ -1801,24 +1853,24 @@ function App() {
           </header>
 
           {/* Mobile Gameplay Stats Bar */}
-          <div className="md:hidden flex items-center justify-center gap-4 px-4 py-2 border-b border-white/5 bg-slate-950/30 backdrop-blur-sm shrink-0">
+          <div className="md:hidden flex items-center justify-center gap-3 landscape:gap-2 px-3 landscape:px-2 py-1.5 landscape:py-1 border-b border-white/5 bg-slate-950/30 backdrop-blur-sm shrink-0">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('score')}:</span>
-              <span className="text-sm font-black text-sky-400 tabular-nums">{score}</span>
+              <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('score')}:</span>
+              <span className="text-xs landscape:text-[10px] md:text-sm font-black text-sky-400 tabular-nums">{score}</span>
             </div>
             <div className="w-px h-3 bg-white/10" />
             <div className="flex items-center gap-2">
               {gameMode === 'arcade' && arcadeSubMode === 'time' ? (
                 <>
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('time_left')}:</span>
-                  <span className={`text-sm font-black tabular-nums ${timeLeft < 10 ? 'text-rose-500 animate-pulse' : 'text-amber-400'}`}>
+                  <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('time_left')}:</span>
+                  <span className={`text-xs landscape:text-[10px] md:text-sm font-black tabular-nums ${timeLeft < 10 ? 'text-rose-500 animate-pulse' : 'text-amber-400'}`}>
                     {timeLeft}s
                   </span>
                 </>
               ) : (
                 <>
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('moves')}:</span>
-                  <span className="text-sm font-black text-amber-400 tabular-nums">{moves}</span>
+                  <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('moves')}:</span>
+                  <span className="text-xs landscape:text-[10px] md:text-sm font-black text-amber-400 tabular-nums">{moves}</span>
                 </>
               )}
             </div>
@@ -1893,17 +1945,17 @@ function App() {
             <div className="flex-1 flex flex-col gap-2 md:gap-3 min-w-0 h-full">
               {/* Word Display Area - Mobile visible only */}
               <div className={`
-                md:hidden flex items-center justify-center px-4 py-2 rounded-xl backdrop-blur-3xl border-2 transition-all duration-500 mx-auto
+                md:hidden flex items-center justify-center px-3 landscape:px-2 py-1.5 landscape:py-1 rounded-lg landscape:rounded-md md:rounded-xl backdrop-blur-3xl border-2 transition-all duration-500 mx-auto
                 ${currentWord.length >= 3 ? 'bg-sky-500/10 border-sky-400/50' : 'bg-slate-900/40 border-white/5'}
               `}>
-                <span className={`text-lg font-black tracking-[0.3em] ${currentWord.length >= 3 ? 'text-white' : 'text-slate-500'}`}>
+                <span className={`text-base landscape:text-sm md:text-lg font-black tracking-[0.3em] ${currentWord.length >= 3 ? 'text-white' : 'text-slate-500'}`}>
                   {currentWord || '..........'}
                 </span>
               </div>
 
               <div className="flex-1 flex items-center justify-center min-h-0 relative">
                 <div className={`
-                  relative max-h-full w-full max-w-[min(100%,(72vh*11/9))] aspect-[11/9] bg-slate-950/40 rounded-xl md:rounded-3xl border-2 shadow-2xl overflow-hidden transition-all duration-300
+                  relative max-h-full w-full max-w-[min(100%,(78vh*11/9))] aspect-[11/9] bg-slate-950/40 rounded-xl md:rounded-3xl border-2 shadow-2xl overflow-hidden transition-all duration-300
                   ${activeTool ? 'border-purple-500 ring-[8px] ring-purple-500/10' : 'border-white/5'}
                 `}>
                   {gameMode === 'zen' && <ZenGarden gardenState={gardenState} />}
@@ -1920,15 +1972,15 @@ function App() {
 
                   {/* Victory Overlay (Only for Victory) */}
                   {gameState === 'victory' && (
-                    <div className="absolute inset-0 z-[300] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-8 text-center animate-in fade-in zoom-in duration-500">
+                    <div className="absolute inset-0 z-[300] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 landscape:p-3 md:p-8 text-center animate-in fade-in zoom-in duration-500">
                       <div className="max-w-xs w-full">
-                        <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border bg-green-500/20 border-green-400 text-green-400">
-                          <Award size={40} />
+                        <div className="w-14 h-14 landscape:w-12 landscape:h-12 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-3 landscape:mb-2 md:mb-6 border bg-green-500/20 border-green-400 text-green-400">
+                          <Award size={28} className="landscape:w-6 landscape:h-6 md:w-10 md:h-10" />
                         </div>
-                        <h2 className="text-4xl font-black text-white italic tracking-tighter mb-2 uppercase">{t('victory')}</h2>
-                        <p className="text-emerald-500 text-[10px] font-black uppercase tracking-widest mb-6 italic">{t('mission_success')}</p>
-                        <button onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)} className="w-full py-4 bg-emerald-500 text-white font-black rounded-2xl mb-2 hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20">{t('continue')}</button>
-                        <button onClick={() => setShowDashboard(true)} className="w-full py-4 bg-white/5 text-slate-400 font-black rounded-2xl hover:bg-white/10 transition-all">{t('main_menu')}</button>
+                        <h2 className="text-2xl landscape:text-xl md:text-4xl font-black text-white italic tracking-tighter mb-1 landscape:mb-0.5 md:mb-2 uppercase">{t('victory')}</h2>
+                        <p className="text-emerald-500 text-[9px] landscape:text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 landscape:mb-2 md:mb-6 italic">{t('mission_success')}</p>
+                        <button onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)} className="w-full py-3 landscape:py-2 md:py-4 bg-emerald-500 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl mb-2 landscape:mb-1 hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 text-sm landscape:text-xs md:text-base">{t('continue')}</button>
+                        <button onClick={() => setShowDashboard(true)} className="w-full py-3 landscape:py-2 md:py-4 bg-white/5 text-slate-400 font-black rounded-xl landscape:rounded-lg md:rounded-2xl hover:bg-white/10 transition-all text-sm landscape:text-xs md:text-base">{t('main_menu')}</button>
                       </div>
                     </div>
                   )}
@@ -1936,20 +1988,20 @@ function App() {
               </div>
 
               {/* Bottom Tools (Mobile Only) */}
-              <div className="md:hidden flex gap-2 overflow-x-auto no-scrollbar pb-2 pt-2 shrink-0">
-                <button onClick={shuffle} className="shrink-0 w-14 h-14 bg-slate-900 rounded-2xl border border-white/5 flex items-center justify-center">
-                  <RefreshCw className="w-6 h-6 text-amber-400" />
+              <div className="md:hidden flex gap-1.5 landscape:gap-1 overflow-x-auto no-scrollbar pb-1.5 landscape:pb-1 pt-1.5 landscape:pt-1 shrink-0">
+                <button onClick={shuffle} className="shrink-0 w-12 h-12 landscape:w-10 landscape:h-10 bg-slate-900 rounded-xl landscape:rounded-lg border border-white/5 flex items-center justify-center">
+                  <RefreshCw className="w-5 h-5 landscape:w-4 landscape:h-4 text-amber-400" />
                 </button>
                 {['cell', 'bomb', 'row', 'col', 'swap'].map(id => {
                   const Icon = id === 'bomb' ? Zap : id === 'row' ? MoveHorizontal : id === 'col' ? MoveVertical : id === 'swap' ? RefreshCw : Target;
                   const colorClass = id === 'bomb' ? 'text-amber-400' : id === 'row' ? 'text-rose-400' : id === 'col' ? 'text-emerald-400' : id === 'swap' ? 'text-sky-400' : 'text-purple-400';
 
                   return (
-                    <button key={id} disabled={tools[id] === 0} onClick={() => setActiveTool(activeTool === id ? null : id)} className={`shrink-0 w-14 h-14 rounded-2xl border flex items-center justify-center relative ${activeTool === id ? 'bg-amber-400/10 border-amber-400' : 'bg-slate-900 border-white/5'}`}>
+                    <button key={id} disabled={tools[id] === 0} onClick={() => setActiveTool(activeTool === id ? null : id)} className={`shrink-0 w-12 h-12 landscape:w-10 landscape:h-10 rounded-xl landscape:rounded-lg border flex items-center justify-center relative ${activeTool === id ? 'bg-amber-400/10 border-amber-400' : 'bg-slate-900 border-white/5'}`}>
                       <span className={colorClass}>
-                        <Icon className="w-6 h-6" />
+                        <Icon className="w-5 h-5 landscape:w-4 landscape:h-4" />
                       </span>
-                      {tools[id] > 0 && <span className="absolute -top-1.5 -right-1.5 bg-white text-slate-950 text-[10px] font-black w-5 h-5 rounded-full border-2 border-slate-950 flex items-center justify-center shadow-lg">{tools[id]}</span>}
+                      {tools[id] > 0 && <span className="absolute -top-1 -right-1 landscape:-top-0.5 landscape:-right-0.5 bg-white text-slate-950 text-[9px] landscape:text-[8px] font-black w-4 h-4 landscape:w-3.5 landscape:h-3.5 rounded-full border-2 border-slate-950 flex items-center justify-center shadow-lg">{tools[id]}</span>}
                     </button>
                   );
                 })}
@@ -1972,7 +2024,7 @@ function App() {
                     className={`w-14 h-14 rounded-xl border flex items-center justify-center relative transition-all ${activeTool === id ? 'bg-amber-400/10 border-amber-400' : 'bg-slate-950 border-white/5'}`}
                   >
                     <span className={colorClass}><Icon size={20} /></span>
-                    <span className="absolute -top-1 -right-1 bg-white text-slate-950 text-[8px] font-black w-4 h-4 rounded-full border border-slate-950 flex items-center justify-center">{tools[id]}</span>
+                    <span className="absolute -top-1.5 -right-1.5 bg-white text-slate-950 text-[10px] font-black w-5 h-5 rounded-full border-2 border-slate-950 flex items-center justify-center shadow-lg">{tools[id]}</span>
                   </button>
                 );
               })}
@@ -1981,68 +2033,68 @@ function App() {
 
           {/* Game Over Modal (Failures for ARCADE/MISSION or Analysis for ZEN) */}
           {gameState === 'gameover' && (
-            <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-xl">
-              <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-[2.5rem] p-8 text-center animate-in fade-in zoom-in duration-500">
+            <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 landscape:p-3 md:p-6 bg-slate-950/90 backdrop-blur-xl">
+              <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] p-5 landscape:p-3 md:p-8 text-center animate-in fade-in zoom-in duration-500">
                 {gameMode === 'zen' ? (
                   <>
-                    <Sparkles className="w-16 h-16 text-emerald-400 mx-auto mb-4" />
-                    <h2 className="text-3xl font-black text-white italic tracking-tighter mb-2 uppercase">{t('zen_analysis')}</h2>
-                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-6 italic">{t('zen_finished_desc')}</p>
+                    <Sparkles className="w-12 h-12 landscape:w-10 landscape:h-10 md:w-16 md:h-16 text-emerald-400 mx-auto mb-3 landscape:mb-2 md:mb-4" />
+                    <h2 className="text-2xl landscape:text-xl md:text-3xl font-black text-white italic tracking-tighter mb-1 landscape:mb-0.5 md:mb-2 uppercase">{t('zen_analysis')}</h2>
+                    <p className="text-slate-500 text-[9px] landscape:text-[8px] md:text-[10px] font-bold uppercase tracking-widest mb-4 landscape:mb-2 md:mb-6 italic">{t('zen_finished_desc')}</p>
 
-                    <div className="grid grid-cols-2 gap-3 mb-8">
-                      <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 shadow-inner">
-                        <div className="text-[10px] text-slate-500 font-black uppercase mb-1">{t('session_duration')}</div>
-                        <div className="text-xl font-black text-white tabular-nums">
+                    <div className="grid grid-cols-2 gap-2 landscape:gap-1.5 md:gap-3 mb-4 landscape:mb-2 md:mb-8">
+                      <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5 shadow-inner">
+                        <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('session_duration')}</div>
+                        <div className="text-lg landscape:text-base md:text-xl font-black text-white tabular-nums">
                           {Math.floor(zenDuration / 60)}:{String(zenDuration % 60).padStart(2, '0')}
                         </div>
                       </div>
-                      <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 shadow-inner">
-                        <div className="text-[10px] text-slate-500 font-black uppercase mb-1">{t('session_moves')}</div>
-                        <div className="text-xl font-black text-white tabular-nums">{totalMovesMade}</div>
+                      <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5 shadow-inner">
+                        <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('session_moves')}</div>
+                        <div className="text-lg landscape:text-base md:text-xl font-black text-white tabular-nums">{totalMovesMade}</div>
                       </div>
-                      <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5 shadow-inner col-span-2">
-                        <div className="text-[10px] text-slate-500 font-black uppercase mb-1">{t('words_found')}</div>
-                        <div className="text-xl font-black text-emerald-400 tabular-nums">{wordsFoundCount}</div>
+                      <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5 shadow-inner col-span-2">
+                        <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('words_found')}</div>
+                        <div className="text-lg landscape:text-base md:text-xl font-black text-emerald-400 tabular-nums">{wordsFoundCount}</div>
                       </div>
                     </div>
 
-                    <button onClick={() => resetGame({}, 'zen')} className="w-full py-5 bg-emerald-500 text-white font-black rounded-2xl shadow-xl mb-3 uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-[0.98]">{t('new_session')}</button>
-                    <button onClick={() => setShowDashboard(true)} className="w-full py-4 bg-white/5 text-slate-400 font-black rounded-2xl hover:bg-white/10 transition-all underline decoration-emerald-500/30 underline-offset-4">{t('back_to_menu')}</button>
+                    <button onClick={() => resetGame({}, 'zen')} className="w-full py-3 landscape:py-2 md:py-5 bg-emerald-500 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl shadow-xl mb-2 landscape:mb-1 md:mb-3 uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-[0.98] text-sm landscape:text-xs md:text-base">{t('new_session')}</button>
+                    <button onClick={() => setShowDashboard(true)} className="w-full py-3 landscape:py-2 md:py-4 bg-white/5 text-slate-400 font-black rounded-xl landscape:rounded-lg md:rounded-2xl hover:bg-white/10 transition-all underline decoration-emerald-500/30 underline-offset-4 text-sm landscape:text-xs md:text-base">{t('back_to_menu')}</button>
                   </>
                 ) : (
                   <>
-                    <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border ${gameMode === 'mission' ? 'bg-rose-500/20 border-rose-400 text-rose-400' : 'bg-sky-500/20 border-sky-400 text-sky-400'}`}>
-                      {gameMode === 'mission' ? <X size={40} /> : <Trophy size={40} />}
+                    <div className={`w-14 h-14 landscape:w-12 landscape:h-12 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-3 landscape:mb-2 md:mb-6 border ${gameMode === 'mission' ? 'bg-rose-500/20 border-rose-400 text-rose-400' : 'bg-sky-500/20 border-sky-400 text-sky-400'}`}>
+                      {gameMode === 'mission' ? <X size={28} className="landscape:w-6 landscape:h-6 md:w-10 md:h-10" /> : <Trophy size={28} className="landscape:w-6 landscape:h-6 md:w-10 md:h-10" />}
                     </div>
-                    <h2 className="text-3xl font-black text-white italic tracking-tighter mb-2 uppercase">
+                    <h2 className="text-2xl landscape:text-xl md:text-3xl font-black text-white italic tracking-tighter mb-1 landscape:mb-0.5 md:mb-2 uppercase">
                       {gameMode === 'mission' ? t('mission_failed') : t('game_over')}
                     </h2>
-                    <p className={`text-[10px] font-black uppercase tracking-widest mb-6 italic ${gameMode === 'mission' ? 'text-rose-500' : 'text-sky-500'}`}>
+                    <p className={`text-[9px] landscape:text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 landscape:mb-2 md:mb-6 italic ${gameMode === 'mission' ? 'text-rose-500' : 'text-sky-500'}`}>
                       {gameMode === 'mission' ? t('goals_not_reached') : t('moves_exhausted')}
                     </p>
 
-                    <div className="grid grid-cols-2 gap-4 mb-8">
-                      <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5">
-                        <div className="text-[10px] text-slate-500 font-black uppercase mb-1">{t('score')}</div>
-                        <div className="text-2xl font-black text-white italic tabular-nums">{score}</div>
+                    <div className="grid grid-cols-2 gap-2 landscape:gap-1.5 md:gap-4 mb-4 landscape:mb-2 md:mb-8">
+                      <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5">
+                        <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('score')}</div>
+                        <div className="text-xl landscape:text-lg md:text-2xl font-black text-white italic tabular-nums">{score}</div>
                       </div>
-                      <div className="bg-slate-800/50 p-4 rounded-2xl border border-white/5">
+                      <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5">
                         {gameMode === 'arcade' && arcadeSubMode === 'time' ? (
                           <>
-                            <div className="text-[10px] text-slate-500 font-black uppercase mb-1">{t('total_moves')}</div>
-                            <div className="text-2xl font-black text-white">{totalMovesMade}</div>
+                            <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('total_moves')}</div>
+                            <div className="text-xl landscape:text-lg md:text-2xl font-black text-white">{totalMovesMade}</div>
                           </>
                         ) : (
                           <>
-                            <div className="text-[10px] text-slate-500 font-black uppercase mb-1">{t('moves')}</div>
-                            <div className="text-2xl font-black text-white tabular-nums">{totalMovesMade}</div>
+                            <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('moves')}</div>
+                            <div className="text-xl landscape:text-lg md:text-2xl font-black text-white tabular-nums">{totalMovesMade}</div>
                           </>
                         )}
                       </div>
                     </div>
 
-                    <button onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)} className={`w-full py-5 text-white font-black rounded-2xl shadow-xl mb-3 ${gameMode === 'mission' ? 'bg-rose-500 hover:bg-rose-400 shadow-rose-500/20' : 'bg-sky-500 hover:bg-sky-400 shadow-sky-500/20'}`}>{t('try_again')}</button>
-                    <button onClick={() => setShowDashboard(true)} className="w-full py-4 bg-white/5 text-slate-400 font-black rounded-2xl hover:bg-white/10 transition-all underline underline-offset-4 decoration-white/10">{t('back_to_menu')}</button>
+                    <button onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)} className={`w-full py-3 landscape:py-2 md:py-5 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl shadow-xl mb-2 landscape:mb-1 md:mb-3 text-sm landscape:text-xs md:text-base ${gameMode === 'mission' ? 'bg-rose-500 hover:bg-rose-400 shadow-rose-500/20' : 'bg-sky-500 hover:bg-sky-400 shadow-sky-500/20'}`}>{t('try_again')}</button>
+                    <button onClick={() => setShowDashboard(true)} className="w-full py-3 landscape:py-2 md:py-4 bg-white/5 text-slate-400 font-black rounded-xl landscape:rounded-lg md:rounded-2xl hover:bg-white/10 transition-all underline underline-offset-4 decoration-white/10 text-sm landscape:text-xs md:text-base">{t('back_to_menu')}</button>
                   </>
                 )}
               </div>
