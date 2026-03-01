@@ -18,45 +18,38 @@ import { SupabaseService } from './logic/SupabaseService';
 
 
 const DictionaryLoader = ({ language, t }) => (
-  <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-500">
-    <div className="relative flex flex-col items-center">
+  <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/90 backdrop-blur-2xl animate-in fade-in duration-500">
+    <div className="relative flex flex-col items-center max-w-xs w-full">
       {/* Outer Glow / Pulse */}
-      <div className="absolute inset-0 bg-sky-500/20 blur-[100px] animate-pulse-slow" />
+      <div className="absolute inset-0 bg-sky-500/10 blur-[120px] animate-pulse-slow" />
 
       {/* Animated Icon Container */}
-      <div className="relative mb-8 group">
-        <div className="absolute inset-0 bg-gradient-to-br from-sky-500 to-purple-600 rounded-[2rem] blur-xl opacity-50 group-hover:opacity-100 transition-opacity animate-pulse" />
-        <div className="relative w-24 h-24 bg-slate-900 border border-white/10 rounded-[2rem] flex items-center justify-center shadow-2xl animate-float">
-          <RefreshCw size={48} className="text-sky-400 animate-spin-slow" />
+      <div className="relative mb-12 group">
+        <div className="absolute inset-0 bg-gradient-to-br from-sky-500 to-purple-600 rounded-[2.5rem] blur-2xl opacity-40 group-hover:opacity-100 transition-opacity animate-pulse" />
+        <div className="relative w-28 h-28 bg-slate-900 border-2 border-white/10 rounded-[2.5rem] flex items-center justify-center shadow-2xl animate-float">
+          <RefreshCw size={56} className="text-sky-400 animate-spin-slow" />
         </div>
 
         {/* Floating Particles/Dots */}
-        <div className="absolute -top-4 -right-4 w-8 h-8 bg-purple-500/20 rounded-full blur-md animate-bounce delay-100" />
-        <div className="absolute -bottom-2 -left-6 w-12 h-12 bg-sky-500/20 rounded-full blur-lg animate-bounce delay-300" />
+        <div className="absolute -top-6 -right-6 w-10 h-10 bg-purple-500/30 rounded-full blur-md animate-bounce delay-100" />
+        <div className="absolute -bottom-4 -left-8 w-14 h-14 bg-sky-500/30 rounded-full blur-xl animate-bounce delay-300" />
       </div>
 
       {/* Text Info */}
-      <div className="text-center relative z-10">
-        <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">
-          {language === 'tr' ? 'SÖZLÜK HAZIRLANIYOR' : 'PREPARING DICTIONARY'}
+      <div className="text-center relative z-10 space-y-3">
+        <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase leading-none">
+          {language === 'tr' ? 'Sözlük Hazırlanıyor' : 'Preparing Dictionary'}
         </h3>
-        <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">
-          {language === 'tr' ? 'KELİME LİSTESİ YÜKLENİYOR...' : 'LOADING WORD LIST...'}
-        </p>
-      </div>
-
-      {/* Progress Bar Shimmer */}
-      <div className="mt-8 w-48 h-1 bg-white/5 rounded-full overflow-hidden">
-        <div className="h-full bg-gradient-to-r from-sky-500 to-purple-600 w-full animate-shimmer" style={{ backgroundSize: '200% 100%', animation: 'shimmer 2s infinite linear' }} />
+        <div className="flex flex-col gap-1">
+          <p className="text-sky-400 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">
+            {language === 'tr' ? 'Yükleme Devam Ediyor...' : 'Loading in progress...'}
+          </p>
+          <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest leading-relaxed px-4">
+            {language === 'tr' ? 'Kelime listesi ilk açılışta biraz zaman alabilir.' : 'Word list may take a moment on first load.'}
+          </p>
+        </div>
       </div>
     </div>
-    <style dangerouslySetInnerHTML={{
-      __html: `
-      @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
-      }
-    `}} />
   </div>
 );
 
@@ -1115,7 +1108,7 @@ const Dashboard = ({
         <div className="flex items-center gap-1.5 md:gap-4 shrink-0">
           {user && (
             <>
-              <div className="bg-slate-900/60 border border-white/5 px-1.5 md:px-4 py-1 md:py-2 rounded-lg md:rounded-2xl flex items-center gap-1 md:gap-3 group transition-all hover:border-sky-500/50 relative overflow-hidden hidden sm:flex">
+              <div className="bg-slate-900/60 border border-white/5 px-2 md:px-4 py-1 md:py-2 rounded-lg md:rounded-2xl flex items-center gap-1.5 md:gap-3 group transition-all hover:border-sky-500/50 relative overflow-hidden flex">
                 {energy < 5 && (
                   <div className="absolute bottom-0 left-0 h-1 bg-sky-500/30 transition-all duration-1000" style={{ width: `${(1 - (nextEnergyIn / 1200)) * 100}%` }} />
                 )}
@@ -1621,6 +1614,8 @@ function App() {
               if (energy === 5) setLastEnergyRefill(Date.now());
               setShowDashboard(false);
               resetGame({}, 'zen', 'moves', 999, 'normal');
+            } else {
+              setShowMissionLock(true); // Re-use lock modal or general alert for energy
             }
           }}
           totalScore={totalScore}
