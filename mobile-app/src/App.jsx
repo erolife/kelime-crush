@@ -184,6 +184,7 @@ const Dashboard = ({
   const [arcadeValue, setArcadeValue] = React.useState(15);
   const [showMemberOnlyModal, setShowMemberOnlyModal] = React.useState(false);
   const [showMissionLock, setShowMissionLock] = React.useState(false);
+  const [lockReason, setLockReason] = React.useState('auth'); // 'auth' | 'energy'
 
   console.log('--- DASHBOARD RENDER ---');
   console.log('Current View:', view);
@@ -751,7 +752,15 @@ const Dashboard = ({
               <div className="flex-1 flex flex-col gap-0 min-h-0 overflow-hidden">
                 {/* ── ARCADE ── */}
                 <button
-                  onClick={() => { setSelectedLevelIdx(null); setView('pregame'); }}
+                  onClick={() => {
+                    if (energy > 0) {
+                      setSelectedLevelIdx(null);
+                      setView('pregame');
+                    } else {
+                      setLockReason('energy');
+                      setShowMissionLock(true);
+                    }
+                  }}
                   className="group relative flex-1 overflow-hidden rounded-t-[1.5rem] lg:rounded-t-[2rem] border border-white/8 transition-all duration-500 active:scale-[0.99]"
                   style={{ background: 'linear-gradient(135deg, #0a0e1a 0%, #0d1526 50%, #0a1020 100%)' }}
                 >
@@ -768,9 +777,20 @@ const Dashboard = ({
                       <h3 className="text-2xl lg:text-5xl font-black text-white tracking-[-0.04em] uppercase leading-none font-outfit group-hover:text-sky-100 transition-colors">{t('arcade')}</h3>
                       <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-[0.2em] mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">{t('arcade_desc')}</p>
                     </div>
-                    <div className="flex items-center gap-2 bg-sky-500/10 border border-sky-500/20 rounded-full px-4 py-1.5 group-hover:bg-sky-500/20 group-hover:border-sky-500/40 transition-all">
-                      <Play size={10} className="text-sky-400 fill-sky-400" />
-                      <span className="text-sky-400 text-[9px] lg:text-[10px] font-black uppercase tracking-widest">OYNA</span>
+                    <div className={`flex items-center gap-2 border rounded-full px-4 py-1.5 transition-all ${energy > 0 ? 'bg-sky-500/10 border-sky-500/20 group-hover:bg-sky-500/20 group-hover:border-sky-500/40' : 'bg-slate-900/50 border-white/10 opacity-60'}`}>
+                      {energy > 0 ? (
+                        <>
+                          <Play size={10} className="text-sky-400 fill-sky-400" />
+                          <span className="text-sky-400 text-[9px] lg:text-[10px] font-black uppercase tracking-widest">OYNA</span>
+                        </>
+                      ) : (
+                        <>
+                          <Clock size={10} className="text-slate-500" />
+                          <span className="text-slate-500 text-[9px] lg:text-[10px] font-black uppercase tracking-widest">
+                            {Math.floor(nextEnergyIn / 60)}:{(nextEnergyIn % 60).toString().padStart(2, '0')}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -779,7 +799,11 @@ const Dashboard = ({
 
                 {/* ── SEVİYE ── */}
                 <button
-                  onClick={() => { if (!user) setShowMissionLock(true); else setView('levels'); }}
+                  onClick={() => {
+                    if (!user) { setLockReason('auth'); setShowMissionLock(true); }
+                    else if (energy <= 0) { setLockReason('energy'); setShowMissionLock(true); }
+                    else setView('levels');
+                  }}
                   className="group relative flex-1 overflow-hidden border border-white/8 border-t-0 transition-all duration-500 active:scale-[0.99]"
                   style={{ background: 'linear-gradient(135deg, #0f0a00 0%, #1a0e00 50%, #100800 100%)' }}
                 >
@@ -802,9 +826,25 @@ const Dashboard = ({
                       <h3 className="text-2xl lg:text-5xl font-black text-white tracking-[-0.04em] uppercase leading-none font-outfit group-hover:text-orange-100 transition-colors">{t('mission')}</h3>
                       <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-[0.2em] mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">{t('mission_desc')}</p>
                     </div>
-                    <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-1.5 group-hover:bg-orange-500/20 group-hover:border-orange-500/40 transition-all">
-                      {user ? <Play size={10} className="text-orange-400 fill-orange-400" /> : <Lock size={10} className="text-orange-400" />}
-                      <span className="text-orange-400 text-[9px] lg:text-[10px] font-black uppercase tracking-widest">{user ? 'OYNA' : 'GİRİŞ YAP'}</span>
+                    <div className={`flex items-center gap-2 border rounded-full px-4 py-1.5 transition-all ${energy > 0 || !user ? 'bg-orange-500/10 border-orange-500/20 group-hover:bg-orange-500/20 group-hover:border-orange-500/40' : 'bg-slate-900/50 border-white/10 opacity-60'}`}>
+                      {!user ? (
+                        <>
+                          <Lock size={10} className="text-orange-400" />
+                          <span className="text-orange-400 text-[9px] lg:text-[10px] font-black uppercase tracking-widest">GİRİŞ YAP</span>
+                        </>
+                      ) : energy > 0 ? (
+                        <>
+                          <Play size={10} className="text-orange-400 fill-orange-400" />
+                          <span className="text-orange-400 text-[9px] lg:text-[10px] font-black uppercase tracking-widest">OYNA</span>
+                        </>
+                      ) : (
+                        <>
+                          <Clock size={10} className="text-slate-500" />
+                          <span className="text-slate-500 text-[9px] lg:text-[10px] font-black uppercase tracking-widest">
+                            {Math.floor(nextEnergyIn / 60)}:{(nextEnergyIn % 60).toString().padStart(2, '0')}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -814,7 +854,8 @@ const Dashboard = ({
                 {/* ── ZEN MODU ── */}
                 <button
                   onClick={() => {
-                    if (!user) setShowMissionLock(true);
+                    if (!user) { setLockReason('auth'); setShowMissionLock(true); }
+                    else if (energy <= 0) { setLockReason('energy'); setShowMissionLock(true); }
                     else onSelectZen();
                   }}
                   className="group relative flex-1 overflow-hidden rounded-b-[1.5rem] lg:rounded-b-[2rem] border border-white/8 border-t-0 transition-all duration-500 active:scale-[0.99]"
@@ -839,9 +880,25 @@ const Dashboard = ({
                       <h3 className="text-xl lg:text-3xl font-black text-white tracking-tight uppercase font-outfit leading-none mb-1">{t('zen_mode')}</h3>
                       <p className="text-slate-500 text-[9px] lg:text-[10px] font-bold uppercase tracking-widest group-hover:text-slate-400 transition-colors">{t('zen_desc')}</p>
                     </div>
-                    <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-1.5 group-hover:bg-emerald-500/20 transition-all">
-                      {user ? <Play size={10} className="text-emerald-400 fill-emerald-400" /> : <Lock size={10} className="text-emerald-400" />}
-                      <span className="text-emerald-400 text-[9px] font-black uppercase tracking-widest italic">{user ? 'RAHATLA' : 'GİRİŞ YAP'}</span>
+                    <div className={`flex items-center gap-2 border rounded-full px-4 py-1.5 transition-all ${energy > 0 || !user ? 'bg-emerald-500/10 border-emerald-500/20 group-hover:bg-emerald-500/20' : 'bg-slate-900/50 border-white/10 opacity-60'}`}>
+                      {!user ? (
+                        <>
+                          <Lock size={10} className="text-emerald-400" />
+                          <span className="text-emerald-400 text-[9px] font-black uppercase tracking-widest italic">GİRİŞ YAP</span>
+                        </>
+                      ) : energy > 0 ? (
+                        <>
+                          <Play size={10} className="text-emerald-400 fill-emerald-400" />
+                          <span className="text-emerald-400 text-[9px] font-black uppercase tracking-widest italic">RAHATLA</span>
+                        </>
+                      ) : (
+                        <>
+                          <Clock size={10} className="text-slate-500" />
+                          <span className="text-slate-500 text-[9px] font-black uppercase tracking-widest">
+                            {Math.floor(nextEnergyIn / 60)}:{(nextEnergyIn % 60).toString().padStart(2, '0')}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -1180,24 +1237,24 @@ const Dashboard = ({
         <div className="fixed inset-0 z-[500] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
           <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
             <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-orange-400/30">
-                <Lock size={40} className="text-orange-400" />
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border ${lockReason === 'auth' ? 'bg-orange-500/20 border-orange-400/30' : 'bg-sky-500/20 border-sky-400/30'}`}>
+                {lockReason === 'auth' ? <Lock size={40} className="text-orange-400" /> : <Clock size={40} className="text-sky-400" />}
               </div>
               <h2 className="text-xl font-black text-white italic tracking-tighter mb-2 uppercase leading-tight">
-                {t('mission_lock_title')}
+                {lockReason === 'auth' ? t('mission_lock_title') : (language === 'tr' ? 'Enerji Bitti!' : 'No Energy!')}
               </h2>
               <p className="text-slate-400 text-[11px] font-medium mb-8 leading-relaxed px-4">
-                {t('mission_lock_desc')}
+                {lockReason === 'auth' ? t('mission_lock_desc') : (language === 'tr' ? `Oynamak için yeterli enerjin yok. Bir sonraki enerjiye ${Math.floor(nextEnergyIn / 60)} dakika kaldı.` : `You don't have enough energy. Next energy in ${Math.floor(nextEnergyIn / 60)} minutes.`)}
               </p>
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => {
                     setShowMissionLock(false);
-                    onOpenAuth();
+                    if (lockReason === 'auth') onOpenAuth();
                   }}
                   className="w-full py-5 bg-gradient-to-r from-orange-500 to-red-600 text-slate-950 font-black rounded-2xl transition-all active:scale-95 shadow-xl shadow-orange-500/20 uppercase text-xs tracking-widest"
                 >
-                  {t('mission_lock_button')}
+                  {lockReason === 'auth' ? t('mission_lock_button') : (language === 'tr' ? 'ANLADIM' : 'UNDERSTOOD')}
                 </button>
                 <button
                   onClick={() => setShowMissionLock(false)}
@@ -1614,8 +1671,6 @@ function App() {
               if (energy === 5) setLastEnergyRefill(Date.now());
               setShowDashboard(false);
               resetGame({}, 'zen', 'moves', 999, 'normal');
-            } else {
-              setShowMissionLock(true); // Re-use lock modal or general alert for energy
             }
           }}
           totalScore={totalScore}
