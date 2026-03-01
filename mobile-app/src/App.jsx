@@ -17,6 +17,49 @@ import { AuthService } from './logic/AuthService';
 import { SupabaseService } from './logic/SupabaseService';
 
 
+const DictionaryLoader = ({ language, t }) => (
+  <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-500">
+    <div className="relative flex flex-col items-center">
+      {/* Outer Glow / Pulse */}
+      <div className="absolute inset-0 bg-sky-500/20 blur-[100px] animate-pulse-slow" />
+
+      {/* Animated Icon Container */}
+      <div className="relative mb-8 group">
+        <div className="absolute inset-0 bg-gradient-to-br from-sky-500 to-purple-600 rounded-[2rem] blur-xl opacity-50 group-hover:opacity-100 transition-opacity animate-pulse" />
+        <div className="relative w-24 h-24 bg-slate-900 border border-white/10 rounded-[2rem] flex items-center justify-center shadow-2xl animate-float">
+          <RefreshCw size={48} className="text-sky-400 animate-spin-slow" />
+        </div>
+
+        {/* Floating Particles/Dots */}
+        <div className="absolute -top-4 -right-4 w-8 h-8 bg-purple-500/20 rounded-full blur-md animate-bounce delay-100" />
+        <div className="absolute -bottom-2 -left-6 w-12 h-12 bg-sky-500/20 rounded-full blur-lg animate-bounce delay-300" />
+      </div>
+
+      {/* Text Info */}
+      <div className="text-center relative z-10">
+        <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">
+          {language === 'tr' ? 'SÖZLÜK HAZIRLANIYOR' : 'PREPARING DICTIONARY'}
+        </h3>
+        <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">
+          {language === 'tr' ? 'KELİME LİSTESİ YÜKLENİYOR...' : 'LOADING WORD LIST...'}
+        </p>
+      </div>
+
+      {/* Progress Bar Shimmer */}
+      <div className="mt-8 w-48 h-1 bg-white/5 rounded-full overflow-hidden">
+        <div className="h-full bg-gradient-to-r from-sky-500 to-purple-600 w-full animate-shimmer" style={{ backgroundSize: '200% 100%', animation: 'shimmer 2s infinite linear' }} />
+      </div>
+    </div>
+    <style dangerouslySetInnerHTML={{
+      __html: `
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+    `}} />
+  </div>
+);
+
 const AuthModal = ({ isOpen, onClose, onAuthSuccess, t = (s) => s }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -1382,6 +1425,7 @@ function App() {
     cloudLevels, isLoadingLevels,
     user, profile, completedLevels,
     language, setLanguage, t,
+    isDictionaryLoaded,
     energy, nextEnergyIn, setEnergy, setLastEnergyRefill,
     totalScore, wordsFoundCount, gamesPlayed, highScore,
     arcadeSubMode, arcadeValue, timeLeft, totalMovesMade, zenDuration,
@@ -1505,6 +1549,9 @@ function App() {
         onAuthSuccess={() => setIsAuthModalOpen(false)}
         t={t}
       />
+
+      {/* Dictionary Loader Overlay */}
+      {!isDictionaryLoaded && <DictionaryLoader language={language} t={t} />}
 
       {/* Premium Animated Background Layer */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-50">

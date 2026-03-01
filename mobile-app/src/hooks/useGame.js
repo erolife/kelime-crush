@@ -255,7 +255,12 @@ export const useGame = (initialDifficulty = 'normal') => {
 
     useEffect(() => {
         const dictFile = language === 'tr' ? './sozluk.json' : './sozluk_en.json';
-        setIsDictionaryLoaded(false);
+
+        // Only show preloader if NOT in cache
+        if (!dictionary.caches.has(dictFile)) {
+            setIsDictionaryLoaded(false);
+        }
+
         if (engine) engine.setLanguage(language);
         dictionary.load(dictFile).then(() => setIsDictionaryLoaded(true));
     }, [language]);

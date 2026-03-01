@@ -9,14 +9,19 @@ const safeTurkishUpper = (str) => {
 
 export class Dictionary {
     constructor() {
+        this.caches = new Map(); // Store word sets by URL
         this.words = new Set();
         this.isLoaded = false;
         this.currentUrl = null;
     }
 
     async load(url = './sozluk.json') {
-        if (this.isLoaded && this.currentUrl === url) {
-            console.log("Dictionary already loaded for:", url);
+        // If already in cache, just switch pointers
+        if (this.caches.has(url)) {
+            this.words = this.caches.get(url);
+            this.currentUrl = url;
+            this.isLoaded = true;
+            console.log("Dictionary switched from cache for:", url);
             return true;
         }
 
@@ -35,10 +40,12 @@ export class Dictionary {
                 wordList = Object.keys(data);
             }
 
-            this.words = new Set(wordList.map(w => safeTurkishUpper(String(w)).trim()));
+            const newSet = new Set(wordList.map(w => safeTurkishUpper(String(w)).trim()));
+            this.caches.set(url, newSet); // Store in cache
+            this.words = newSet;
             this.isLoaded = true;
             this.currentUrl = url;
-            console.log(`Dictionary success! Total words: ${this.words.size}`);
+            console.log(`Dictionary success! Total words: ${this.words.size} (Stored in cache)`);
 
             return true;
         } catch (error) {
