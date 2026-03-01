@@ -1556,9 +1556,8 @@ function App() {
             if (energy > 0) {
               setEnergy(prev => prev - 1);
               if (energy === 5) setLastEnergyRefill(Date.now());
-              changeDifficulty('normal');
               setShowDashboard(false);
-              resetGame(boosters, 'arcade', subMode, subValue);
+              resetGame(boosters, 'arcade', subMode, subValue, 'normal');
             }
           }}
           onSelectMission={(idx, boosters) => {
@@ -1573,9 +1572,8 @@ function App() {
             if (energy > 0) {
               setEnergy(prev => prev - 1);
               if (energy === 5) setLastEnergyRefill(Date.now());
-              changeDifficulty('normal');
               setShowDashboard(false);
-              resetGame({}, 'zen');
+              resetGame({}, 'zen', 'moves', 999, 'normal');
             }
           }}
           totalScore={totalScore}

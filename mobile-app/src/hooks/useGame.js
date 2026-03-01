@@ -256,9 +256,9 @@ export const useGame = (initialDifficulty = 'normal') => {
     useEffect(() => {
         const dictFile = language === 'tr' ? './sozluk.json' : './sozluk_en.json';
         setIsDictionaryLoaded(false);
-        engine.setLanguage(language);
+        if (engine) engine.setLanguage(language);
         dictionary.load(dictFile).then(() => setIsDictionaryLoaded(true));
-    }, [language, engine]);
+    }, [language]);
 
     // Mission Mode Initialization
     const startMission = useCallback((index, selectedBoosters = {}) => {
@@ -317,14 +317,22 @@ export const useGame = (initialDifficulty = 'normal') => {
         setLevelGoals(prev => {
             const next = prev.map(goal => {
                 if (goal.type === type) {
-                    if (type === GOAL_TYPES.WORD_LENGTH && goal.value === value) {
-                        return { ...goal, current: Math.min(goal.count, goal.current + 1) };
+                    if (type === GOAL_TYPES.WORD_LENGTH) {
+                        const targetValue = String(goal.value);
+                        const currentValue = String(value);
+                        if (targetValue === currentValue) {
+                            return { ...goal, current: Math.min(goal.count, goal.current + 1) };
+                        }
                     }
                     if (type === GOAL_TYPES.SCORE) {
                         return { ...goal, current: Math.min(goal.value, currentScore) };
                     }
-                    if (type === GOAL_TYPES.USE_TOOL && goal.value === value) {
-                        return { ...goal, current: Math.min(goal.count, goal.current + 1) };
+                    if (type === GOAL_TYPES.USE_TOOL) {
+                        const targetValue = String(goal.value).toLowerCase().trim();
+                        const currentValue = String(value).toLowerCase().trim();
+                        if (targetValue === currentValue) {
+                            return { ...goal, current: Math.min(goal.count, goal.current + 1) };
+                        }
                     }
                     if (type === GOAL_TYPES.WORD_COUNT) {
                         return { ...goal, current: Math.min(goal.count, goal.current + 1) };
@@ -559,8 +567,10 @@ export const useGame = (initialDifficulty = 'normal') => {
         soundManager.play('swap');
     }, [engine, moves, gameState]);
 
-    const resetGame = useCallback((selectedBoosters = {}, mode = null, subMode = 'moves', subValue = 30) => {
+    const resetGame = useCallback((selectedBoosters = {}, mode = null, subMode = 'moves', subValue = 30, targetDifficulty = null) => {
         const targetMode = mode || gameMode;
+        const currentDiff = targetDifficulty || difficulty;
+
         if (targetMode === 'mission') {
             startMission(currentLevelIndex, selectedBoosters);
             return;
@@ -579,16 +589,19 @@ export const useGame = (initialDifficulty = 'normal') => {
             setTimeLeft(0);
         } else if (subMode === 'time') {
             setTimeLeft(subValue);
-            setMoves(999); // Functional high number, but we won't show it as decreasing
+            setMoves(999);
         } else {
             setMoves(subValue);
             setTimeLeft(0);
         }
 
-        const settings = DIFFICULTY_SETTINGS[difficulty];
-        engine.setLanguage(language);
-        const initialGrid = engine.initGrid();
+        const settings = DIFFICULTY_SETTINGS[currentDiff];
+        const newEngine = new GameEngine(settings.rows, settings.cols, settings.vowelBonus, language);
+        newEngine.setLanguage(language);
+        setEngine(newEngine);
+        const initialGrid = newEngine.initGrid();
         setGrid(initialGrid);
+
         setScore(0);
         setLevel(1);
         setFoundWords([]);
@@ -603,7 +616,6 @@ export const useGame = (initialDifficulty = 'normal') => {
             Object.entries(selectedBoosters).forEach(([type, isSelected]) => {
                 if (isSelected && tools[type] > 0) {
                     consumed[type] = 1;
-                    // Place on grid
                     const engineType = type === 'row' ? 'row_blast' : type === 'col' ? 'col_blast' : 'bomb';
                     const r = Math.floor(Math.random() * settings.rows);
                     const c = Math.floor(Math.random() * settings.cols);
@@ -625,7 +637,7 @@ export const useGame = (initialDifficulty = 'normal') => {
             }
         }
         setGamesPlayed(prev => prev + 1);
-    }, [engine, difficulty, gameMode, currentLevelIndex, startMission]);
+    }, [engine, difficulty, gameMode, currentLevelIndex, startMission, language, tools]);
 
     // Game Over / Victory: Update highScore based on final session score
     useEffect(() => {

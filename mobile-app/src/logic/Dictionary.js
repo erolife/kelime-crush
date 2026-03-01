@@ -11,9 +11,15 @@ export class Dictionary {
     constructor() {
         this.words = new Set();
         this.isLoaded = false;
+        this.currentUrl = null;
     }
 
     async load(url = './sozluk.json') {
+        if (this.isLoaded && this.currentUrl === url) {
+            console.log("Dictionary already loaded for:", url);
+            return true;
+        }
+
         try {
             console.log("Dictionary loading from:", url);
             const response = await fetch(url);
@@ -29,16 +35,10 @@ export class Dictionary {
                 wordList = Object.keys(data);
             }
 
-            // Using safeTurkishUpper for loading
             this.words = new Set(wordList.map(w => safeTurkishUpper(String(w)).trim()));
             this.isLoaded = true;
+            this.currentUrl = url;
             console.log(`Dictionary success! Total words: ${this.words.size}`);
-
-            // Debug: check a few known words
-            const testWords = ["ELMA", "İP", "IP", "IŞIK", "İLGİ"];
-            testWords.forEach(tw => {
-                if (this.words.has(tw)) console.log(`Dictionary contains: ${tw}`);
-            });
 
             return true;
         } catch (error) {
