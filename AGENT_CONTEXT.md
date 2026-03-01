@@ -1,8 +1,11 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
 **Son Güncelleme:** 2026-03-01
-## Proje Durumu: v5.0.1 (English Dictionary Upgrade)
-- **Feature (v5.0.1)**: İngilizce kelime listesi (~5MB) 274 kelimeden on binlerce kelimeye çıkarıldı.
+## Proje Durumu: v5.1.1 (Mobile Dashboard & Navigation Refined)
+- **Fix (v5.1.1)**: Dashboard mod kartlarının yatay (landscape) modda navigasyon barı ile çakışması (overlap) giderildi.
+- **Feature (v5.1.0)**: Mobil alt navigasyon sayfaları (Sıralama, Envanter, Market, Günlük Ödül) hem dikey hem yatay mod için radikal şekilde optimize edildi.
+- **Fix (v5.0.3)**: Mobil cihazlar için Dashboard, Daily Reward ve Gameplay UI (Stats/Goals) optimize edildi.
+- **Fix (v5.0.2)**: Seviye sonu (Victory/GameOver), Sidebar ve Zen sonuç ekranlarındaki sert kodlanmış Türkçe metinler i18n sistemine (TR/EN) bağlandı.
 - **Feature (v5.0.0)**: Çok dilli (TR/EN) Seviye Yönetimi (CRUD) ve JSONB veritabanı altyapısı kuruldu.
 - **Feature (v5.0.0)**: Oyun içi seviye numaralandırma "ID" yerine "Sıra No" (İndeks bazlı) mantığına geçirildi.
 - **Visual (v5.0.0)**: MISSION modu için özel kırmızı temalı "GÖREV BAŞARISIZ" ekranı eklendi.
