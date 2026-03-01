@@ -1,7 +1,19 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
 **Son Güncelleme:** 2026-03-01
-## Proje Durumu: v5.3.0 (Mobile Responsive Grid)
+## Proje Durumu: v5.3.2 (Word Celebration Animations)
+- **Feature (v5.3.2)**: 4+ harfli kelimelerde tebrik animasyonu:
+  - 4 harf: GÜZELDİ! | 5: HARİKA! | 6: MÜKEMMEL! | 7: SÜPER! | 8+: YOK ARTIK! NE YAPTIN SEN!
+  - Pop-in + shake + fade-out animasyonları, kelime uzunluğuna göre artan yoğunluk
+  - Kelime uzunluğuna göre farklı renk paletleri, sparkle partikülleri
+  - Ses desteği: `cheer_small` (4-5 harf) ve `cheer_big` (6+ harf) — ses dosyaları değiştirilebilir
+  - `useGame.js`, `App.jsx`, `SoundManager.js`, `Translations.js` güncellendi
+- **Fix (v5.3.1)**: Seviye tamamlanınca "Devam Et" butonu artık aynı seviyeyi tekrar açmak yerine sonraki seviyeye geçiyor. Son seviyedeyse ana sayfaya dönüyor.
+- **Feature (v5.3.1)**: Victory ekranında kazanılan ödüller (altın, araçlar) animasyonlu kartlarla gösteriliyor:
+  - Her ödül tipi için özel renk paleti ve ikon
+  - Pop-in animasyonu (staggered delay ile sıralı giriş)
+  - İkon pulse efekti ve sparkle animasyonu
+  - `App.jsx`: Victory overlay yeniden yazıldı, CSS keyframes eklendi
 - **Feature (v5.3.0)**: Mobil cihazlarda ekran yönüne göre dinamik grid boyutlandırma:
   - Dikey (Portrait): 11 satır × 8 kolon → Harfler daha büyük
   - Yatay (Landscape): 7 satır × 13 kolon → Yatay alanı verimli kullanır

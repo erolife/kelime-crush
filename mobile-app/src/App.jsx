@@ -1587,7 +1587,8 @@ function App() {
     energy, nextEnergyIn, setEnergy, setLastEnergyRefill,
     totalScore, wordsFoundCount, gamesPlayed, highScore,
     arcadeSubMode, arcadeValue, timeLeft, totalMovesMade, zenDuration,
-    gardenState, setGameState
+    gardenState, setGameState,
+    celebration
   } = useGame();
 
   const [isMuted, setIsMuted] = useState(false);
@@ -1973,19 +1974,64 @@ function App() {
                   />
 
                   {/* Victory Overlay (Only for Victory) */}
-                  {gameState === 'victory' && (
-                    <div className="absolute inset-0 z-[300] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 landscape:p-3 md:p-8 text-center animate-in fade-in zoom-in duration-500">
-                      <div className="max-w-xs w-full">
-                        <div className="w-14 h-14 landscape:w-12 landscape:h-12 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-3 landscape:mb-2 md:mb-6 border bg-green-500/20 border-green-400 text-green-400">
-                          <Award size={28} className="landscape:w-6 landscape:h-6 md:w-10 md:h-10" />
+                  {gameState === 'victory' && (() => {
+                    const levelRewards = cloudLevels?.[currentLevelIndex]?.rewards;
+                    const rewardItems = [];
+                    if (levelRewards?.coins) {
+                      rewardItems.push({ type: 'coins', amount: levelRewards.coins, icon: <Coins size={18} className="text-amber-400" />, color: 'from-amber-500/20 to-orange-500/20', borderColor: 'border-amber-500/40', textColor: 'text-amber-400' });
+                    }
+                    if (levelRewards?.tools) {
+                      const toolMeta = { bomb: { icon: <Zap size={18} className="text-rose-400" />, color: 'from-rose-500/20 to-pink-500/20', borderColor: 'border-rose-500/40', textColor: 'text-rose-400' }, swap: { icon: <RefreshCw size={18} className="text-sky-400" />, color: 'from-sky-500/20 to-blue-500/20', borderColor: 'border-sky-500/40', textColor: 'text-sky-400' }, row: { icon: <MoveHorizontal size={18} className="text-emerald-400" />, color: 'from-emerald-500/20 to-teal-500/20', borderColor: 'border-emerald-500/40', textColor: 'text-emerald-400' }, col: { icon: <MoveVertical size={18} className="text-green-400" />, color: 'from-green-500/20 to-emerald-500/20', borderColor: 'border-green-500/40', textColor: 'text-green-400' }, cell: { icon: <Target size={18} className="text-purple-400" />, color: 'from-purple-500/20 to-violet-500/20', borderColor: 'border-purple-500/40', textColor: 'text-purple-400' } };
+                      Object.entries(levelRewards.tools).forEach(([id, amt]) => {
+                        const meta = toolMeta[id] || toolMeta.bomb;
+                        rewardItems.push({ type: 'tool', id, amount: amt, icon: meta.icon, color: meta.color, borderColor: meta.borderColor, textColor: meta.textColor });
+                      });
+                    }
+                    return (
+                      <div className="absolute inset-0 z-[300] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 landscape:p-3 md:p-8 text-center animate-in fade-in zoom-in duration-500">
+                        <div className="max-w-xs w-full">
+                          <div className="w-14 h-14 landscape:w-12 landscape:h-12 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-3 landscape:mb-2 md:mb-6 border bg-green-500/20 border-green-400 text-green-400">
+                            <Award size={28} className="landscape:w-6 landscape:h-6 md:w-10 md:h-10" />
+                          </div>
+                          <h2 className="text-2xl landscape:text-xl md:text-4xl font-black text-white italic tracking-tighter mb-1 landscape:mb-0.5 md:mb-2 uppercase">{t('victory')}</h2>
+                          <p className="text-emerald-500 text-[9px] landscape:text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-3 landscape:mb-1.5 md:mb-4 italic">{t('mission_success')}</p>
+
+                          {/* Reward Animations */}
+                          {rewardItems.length > 0 && (
+                            <div className="flex flex-col gap-2 landscape:gap-1.5 md:gap-2.5 mb-4 landscape:mb-2 md:mb-6">
+                              {rewardItems.map((reward, idx) => (
+                                <div
+                                  key={idx}
+                                  className={`reward-pop-in flex items-center gap-3 landscape:gap-2 bg-gradient-to-r ${reward.color} border ${reward.borderColor} rounded-xl landscape:rounded-lg md:rounded-2xl px-4 landscape:px-3 py-3 landscape:py-2 md:px-5 md:py-3.5 shadow-lg`}
+                                  style={{ animationDelay: `${0.3 + idx * 0.25}s` }}
+                                >
+                                  <div className="w-9 h-9 landscape:w-7 landscape:h-7 md:w-10 md:h-10 rounded-lg landscape:rounded-md md:rounded-xl bg-slate-950/60 border border-white/10 flex items-center justify-center shrink-0 reward-icon-pulse">
+                                    {reward.icon}
+                                  </div>
+                                  <div className="flex-1 text-left">
+                                    <span className={`text-sm landscape:text-xs md:text-base font-black ${reward.textColor}`}>
+                                      +{reward.amount} {reward.type === 'coins' ? t('gold') : t(reward.id)}
+                                    </span>
+                                  </div>
+                                  <Sparkles size={14} className={`${reward.textColor} animate-pulse opacity-60`} />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          <button onClick={() => {
+                            const nextIdx = currentLevelIndex + 1;
+                            if (nextIdx < cloudLevels.length) {
+                              startMission(nextIdx, {});
+                            } else {
+                              setShowDashboard(true);
+                            }
+                          }} className="w-full py-3 landscape:py-2 md:py-4 bg-emerald-500 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl mb-2 landscape:mb-1 hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 text-sm landscape:text-xs md:text-base">{t('continue')}</button>
+                          <button onClick={() => setShowDashboard(true)} className="w-full py-3 landscape:py-2 md:py-4 bg-white/5 text-slate-400 font-black rounded-xl landscape:rounded-lg md:rounded-2xl hover:bg-white/10 transition-all text-sm landscape:text-xs md:text-base">{t('main_menu')}</button>
                         </div>
-                        <h2 className="text-2xl landscape:text-xl md:text-4xl font-black text-white italic tracking-tighter mb-1 landscape:mb-0.5 md:mb-2 uppercase">{t('victory')}</h2>
-                        <p className="text-emerald-500 text-[9px] landscape:text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 landscape:mb-2 md:mb-6 italic">{t('mission_success')}</p>
-                        <button onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)} className="w-full py-3 landscape:py-2 md:py-4 bg-emerald-500 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl mb-2 landscape:mb-1 hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 text-sm landscape:text-xs md:text-base">{t('continue')}</button>
-                        <button onClick={() => setShowDashboard(true)} className="w-full py-3 landscape:py-2 md:py-4 bg-white/5 text-slate-400 font-black rounded-xl landscape:rounded-lg md:rounded-2xl hover:bg-white/10 transition-all text-sm landscape:text-xs md:text-base">{t('main_menu')}</button>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -2105,6 +2151,57 @@ function App() {
         </>
       )}
 
+      {/* Word Celebration Overlay */}
+      {celebration && (() => {
+        const config = {
+          1: { key: 'cheer_4', color: 'from-sky-400 to-cyan-300', glow: 'shadow-sky-500/40', shake: '', sparkles: 3, size: 'text-5xl md:text-8xl' },
+          2: { key: 'cheer_5', color: 'from-purple-400 to-fuchsia-400', glow: 'shadow-purple-500/40', shake: 'celebration-shake-sm', sparkles: 5, size: 'text-6xl md:text-9xl' },
+          3: { key: 'cheer_6', color: 'from-amber-400 to-yellow-300', glow: 'shadow-amber-500/50', shake: 'celebration-shake', sparkles: 8, size: 'text-7xl md:text-[10rem]' },
+          4: { key: 'cheer_7', color: 'from-orange-400 to-red-400', glow: 'shadow-orange-500/50', shake: 'celebration-shake', sparkles: 12, size: 'text-7xl md:text-[10rem]' },
+          5: { key: 'cheer_8', sub: 'cheer_8_sub', color: 'from-rose-400 via-amber-400 to-emerald-400', glow: 'shadow-rose-500/60', shake: 'celebration-shake-lg', sparkles: 18, size: 'text-8xl md:text-[12rem]' },
+        };
+        const c = config[celebration.level] || config[1];
+        return (
+          <div className="fixed inset-0 z-[400] flex items-center justify-center pointer-events-none">
+            {/* Sparkle particles */}
+            {Array.from({ length: c.sparkles }).map((_, i) => (
+              <div
+                key={i}
+                className="absolute celebration-sparkle"
+                style={{
+                  left: `${15 + Math.random() * 70}%`,
+                  top: `${20 + Math.random() * 60}%`,
+                  animationDelay: `${Math.random() * 0.5}s`,
+                  animationDuration: `${0.6 + Math.random() * 0.8}s`
+                }}
+              >
+                <Sparkles size={16 + Math.random() * 24} className={`bg-gradient-to-r ${c.color} text-white opacity-80`} />
+              </div>
+            ))}
+            {/* Main text */}
+            <div className={`celebration-text ${c.shake} text-center px-6`}>
+              <h2 className={`${c.size} font-black italic uppercase tracking-tight drop-shadow-2xl`}
+                style={{
+                  color: 'white',
+                  WebkitTextStroke: '3px rgba(255,255,255,0.9)',
+                  textShadow: `0 0 40px rgba(0,0,0,0.8), 0 0 80px rgba(0,0,0,0.6), 0 0 120px rgba(0,0,0,0.4), 0 0 20px rgba(255,255,255,0.3), 0 6px 30px rgba(0,0,0,0.8)`,
+                  paintOrder: 'stroke fill'
+                }}
+              >
+                {t(c.key)}
+              </h2>
+              {c.sub && (
+                <p className="text-2xl md:text-5xl font-black italic text-white/90 mt-2 tracking-wider uppercase celebration-sub-text"
+                  style={{ WebkitTextStroke: '1.5px rgba(255,255,255,0.6)', textShadow: '0 0 30px rgba(0,0,0,0.8), 0 0 60px rgba(0,0,0,0.5), 0 0 15px rgba(255,255,255,0.3)' }}
+                >
+                  {t(c.sub)}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -2121,6 +2218,79 @@ function App() {
           animation-name: animate-fall;
           animation-timing-function: linear;
           animation-iteration-count: infinite;
+        }
+        @keyframes reward-pop-in {
+          0% { opacity: 0; transform: translateY(20px) scale(0.8); }
+          60% { transform: translateY(-4px) scale(1.05); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .reward-pop-in {
+          opacity: 0;
+          animation: reward-pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        @keyframes reward-icon-pulse {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.1); }
+          50% { transform: scale(1.15); box-shadow: 0 0 12px 2px rgba(255,255,255,0.15); }
+        }
+        .reward-icon-pulse {
+          animation: reward-icon-pulse 1.8s ease-in-out infinite;
+          animation-delay: 0.8s;
+        }
+        @keyframes celebration-slide-in {
+          0% { opacity: 0; transform: translateX(120vw) scale(0.8); }
+          60% { opacity: 1; transform: translateX(-10px) scale(1.02); }
+          80% { transform: translateX(5px) scale(0.98); }
+          100% { opacity: 1; transform: translateX(0) scale(1); }
+        }
+        @keyframes celebration-exit {
+          0% { opacity: 1; transform: scale(1); }
+          100% { opacity: 0; transform: scale(2.5); }
+        }
+        .celebration-text {
+          animation: celebration-slide-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+                     celebration-exit 0.5s ease-out 1.0s forwards;
+        }
+        .celebration-sub-text {
+          animation: celebration-slide-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+        }
+        @keyframes celebration-shake-sm {
+          0%, 100% { transform: translateX(0); }
+          15% { transform: translateX(-3px) rotate(-0.5deg); }
+          30% { transform: translateX(3px) rotate(0.5deg); }
+          45% { transform: translateX(-2px); }
+          60% { transform: translateX(1px); }
+        }
+        .celebration-shake-sm { animation: celebration-shake-sm 0.35s ease-in-out 0.5s; }
+        @keyframes celebration-shake {
+          0%, 100% { transform: translateX(0); }
+          10% { transform: translateX(-5px) rotate(-1.5deg); }
+          20% { transform: translateX(5px) rotate(1.5deg); }
+          30% { transform: translateX(-4px) rotate(-1deg); }
+          40% { transform: translateX(4px) rotate(1deg); }
+          50% { transform: translateX(-2px); }
+          60% { transform: translateX(1px); }
+        }
+        .celebration-shake { animation: celebration-shake 0.5s ease-in-out 0.5s; }
+        @keyframes celebration-shake-lg {
+          0%, 100% { transform: translateX(0); }
+          6% { transform: translateX(-8px) rotate(-2.5deg); }
+          12% { transform: translateX(8px) rotate(2.5deg); }
+          18% { transform: translateX(-7px) rotate(-2deg); }
+          24% { transform: translateX(7px) rotate(2deg); }
+          30% { transform: translateX(-5px) rotate(-1.5deg); }
+          36% { transform: translateX(5px) rotate(1.5deg); }
+          42% { transform: translateX(-3px) rotate(-0.5deg); }
+          50% { transform: translateX(2px); }
+          58% { transform: translateX(-1px); }
+        }
+        .celebration-shake-lg { animation: celebration-shake-lg 0.6s ease-in-out 0.5s; }
+        @keyframes sparkle-float {
+          0% { opacity: 0; transform: scale(0) translateY(0); }
+          30% { opacity: 1; transform: scale(1.2) translateY(-10px); }
+          100% { opacity: 0; transform: scale(0) translateY(-50px) rotate(180deg); }
+        }
+        .celebration-sparkle {
+          animation: sparkle-float 1s ease-out forwards;
         }
       `}</style>
     </div>

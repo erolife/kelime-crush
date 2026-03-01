@@ -10,9 +10,12 @@ class SoundManager {
             error: new Howl({ src: ['./sesler/hatali.mp3'], volume: 0.3 }),
             powerup: new Howl({ src: ['./sesler/row-colun.mp3'], volume: 0.6 }),
             swap: new Howl({ src: ['./sesler/switch.mp3'], volume: 0.5 }),
-            bomb_created: new Howl({ src: ['./sesler/levelup.mp3'], volume: 0.5 }), // Placeholder or if specifically find levelup used in index.html
+            bomb_created: new Howl({ src: ['./sesler/levelup.mp3'], volume: 0.5 }),
             bomb_blast: new Howl({ src: ['./sesler/buyuk-patlama.mp3'], volume: 0.8 }),
-            background: new Howl({ src: ['./sesler/background.mp3'], volume: 0.2, loop: true })
+            background: new Howl({ src: ['./sesler/background.mp3'], volume: 0.2, loop: true }),
+            // Tebrik sesleri — ses dosyaları eklendiğinde path güncellenecek
+            cheer_small: new Howl({ src: ['./sesler/7harf.mp3'], volume: 0.5 }),   // 4-5 harf
+            cheer_big: new Howl({ src: ['./sesler/7harf.mp3'], volume: 0.7 })      // 6+ harf (alkış/ıslık)
         };
     }
 

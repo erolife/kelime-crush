@@ -48,6 +48,7 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [totalMovesMade, setTotalMovesMade] = useState(0);
     const [zenDuration, setZenDuration] = useState(0);
     const [gardenState, setGardenState] = useState({ flowers: 0, stones: 0, ripples: 0 });
+    const [celebration, setCelebration] = useState(null); // { text, level, duration }
 
     // Dynamic Level Loader
     useEffect(() => {
@@ -579,6 +580,14 @@ export const useGame = (initialDifficulty = 'normal') => {
             setFoundWords(prev => [word, ...prev].slice(0, 50));
             setSelectedPath([]);
 
+            // Trigger celebration for 5+ letter words
+            if (word.length >= 5) {
+                const celebrationLevel = word.length >= 8 ? 5 : word.length >= 7 ? 4 : word.length >= 6 ? 3 : 2;
+                const durations = { 1: 1200, 2: 1400, 3: 1600, 4: 1800, 5: 2200 };
+                setCelebration({ level: celebrationLevel, wordLength: word.length, duration: durations[celebrationLevel] });
+                soundManager.play(celebrationLevel >= 3 ? 'cheer_big' : 'cheer_small');
+                setTimeout(() => setCelebration(null), durations[celebrationLevel]);
+            }
             // Award coins for word
             const coinReward = Math.max(0, word.length - 2) * 2;
             if (gameMode !== 'zen') {
@@ -736,6 +745,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         energy, nextEnergyIn, setEnergy, setLastEnergyRefill,
         totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId,
         arcadeSubMode, arcadeValue, timeLeft, totalMovesMade, zenDuration,
-        gardenState, setGameState
+        gardenState, setGameState,
+        celebration
     };
 };
