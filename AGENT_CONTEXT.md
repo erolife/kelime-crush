@@ -1,7 +1,15 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
 **Son Güncelleme:** 2026-03-01
-## Proje Durumu: v5.2.0 (Full Landscape Mode Optimization)
+## Proje Durumu: v5.3.0 (Mobile Responsive Grid)
+- **Feature (v5.3.0)**: Mobil cihazlarda ekran yönüne göre dinamik grid boyutlandırma:
+  - Dikey (Portrait): 11 satır × 8 kolon → Harfler daha büyük
+  - Yatay (Landscape): 7 satır × 13 kolon → Yatay alanı verimli kullanır
+  - Masaüstü (768px+): 9 satır × 11 kolon (mevcut, değişmedi)
+  - Oyun sırasında yön değişiminde grid otomatik yeniden oluşturulur
+  - `Constants.js`: `GRID_OVERRIDES` ve `getGridSize` helper eklendi
+  - `useGame.js`: orientation/isMobile state'leri ve resize listener eklendi
+  - `App.jsx`: Sabit `aspect-[11/9]` yerine grid boyutuna göre dinamik aspect-ratio
 - **Feature (v5.2.0)**: Tüm ekranlar yatay mod (landscape) için optimize edildi:
   - Market: Badge sistemi, bakiye başlığa taşındı, subtitle kaldırıldı
   - Günlük Ödül: Tüm elemanlar küçültüldü, buton görünür hale getirildi

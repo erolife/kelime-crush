@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { GameEngine } from '../logic/GameEngine';
 import { dictionary } from '../logic/Dictionary';
 import { soundManager } from '../logic/SoundManager';
-import { DIFFICULTY_SETTINGS } from '../logic/Constants';
+import { DIFFICULTY_SETTINGS, getGridSize } from '../logic/Constants';
 import { LEVELS as LOCAL_LEVELS, GOAL_TYPES } from '../logic/Levels';
 import { SupabaseService } from '../logic/SupabaseService';
 import { supabase } from '../logic/supabaseClient';
@@ -14,6 +14,12 @@ export const useGame = (initialDifficulty = 'normal') => {
     });
     const [difficulty, setDifficultyState] = useState(initialDifficulty);
     const [gameMode, setGameMode] = useState('arcade'); // 'arcade' or 'mission'
+
+    // Orientation & Mobile detection for responsive grid
+    const [orientation, setOrientation] = useState(() => {
+        return window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+    });
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
     const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
     const [levelGoals, setLevelGoals] = useState([]);
     const [cloudLevels, setCloudLevels] = useState(LOCAL_LEVELS);
@@ -131,9 +137,29 @@ export const useGame = (initialDifficulty = 'normal') => {
         return text;
     }, [language]);
 
+    // Orientation & isMobile listener
+    useEffect(() => {
+        const handleResize = () => {
+            const mobile = window.innerWidth < 768;
+            const orient = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+            setIsMobile(mobile);
+            setOrientation(orient);
+        };
+        window.addEventListener('resize', handleResize);
+        // Also listen orientation change for mobile browsers
+        window.addEventListener('orientationchange', () => {
+            setTimeout(handleResize, 100); // Small delay for new dimensions
+        });
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('orientationchange', handleResize);
+        };
+    }, []);
+
     const [engine, setEngine] = useState(() => {
+        const { rows, cols } = getGridSize(initialDifficulty, window.innerWidth < 768, window.innerWidth > window.innerHeight ? 'landscape' : 'portrait');
         const settings = DIFFICULTY_SETTINGS[initialDifficulty];
-        return new GameEngine(settings.rows, settings.cols, settings.vowelBonus, language);
+        return new GameEngine(rows, cols, settings.vowelBonus, language);
     });
 
     const [grid, setGrid] = useState(() => engine.initGrid());
@@ -253,6 +279,26 @@ export const useGame = (initialDifficulty = 'normal') => {
         }
     }, [gameState]);
 
+    // Re-create grid when orientation changes during gameplay
+    useEffect(() => {
+        if (gameState !== 'playing') return;
+        const currentDiff = gameMode === 'mission' ? (cloudLevels[currentLevelIndex]?.difficulty || 'normal') : difficulty;
+        const settings = DIFFICULTY_SETTINGS[currentDiff];
+        const { rows, cols } = getGridSize(currentDiff, isMobile, orientation);
+
+        // Only recreate if grid dimensions actually changed
+        const currentRows = grid?.length || 0;
+        const currentCols = grid?.[0]?.length || 0;
+        if (rows === currentRows && cols === currentCols) return;
+
+        const newEngine = new GameEngine(rows, cols, settings.vowelBonus, language);
+        newEngine.setLanguage(language);
+        setEngine(newEngine);
+        setGrid(newEngine.initGrid());
+        setSelectedPath([]);
+        setAnimatingCells([]);
+    }, [orientation, isMobile]);
+
     useEffect(() => {
         const dictFile = language === 'tr' ? './sozluk.json' : './sozluk_en.json';
 
@@ -270,7 +316,8 @@ export const useGame = (initialDifficulty = 'normal') => {
         const mission = cloudLevels[index];
         if (!mission) return;
         const settings = DIFFICULTY_SETTINGS[mission.difficulty];
-        const newEngine = new GameEngine(settings.rows, settings.cols, settings.vowelBonus, language);
+        const { rows, cols } = getGridSize(mission.difficulty, isMobile, orientation);
+        const newEngine = new GameEngine(rows, cols, settings.vowelBonus, language);
 
         setGameMode('mission');
         setCurrentLevelIndex(index);
@@ -294,8 +341,8 @@ export const useGame = (initialDifficulty = 'normal') => {
                     consumed[type] = 1;
                     // Place on grid
                     const engineType = type === 'row' ? 'row_blast' : type === 'col' ? 'col_blast' : 'bomb';
-                    const r = Math.floor(Math.random() * settings.rows);
-                    const c = Math.floor(Math.random() * settings.cols);
+                    const r = Math.floor(Math.random() * rows);
+                    const c = Math.floor(Math.random() * cols);
                     if (newGrid[r] && newGrid[r][c]) {
                         newGrid[r][c].type = engineType;
                     }
@@ -381,7 +428,8 @@ export const useGame = (initialDifficulty = 'normal') => {
 
     const changeDifficulty = useCallback((newDiff) => {
         const settings = DIFFICULTY_SETTINGS[newDiff];
-        const newEngine = new GameEngine(settings.rows, settings.cols, settings.vowelBonus, language);
+        const { rows, cols } = getGridSize(newDiff, isMobile, orientation);
+        const newEngine = new GameEngine(rows, cols, settings.vowelBonus, language);
         setGameMode('arcade');
         setDifficultyState(newDiff);
         newEngine.setLanguage(language);
@@ -601,7 +649,8 @@ export const useGame = (initialDifficulty = 'normal') => {
         }
 
         const settings = DIFFICULTY_SETTINGS[currentDiff];
-        const newEngine = new GameEngine(settings.rows, settings.cols, settings.vowelBonus, language);
+        const { rows, cols } = getGridSize(currentDiff, isMobile, orientation);
+        const newEngine = new GameEngine(rows, cols, settings.vowelBonus, language);
         newEngine.setLanguage(language);
         setEngine(newEngine);
         const initialGrid = newEngine.initGrid();
@@ -622,8 +671,8 @@ export const useGame = (initialDifficulty = 'normal') => {
                 if (isSelected && tools[type] > 0) {
                     consumed[type] = 1;
                     const engineType = type === 'row' ? 'row_blast' : type === 'col' ? 'col_blast' : 'bomb';
-                    const r = Math.floor(Math.random() * settings.rows);
-                    const c = Math.floor(Math.random() * settings.cols);
+                    const r = Math.floor(Math.random() * rows);
+                    const c = Math.floor(Math.random() * cols);
                     if (initialGrid[r] && initialGrid[r][c]) {
                         initialGrid[r][c].type = engineType;
                     }

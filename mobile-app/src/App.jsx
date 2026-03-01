@@ -1955,9 +1955,11 @@ function App() {
 
               <div className="flex-1 flex items-center justify-center min-h-0 relative">
                 <div className={`
-                  relative max-h-full w-full max-w-[min(100%,(78vh*11/9))] aspect-[11/9] bg-slate-950/40 rounded-xl md:rounded-3xl border-2 shadow-2xl overflow-hidden transition-all duration-300
+                  relative max-h-full w-full bg-slate-950/40 rounded-xl md:rounded-3xl border-2 shadow-2xl overflow-hidden transition-all duration-300
                   ${activeTool ? 'border-purple-500 ring-[8px] ring-purple-500/10' : 'border-white/5'}
-                `}>
+                `}
+                  style={{ aspectRatio: `${grid[0]?.length || 11} / ${grid?.length || 9}`, maxWidth: `min(100%, ${78 * (grid[0]?.length || 11) / (grid?.length || 9)}vh)` }}
+                >
                   {gameMode === 'zen' && <ZenGarden gardenState={gardenState} />}
                   <PremiumCanvas
                     grid={grid}

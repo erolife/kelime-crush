@@ -69,5 +69,21 @@ export const TR_VOWELS = ['A', 'E', 'İ', 'I', 'O', 'Ö', 'U', 'Ü'];
 export const EN_VOWELS = ['A', 'E', 'I', 'O', 'U'];
 export const VOWELS = TR_VOWELS; // Fallback
 
+// Mobile grid overrides by orientation (used when screen width < 768px)
+export const GRID_OVERRIDES = {
+    portrait: { rows: 11, cols: 8 },   // Mobil dikey: daha az kolon, daha fazla satır
+    landscape: { rows: 7, cols: 13 },  // Mobil yatay: daha fazla kolon, daha az satır
+};
+
+// Helper: returns { rows, cols } based on device and orientation
+export const getGridSize = (difficulty, isMobile = false, orientation = 'portrait') => {
+    const settings = DIFFICULTY_SETTINGS[difficulty] || DIFFICULTY_SETTINGS.normal;
+    if (isMobile) {
+        const override = GRID_OVERRIDES[orientation] || GRID_OVERRIDES.portrait;
+        return { rows: override.rows, cols: override.cols };
+    }
+    return { rows: settings.rows, cols: settings.cols };
+};
+
 export const MAX_ENERGY = 5;
 export const ENERGY_REGEN_TIME = 20 * 60 * 1000; // 20 minutes
