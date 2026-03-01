@@ -1,7 +1,15 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
 **Son Güncelleme:** 2026-03-01
-## Proje Durumu: v5.3.2 (Word Celebration Animations)
+## Proje Durumu: v6.0.0 (Zaman Savaşı Modu)
+- **Feature (v6.0.0)**: "Seviye" (Mission) modu kaldırıldı, yerine "Zaman Savaşı" (Time Battle) modu eklendi:
+  - Süre seçimi: 1dk / 3dk / 5dk
+  - Kelime üretildiğinde harf sayısının yarısı kadar saniye eklenir (yukarı yuvarlama)
+  - İlk araç ödülü 60sn'de, sonrakiler her 120sn'de → rastgele araç kazanımı
+  - Kademeli altın ödülü: <60sn=5, <180sn=15, <300sn=30, 300sn+=50 altın
+  - Rütbe sistemi: Bronz (0-5dk), Gümüş (5-15dk), Altın (15dk+)
+  - Game over ekranında: hayatta kalma süresi, kazanılan altın, rütbe, puan, bulunan kelime
+  - `Constants.js`, `useGame.js`, `Translations.js`, `App.jsx` güncellendi
 - **Feature (v5.3.2)**: 4+ harfli kelimelerde tebrik animasyonu:
   - 4 harf: GÜZELDİ! | 5: HARİKA! | 6: MÜKEMMEL! | 7: SÜPER! | 8+: YOK ARTIK! NE YAPTIN SEN!
   - Pop-in + shake + fade-out animasyonları, kelime uzunluğuna göre artan yoğunluk

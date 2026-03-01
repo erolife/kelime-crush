@@ -2,8 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { GameEngine } from '../logic/GameEngine';
 import { dictionary } from '../logic/Dictionary';
 import { soundManager } from '../logic/SoundManager';
-import { DIFFICULTY_SETTINGS, getGridSize } from '../logic/Constants';
-import { LEVELS as LOCAL_LEVELS, GOAL_TYPES } from '../logic/Levels';
+import { DIFFICULTY_SETTINGS, getGridSize, TIME_BATTLE_GOLD_TIERS, TIME_BATTLE_RANKS, TIME_BATTLE_TOOL_REWARDS, TIME_BATTLE_REWARD_POOL } from '../logic/Constants';
 import { SupabaseService } from '../logic/SupabaseService';
 import { supabase } from '../logic/supabaseClient';
 import { TRANSLATIONS } from '../logic/Translations';
@@ -13,7 +12,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         return localStorage.getItem('crush_lang') || 'tr';
     });
     const [difficulty, setDifficultyState] = useState(initialDifficulty);
-    const [gameMode, setGameMode] = useState('arcade'); // 'arcade' or 'mission'
+    const [gameMode, setGameMode] = useState('arcade'); // 'arcade', 'timeBattle', or 'zen'
 
     // Orientation & Mobile detection for responsive grid
     const [orientation, setOrientation] = useState(() => {
@@ -22,8 +21,15 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
     const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
     const [levelGoals, setLevelGoals] = useState([]);
-    const [cloudLevels, setCloudLevels] = useState(LOCAL_LEVELS);
-    const [isLoadingLevels, setIsLoadingLevels] = useState(true);
+    const [cloudLevels, setCloudLevels] = useState([]);
+    const [isLoadingLevels, setIsLoadingLevels] = useState(false);
+
+    // Time Battle state
+    const [timeBattleElapsed, setTimeBattleElapsed] = useState(0);
+    const [timeBattleToolRewards, setTimeBattleToolRewards] = useState([]);
+    const [nextToolRewardAt, setNextToolRewardAt] = useState(TIME_BATTLE_TOOL_REWARDS.firstAt);
+    const [timeBattleInitialDuration, setTimeBattleInitialDuration] = useState(0);
+    const [pendingToolReward, setPendingToolReward] = useState(null); // { toolId, timestamp }
     const [user, setUser] = useState(null);
     const [profile, setProfile] = useState(null);
     const [isLoadingProfile, setIsLoadingProfile] = useState(false);
@@ -50,18 +56,8 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [gardenState, setGardenState] = useState({ flowers: 0, stones: 0, ripples: 0 });
     const [celebration, setCelebration] = useState(null); // { text, level, duration }
 
-    // Dynamic Level Loader
-    useEffect(() => {
-        const fetchLevels = async () => {
-            setIsLoadingLevels(true);
-            const data = await SupabaseService.getLevels();
-            if (data && data.length > 0) {
-                setCloudLevels(data);
-            }
-            setIsLoadingLevels(false);
-        };
-        fetchLevels();
-    }, []);
+    // Dynamic Level Loader (disabled - levels replaced by Time Battle)
+    // useEffect(() => { ... }, []);
 
     // Auth & Profile Listener
     useEffect(() => {
@@ -232,7 +228,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         return () => clearInterval(interval);
     }, [energy, lastEnergyRefill]);
 
-    // Arcade Timer Logic
+    // Arcade Timer Logic (for arcade time mode)
     useEffect(() => {
         let timer;
         if (gameState === 'playing' && gameMode === 'arcade' && arcadeSubMode === 'time' && timeLeft > 0) {
@@ -249,6 +245,51 @@ export const useGame = (initialDifficulty = 'normal') => {
         }
         return () => clearInterval(timer);
     }, [gameState, gameMode, arcadeSubMode, timeLeft]);
+
+    // Time Battle Timer Logic
+    useEffect(() => {
+        let timer;
+        if (gameState === 'playing' && gameMode === 'timeBattle' && timeLeft > 0) {
+            timer = setInterval(() => {
+                setTimeLeft(prev => {
+                    if (prev <= 1) {
+                        setGameState('gameover');
+                        soundManager.play('error');
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+                setTimeBattleElapsed(prev => prev + 1);
+            }, 1000);
+        } else if (gameState === 'playing' && gameMode === 'timeBattle' && timeLeft <= 0) {
+            setGameState('gameover');
+            soundManager.play('error');
+        }
+        return () => clearInterval(timer);
+    }, [gameState, gameMode, timeLeft]);
+
+    // Time Battle: Tool Reward Check
+    useEffect(() => {
+        if (gameMode !== 'timeBattle' || gameState !== 'playing') return;
+        if (timeBattleElapsed >= nextToolRewardAt) {
+            // Award random tool
+            const randomTool = TIME_BATTLE_REWARD_POOL[Math.floor(Math.random() * TIME_BATTLE_REWARD_POOL.length)];
+            setTools(prev => ({ ...prev, [randomTool]: (prev[randomTool] || 0) + 1 }));
+            setTimeBattleToolRewards(prev => [...prev, { toolId: randomTool, at: timeBattleElapsed }]);
+            setPendingToolReward({ toolId: randomTool, timestamp: Date.now() });
+            soundManager.play('powerup');
+            // Set next reward time
+            setNextToolRewardAt(timeBattleElapsed + TIME_BATTLE_TOOL_REWARDS.subsequentEvery);
+        }
+    }, [timeBattleElapsed, nextToolRewardAt, gameMode, gameState]);
+
+    // Clear pending tool reward after animation
+    useEffect(() => {
+        if (pendingToolReward) {
+            const timer = setTimeout(() => setPendingToolReward(null), 2500);
+            return () => clearTimeout(timer);
+        }
+    }, [pendingToolReward]);
 
     // Zen Duration Timer
     useEffect(() => {
@@ -268,12 +309,8 @@ export const useGame = (initialDifficulty = 'normal') => {
                 const sessionStats = {
                     words: foundWords.length,
                     moves: totalMovesMade,
-                    duration: gameMode === 'zen' ? zenDuration : (gameMode === 'arcade' && arcadeSubMode === 'time' ? (arcadeValue - timeLeft) : (gameMode === 'arcade' ? totalMovesMade * 3 : 0)) // Basit bir tahmin ya da gerçek süre
+                    duration: gameMode === 'zen' ? zenDuration : (gameMode === 'timeBattle' ? timeBattleElapsed : (gameMode === 'arcade' && arcadeSubMode === 'time' ? (arcadeValue - timeLeft) : totalMovesMade * 3))
                 };
-
-                // Mission için süre takibi yoksa 0 gönderilebilir veya hamle bazlı bir tahmin yapılabilir.
-                // Zen ve Arcade Time en doğru süreleri verir.
-
                 await SupabaseService.updateModeStats(user.id, gameMode, sessionStats);
             };
             saveStats();
@@ -283,7 +320,7 @@ export const useGame = (initialDifficulty = 'normal') => {
     // Re-create grid when orientation changes during gameplay
     useEffect(() => {
         if (gameState !== 'playing') return;
-        const currentDiff = gameMode === 'mission' ? (cloudLevels[currentLevelIndex]?.difficulty || 'normal') : difficulty;
+        const currentDiff = difficulty;
         const settings = DIFFICULTY_SETTINGS[currentDiff];
         const { rows, cols } = getGridSize(currentDiff, isMobile, orientation);
 
@@ -312,27 +349,30 @@ export const useGame = (initialDifficulty = 'normal') => {
         dictionary.load(dictFile).then(() => setIsDictionaryLoaded(true));
     }, [language]);
 
-    // Mission Mode Initialization
-    const startMission = useCallback((index, selectedBoosters = {}) => {
-        const mission = cloudLevels[index];
-        if (!mission) return;
-        const settings = DIFFICULTY_SETTINGS[mission.difficulty];
-        const { rows, cols } = getGridSize(mission.difficulty, isMobile, orientation);
+    // Time Battle Mode Initialization
+    const startTimeBattle = useCallback((duration, selectedBoosters = {}) => {
+        const settings = DIFFICULTY_SETTINGS[difficulty];
+        const { rows, cols } = getGridSize(difficulty, isMobile, orientation);
         const newEngine = new GameEngine(rows, cols, settings.vowelBonus, language);
 
-        setGameMode('mission');
-        setCurrentLevelIndex(index);
-        setLevelGoals(mission.goals.map(g => ({ ...g, current: 0 })));
+        setGameMode('timeBattle');
+        setTimeLeft(duration);
+        setTimeBattleInitialDuration(duration);
+        setTimeBattleElapsed(0);
+        setTimeBattleToolRewards([]);
+        setNextToolRewardAt(TIME_BATTLE_TOOL_REWARDS.firstAt);
+        setPendingToolReward(null);
         newEngine.setLanguage(language);
         setEngine(newEngine);
         const newGrid = newEngine.initGrid();
         setGrid(newGrid);
-        setMoves(mission.moves);
+        setMoves(999); // Unlimited moves
         setScore(0);
         setFoundWords([]);
         setSelectedPath([]);
         setGameState('playing');
         setActiveTool(null);
+        setTotalMovesMade(0);
 
         // Consume and Place selected boosters
         if (selectedBoosters) {
@@ -340,7 +380,6 @@ export const useGame = (initialDifficulty = 'normal') => {
             Object.entries(selectedBoosters).forEach(([type, isSelected]) => {
                 if (isSelected && tools[type] > 0) {
                     consumed[type] = 1;
-                    // Place on grid
                     const engineType = type === 'row' ? 'row_blast' : type === 'col' ? 'col_blast' : 'bomb';
                     const r = Math.floor(Math.random() * rows);
                     const c = Math.floor(Math.random() * cols);
@@ -362,70 +401,22 @@ export const useGame = (initialDifficulty = 'normal') => {
             }
         }
         setGamesPlayed(prev => prev + 1);
-    }, [cloudLevels]);
+    }, [difficulty, isMobile, orientation, language, tools]);
 
-    const updateGoals = useCallback((type, value, currentScore) => {
-        if (gameMode !== 'mission') return;
+    // Calculate Time Battle gold reward based on elapsed time
+    const calculateTimeBattleGold = useCallback((elapsed) => {
+        const tier = TIME_BATTLE_GOLD_TIERS.find(t => elapsed >= t.minSeconds && elapsed < t.maxSeconds);
+        return tier ? tier.gold : 200;
+    }, []);
 
-        setLevelGoals(prev => {
-            const next = prev.map(goal => {
-                if (goal.type === type) {
-                    if (type === GOAL_TYPES.WORD_LENGTH) {
-                        const targetValue = String(goal.value);
-                        const currentValue = String(value);
-                        if (targetValue === currentValue) {
-                            return { ...goal, current: Math.min(goal.count, goal.current + 1) };
-                        }
-                    }
-                    if (type === GOAL_TYPES.SCORE) {
-                        return { ...goal, current: Math.min(goal.value, currentScore) };
-                    }
-                    if (type === GOAL_TYPES.USE_TOOL) {
-                        const targetValue = String(goal.value).toLowerCase().trim();
-                        const currentValue = String(value).toLowerCase().trim();
-                        if (targetValue === currentValue) {
-                            return { ...goal, current: Math.min(goal.count, goal.current + 1) };
-                        }
-                    }
-                    if (type === GOAL_TYPES.WORD_COUNT) {
-                        return { ...goal, current: Math.min(goal.count, goal.current + 1) };
-                    }
-                }
-                return goal;
-            });
-
-            // Check if all goals completed
-            const allDone = next.length > 0 && next.every(g => {
-                if (g.type === GOAL_TYPES.SCORE) return currentScore >= g.value;
-                return g.current >= g.count;
-            });
-
-            if (allDone && gameState === 'playing') {
-                setGameState('victory');
-                // Update progression
-                const nextLevel = Math.max(completedLevels, currentLevelIndex + 1);
-                setCompletedLevels(nextLevel);
-
-                // Give rewards
-                const rewards = cloudLevels[currentLevelIndex].rewards;
-                if (rewards) {
-                    if (rewards.tools) {
-                        setTools(t => {
-                            const newTools = { ...t };
-                            Object.entries(rewards.tools).forEach(([id, amt]) => {
-                                newTools[id] = (newTools[id] || 0) + amt;
-                            });
-                            return newTools;
-                        });
-                    }
-                    if (rewards.coins) {
-                        setCoins(c => c + rewards.coins);
-                    }
-                }
-            }
-            return next;
-        });
-    }, [gameMode, gameState, currentLevelIndex, cloudLevels, completedLevels]);
+    // Get rank based on elapsed time
+    const getTimeBattleRank = useCallback((elapsed) => {
+        let rank = TIME_BATTLE_RANKS[0];
+        for (const r of TIME_BATTLE_RANKS) {
+            if (elapsed >= r.minSeconds) rank = r;
+        }
+        return rank;
+    }, []);
 
     const changeDifficulty = useCallback((newDiff) => {
         const settings = DIFFICULTY_SETTINGS[newDiff];
@@ -484,12 +475,12 @@ export const useGame = (initialDifficulty = 'normal') => {
             setTools(prev => ({ ...prev, [activeTool]: prev[activeTool] - 1 }));
             setActiveTool(null);
             soundManager.play('powerup');
-            updateGoals(GOAL_TYPES.USE_TOOL, toolUsed, score);
+            // updateGoals removed - mission mode replaced by timeBattle
         }
-    }, [activeTool, tools, engine, swapSelection, updateGoals]);
+    }, [activeTool, tools, engine, swapSelection]);
 
     const selectCell = useCallback((r, c) => {
-        if (gameState !== 'playing' || moves <= 0) return;
+        if (gameState !== 'playing' || (moves <= 0 && gameMode !== 'timeBattle')) return;
         if (activeTool) {
             handleToolUsage(r, c);
             return;
@@ -526,12 +517,13 @@ export const useGame = (initialDifficulty = 'normal') => {
                 setMoves(m => {
                     if (gameMode === 'arcade' && arcadeSubMode === 'time') return m;
                     if (gameMode === 'zen') return m;
+                    if (gameMode === 'timeBattle') return m;
                     return m - 1;
                 });
                 setTotalMovesMade(prev => prev + 1);
                 soundManager.play('bomb_blast');
                 setSelectedPath([]);
-                updateGoals(GOAL_TYPES.USE_TOOL, cell.type === 'bomb' ? 'bomb' : 'blast', score);
+                // updateGoals removed - mission mode replaced by timeBattle
                 return true;
             }
             setSelectedPath([]);
@@ -567,9 +559,16 @@ export const useGame = (initialDifficulty = 'normal') => {
                 else if (word.length >= 3) setGardenState(prev => ({ ...prev, ripples: prev.ripples + 1 }));
             }
 
+            // Time Battle: add time for found word (half of word length, rounded up)
+            if (gameMode === 'timeBattle') {
+                const bonusSeconds = Math.ceil(word.length / 2);
+                setTimeLeft(prev => prev + bonusSeconds);
+            }
+
             setMoves(m => {
                 if (gameMode === 'arcade' && arcadeSubMode === 'time') return m;
                 if (gameMode === 'zen') return m;
+                if (gameMode === 'timeBattle') return m;
                 return m - 1;
             });
             setTotalMovesMade(prev => prev + 1);
@@ -594,14 +593,6 @@ export const useGame = (initialDifficulty = 'normal') => {
                 setCoins(c => c + coinReward);
             }
 
-            // Update Mission Goals
-            const newScore = score + turnScore;
-            if (gameMode === 'mission') {
-                updateGoals(GOAL_TYPES.WORD_COUNT, 1, newScore);
-                updateGoals(GOAL_TYPES.WORD_LENGTH, word.length, newScore);
-                updateGoals(GOAL_TYPES.SCORE, turnScore, newScore);
-            }
-
             // Update stats
             setWordsFoundCount(prev => prev + 1);
             if (gameMode !== 'zen') {
@@ -614,7 +605,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         soundManager.play('error');
         setSelectedPath([]);
         return false;
-    }, [selectedPath, grid, engine, updateGoals]);
+    }, [selectedPath, grid, engine, gameMode]);
 
     const shuffle = useCallback(() => {
         if (gameState !== 'playing' || moves < 5) return;
@@ -623,6 +614,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         setMoves(m => {
             if (gameMode === 'arcade' && arcadeSubMode === 'time') return m;
             if (gameMode === 'zen') return m;
+            if (gameMode === 'timeBattle') return m;
             return m - 5;
         });
         setTotalMovesMade(prev => prev + 5);
@@ -633,8 +625,8 @@ export const useGame = (initialDifficulty = 'normal') => {
         const targetMode = mode || gameMode;
         const currentDiff = targetDifficulty || difficulty;
 
-        if (targetMode === 'mission') {
-            startMission(currentLevelIndex, selectedBoosters);
+        if (targetMode === 'timeBattle') {
+            startTimeBattle(subValue, selectedBoosters);
             return;
         }
 
@@ -700,7 +692,7 @@ export const useGame = (initialDifficulty = 'normal') => {
             }
         }
         setGamesPlayed(prev => prev + 1);
-    }, [engine, difficulty, gameMode, currentLevelIndex, startMission, language, tools]);
+    }, [engine, difficulty, gameMode, startTimeBattle, language, tools]);
 
     // Game Over / Victory: Update highScore based on final session score
     useEffect(() => {
@@ -712,11 +704,16 @@ export const useGame = (initialDifficulty = 'normal') => {
                 setGameState('gameover');
             } else if (gameMode === 'arcade' && arcadeSubMode === 'time' && timeLeft <= 0) {
                 setGameState('gameover');
-            } else if (gameMode === 'mission' && moves <= 0) {
-                setGameState('gameover');
             }
+            // timeBattle gameover is handled by the timeBattle timer effect
         }
-    }, [moves, timeLeft, gameState, score, gameMode, arcadeSubMode]);
+
+        // Time Battle: award gold on game end
+        if (gameState === 'gameover' && gameMode === 'timeBattle' && timeBattleElapsed > 0) {
+            const goldReward = calculateTimeBattleGold(timeBattleElapsed);
+            setCoins(c => c + goldReward);
+        }
+    }, [moves, timeLeft, gameState, score, gameMode, arcadeSubMode, timeBattleElapsed]);
 
     const buyTool = useCallback((toolId, price) => {
         if (coins >= price) {
@@ -737,7 +734,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         gameState, resetGame, swapSelection, createdSpecial,
         tools, activeTool, setActiveTool, changeDifficulty, selectCell,
         finishTurn, shuffle, isDictionaryLoaded,
-        gameMode, currentLevelIndex, levelGoals, startMission,
+        gameMode, currentLevelIndex, levelGoals, startTimeBattle,
         coins, buyTool, addCoins, addTool,
         cloudLevels, isLoadingLevels,
         user, profile, isLoadingProfile, completedLevels,
@@ -746,6 +743,9 @@ export const useGame = (initialDifficulty = 'normal') => {
         totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId,
         arcadeSubMode, arcadeValue, timeLeft, totalMovesMade, zenDuration,
         gardenState, setGameState,
-        celebration
+        celebration,
+        // Time Battle exports
+        timeBattleElapsed, timeBattleToolRewards, pendingToolReward,
+        timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt
     };
 };

@@ -11,8 +11,7 @@ import {
   ListTodo, Gift, ShoppingBag, BarChart3, Share2,
   User, LogOut, Mail, Lock, UserPlus, LogIn, Clock, Home
 } from 'lucide-react';
-import { LEVELS } from './logic/Levels';
-import { LETTER_POINTS } from './logic/Constants';
+import { LETTER_POINTS, TIME_BATTLE_OPTIONS } from './logic/Constants';
 import { AuthService } from './logic/AuthService';
 import { SupabaseService } from './logic/SupabaseService';
 
@@ -207,7 +206,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess, t = (s) => s }) => {
 
 
 const Dashboard = ({
-  onSelectMission, onSelectArcade, onSelectZen, currentLevel, coins, tools, streakCount,
+  onSelectTimeBattle, onSelectArcade, onSelectZen, currentLevel, coins, tools, streakCount,
   levels = [], isLoading, user, profile, onOpenAuth, language, setLanguage, t = (s) => s,
   isMuted, toggleMute, difficulty, changeDifficulty, dailyReward, claimGift, STREAK_REWARDS = [],
   showDailyGift, energy, nextEnergyIn, buyTool,
@@ -218,6 +217,7 @@ const Dashboard = ({
   const [selectedBoosters, setSelectedBoosters] = React.useState({ bomb: false, row: false, col: false });
   const [arcadeSubMode, setArcadeSubMode] = React.useState('moves'); // 'moves' | 'time'
   const [arcadeValue, setArcadeValue] = React.useState(15);
+  const [tbDuration, setTbDuration] = React.useState(TIME_BATTLE_OPTIONS[1]); // default 3dk
   const [showMemberOnlyModal, setShowMemberOnlyModal] = React.useState(false);
   const [showMissionLock, setShowMissionLock] = React.useState(false);
   const [lockReason, setLockReason] = React.useState('auth'); // 'auth' | 'energy'
@@ -255,69 +255,88 @@ const Dashboard = ({
   const renderView = () => {
     console.log('--- DASHBOARD RENDERVIEW CALLED ---', view);
     switch (view) {
-      case 'levels':
+      case 'timeBattlePregame': {
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-6xl mx-auto">
-            <div className="flex items-center gap-2 landscape:gap-2 md:gap-4 mb-3 landscape:mb-2 md:mb-8">
-              <button
-                onClick={() => setView('modes')}
-                className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
-              >
-                <X size={20} className="md:w-6 md:h-6" />
-              </button>
-              <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase">{t('level_selection')}</h2>
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full max-h-screen">
+            <div className="flex items-center justify-between gap-2 md:gap-4 mb-2 landscape:mb-1 md:mb-6 shrink-0 pt-2 md:pt-0">
+              <div className="flex items-center gap-2 md:gap-4 min-w-0">
+                <button onClick={() => setView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
+                  <X size={20} className="md:w-6 md:h-6" />
+                </button>
+                <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase truncate">{t('time_battle')}</h2>
+              </div>
+              <p className="hidden landscape:block text-[7px] md:text-[9px] font-black text-slate-500 italic tracking-wider uppercase text-right max-w-[200px] leading-tight shrink-0">
+                {t('time_battle_desc')}
+              </p>
             </div>
-            <div className="grid grid-cols-4 sm:grid-cols-6 landscape:grid-cols-12 lg:grid-cols-10 gap-2 landscape:gap-1.5 max-h-[60vh] landscape:max-h-[70vh] overflow-y-auto no-scrollbar pr-4 landscape:pr-2">
-              {isLoading ? (
-                <div className="col-span-full py-20 flex flex-col items-center justify-center text-slate-500 animate-pulse">
-                  <RefreshCw size={48} className="animate-spin mb-4 opacity-20" />
-                  <p className="text-xs font-black uppercase tracking-[0.3em]">{t('loading_levels')}</p>
+
+            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-3 landscape:p-2.5 md:p-8 backdrop-blur-md space-y-3 landscape:space-y-2 md:space-y-8 flex-1 overflow-y-auto no-scrollbar">
+              {/* Duration selection */}
+              <div className="space-y-2 landscape:space-y-1 md:space-y-4">
+                <div className="text-[8px] landscape:text-[7px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2 font-inter">{t('time_battle_select_duration')}</div>
+                <div className="grid grid-cols-3 gap-2 landscape:gap-1.5 md:gap-3">
+                  {TIME_BATTLE_OPTIONS.map(sec => {
+                    const label = sec === 60 ? t('time_battle_1min') : sec === 180 ? t('time_battle_3min') : t('time_battle_5min');
+                    return (
+                      <button
+                        key={sec}
+                        onClick={() => setTbDuration(sec)}
+                        className={`py-4 landscape:py-2.5 md:py-5 rounded-xl landscape:rounded-lg md:rounded-2xl border transition-all flex flex-col items-center gap-1.5 landscape:gap-1 md:gap-2 ${tbDuration === sec ? 'bg-rose-500/20 border-rose-400 text-rose-400 shadow-xl shadow-rose-500/10 scale-[1.02]' : 'bg-slate-800/40 border-white/5 text-slate-500 hover:bg-slate-800'}`}
+                      >
+                        <Clock size={20} className="landscape:w-4 landscape:h-4" />
+                        <span className="text-[10px] landscape:text-[9px] md:text-xs font-black uppercase tracking-widest">{label}</span>
+                        <span className="text-[8px] landscape:text-[7px] md:text-[9px] font-bold text-slate-600">{sec}{t('seconds')?.toLowerCase()}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-              ) : (
-                (levels || []).map((level, idx) => {
-                  const isLocked = idx > completedLevels;
-                  const isCompleted = idx < completedLevels;
-                  const isActive = idx === completedLevels;
-                  return (
-                    <button
-                      key={level.id}
-                      onClick={() => {
-                        if (isCompleted) return; // Tamamlananlara girişi engelle
-                        setSelectedLevelIdx(idx);
-                        setView('pregame');
-                      }}
-                      disabled={isLocked || isCompleted}
-                      className={`
-                        relative group aspect-square rounded-xl border transition-all duration-500 p-2 flex flex-col justify-between overflow-hidden
-                        ${isLocked ? 'bg-slate-900/20 border-white/5 opacity-40 cursor-not-allowed' :
-                          isCompleted ? 'bg-green-500/5 border-green-500/30 hover:border-green-500 shadow-lg shadow-green-500/5' :
-                            'bg-sky-500/5 border-sky-400/30 hover:border-sky-400 active:scale-95 shadow-xl shadow-sky-400/5'}
-                      `}
-                    >
-                      <div className="flex justify-between items-start">
-                        <span className={`text-lg landscape:text-sm md:text-lg font-black italic tracking-tighter ${isLocked ? 'text-slate-700' : isCompleted ? 'text-green-500' : 'text-sky-500'}`}>
-                          {idx + 1}
-                        </span>
-                        {isCompleted ? <CheckCircle2 className="text-green-500" size={12} /> :
-                          isLocked ? <div className="p-0.5 bg-slate-800 rounded-sm"><Sparkles size={8} className="text-slate-600" /></div> :
-                            <div className="p-0.5 bg-sky-500/20 rounded-sm animate-pulse"><Play size={8} className="text-sky-400" /></div>}
-                      </div>
-                      <div className="relative z-10 text-left text-xs landscape:text-[8px] md:text-xs">
-                        <h4 className={`font-bold leading-tight truncate ${isLocked ? 'text-slate-600' : 'text-white'}`}>
-                          {typeof level.title === 'object' ? (level.title[language] || level.title['tr']) : level.title}
-                        </h4>
-                        <p className="text-[8px] landscape:text-[6px] md:text-[8px] text-slate-500 uppercase font-black tracking-widest mt-0.5">
-                          {isLocked ? t('locked') : isCompleted ? t('completed') : (typeof level.difficulty === 'object' ? (level.difficulty[language] || level.difficulty['tr']) : level.difficulty)}
-                        </p>
-                      </div>
-                      {isActive && <div className="absolute inset-0 border border-sky-400 rounded-xl animate-ping opacity-20 pointer-events-none" />}
-                    </button>
-                  );
-                })
-              )}
+              </div>
+
+              {/* Booster selection */}
+              <div className="space-y-1.5 landscape:space-y-1 md:space-y-4 shrink-0">
+                <div className="text-[8px] landscape:text-[7px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1 md:ml-2 font-inter">{t('select_boosters')}</div>
+                <div className="grid grid-cols-3 gap-1.5 landscape:gap-1 md:gap-4">
+                  {['bomb', 'row', 'col'].map(type => {
+                    const count = tools?.[type] || 0;
+                    const isSelected = selectedBoosters[type];
+                    const Icon = type === 'bomb' ? Zap : type === 'row' ? MoveHorizontal : MoveVertical;
+                    return (
+                      <button key={type} disabled={count === 0} onClick={() => setSelectedBoosters(prev => ({ ...prev, [type]: !prev[type] }))}
+                        className={`relative p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border transition-all flex flex-col items-center gap-1.5 landscape:gap-1 md:gap-2 group ${isSelected ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-xl shadow-amber-500/10' : count > 0 ? 'bg-slate-800/40 border-white/5 text-slate-400 hover:bg-slate-800' : 'bg-slate-900/20 border-white/5 opacity-40 grayscale'}`}>
+                        <Icon className={`w-5 h-5 landscape:w-4 landscape:h-4 md:w-6 md:h-6 ${isSelected ? 'animate-bounce' : ''}`} />
+                        <span className="text-[8px] landscape:text-[7px] md:text-[10px] font-black uppercase tracking-widest leading-none">{t(type)}</span>
+                        <span className="absolute -top-1.5 -right-1.5 md:-top-2 md:-right-2 bg-white text-slate-950 text-[9px] landscape:text-[8px] md:text-[10px] font-black w-5 h-5 landscape:w-4 landscape:h-4 md:w-6 md:h-6 rounded-full border-2 border-slate-950 flex items-center justify-center">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Start button */}
+              <div className="pt-1 landscape:pt-0 md:pt-4 shrink-0 mt-auto pb-2 landscape:pb-1 md:pb-0">
+                <button
+                  onClick={() => {
+                    if (energy > 0) {
+                      onSelectTimeBattle(tbDuration, selectedBoosters);
+                      setSelectedBoosters({ bomb: false, row: false, col: false });
+                    }
+                  }}
+                  disabled={energy <= 0}
+                  className={`w-full py-3 landscape:py-2 md:py-6 rounded-xl md:rounded-2xl font-black text-base landscape:text-sm md:text-xl italic tracking-[0.2em] uppercase transition-all active:scale-95 shadow-xl md:shadow-2xl flex items-center justify-center gap-2 md:gap-3 ${energy > 0 ? 'bg-gradient-to-r from-rose-500 to-red-600 text-white hover:from-rose-400 hover:to-red-500 shadow-rose-500/20' : 'bg-slate-800 text-slate-500 cursor-not-allowed'}`}
+                >
+                  <Play size={18} className="landscape:w-4 landscape:h-4 md:w-6 md:h-6" fill="currentColor" />
+                  {t('time_battle_start')} (-1 ⚡)
+                </button>
+                {energy <= 0 && (
+                  <p className="text-center text-rose-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest mt-2 md:mt-4 animate-pulse">
+                    {language === 'tr' ? 'Enerji bitti!' : 'No energy!'} {language === 'tr' ? 'Bekle:' : 'Wait:'} {Math.floor(nextEnergyIn / 60)}:{(nextEnergyIn % 60).toString().padStart(2, '0')}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         );
+      }
 
       case 'pregame': {
         const isArcade = selectedLevelIdx === null;
@@ -478,11 +497,7 @@ const Dashboard = ({
                 <button
                   onClick={() => {
                     if (energy > 0) {
-                      if (isArcade) {
-                        onSelectArcade(selectedBoosters, arcadeSubMode, arcadeValue);
-                      } else {
-                        onSelectMission(selectedLevelIdx, selectedBoosters);
-                      }
+                      onSelectArcade(selectedBoosters, arcadeSubMode, arcadeValue);
                       // Reset local states for next time
                       setSelectedLevelIdx(null);
                       setSelectedBoosters({ bomb: false, row: false, col: false });
@@ -721,9 +736,6 @@ const Dashboard = ({
                     <div className="w-20 h-20 landscape:w-14 landscape:h-14 md:w-32 md:h-32 bg-gradient-to-br from-sky-500 to-purple-600 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] flex items-center justify-center text-white shadow-2xl overflow-hidden">
                       <User size={36} className="landscape:w-7 landscape:h-7 md:w-16 md:h-16" />
                     </div>
-                    <div className="absolute -bottom-1 -right-1 landscape:-bottom-0.5 landscape:-right-0.5 w-7 h-7 landscape:w-5 landscape:h-5 md:w-10 md:h-10 bg-amber-500 rounded-full border-2 landscape:border-2 md:border-4 border-slate-900 flex items-center justify-center text-slate-950 font-black text-[9px] landscape:text-[7px] md:text-xs shadow-lg">
-                      {currentLevel + 1}
-                    </div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg landscape:text-sm md:text-2xl font-black text-white italic tracking-tighter uppercase mb-0.5 truncate">{user?.user_metadata?.username || user?.email?.split('@')[0] || t('player')}</h3>
@@ -741,19 +753,6 @@ const Dashboard = ({
                   </div>
                 </div>
 
-                <div className="bg-slate-900/40 border border-white/5 rounded-2xl landscape:rounded-xl md:rounded-3xl p-4 landscape:p-2.5 md:p-6 backdrop-blur-md">
-                  <div className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 landscape:mb-1.5 md:mb-4 text-center">{t('level_progress')}</div>
-                  <div className="w-full h-2 landscape:h-1.5 md:h-3 bg-slate-950 rounded-full overflow-hidden border border-white/5">
-                    <div
-                      className="h-full bg-gradient-to-r from-sky-500 to-purple-600 transition-all duration-1000"
-                      style={{ width: `${Math.min(100, (currentLevel / (levels.length || 1)) * 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-1.5 landscape:mt-1">
-                    <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-sky-500 italic">Lvl {currentLevel}</span>
-                    <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-600 italic">Total {levels.length}</span>
-                  </div>
-                </div>
               </div>
 
               <div className="lg:col-span-2 space-y-3 landscape:space-y-2 md:space-y-6">
@@ -822,30 +821,29 @@ const Dashboard = ({
                 </div>
               </button>
 
-              {/* Mission Mode Card */}
+              {/* Time Battle Mode Card */}
               <button
                 onClick={() => {
-                  if (!user) { setLockReason('auth'); setShowMissionLock(true); }
-                  else if (energy <= 0) { setLockReason('energy'); setShowMissionLock(true); }
-                  else setView('levels');
+                  if (energy > 0) setView('timeBattlePregame');
+                  else { setLockReason('energy'); setShowMissionLock(true); }
                 }}
                 className="relative w-[85vw] max-w-[280px] landscape:max-w-[240px] h-[65vh] landscape:h-auto lg:h-[55vh] max-h-[320px] landscape:max-h-[180px] shrink-0 rounded-[2rem] landscape:rounded-xl border border-white/10 overflow-hidden transition-all active:scale-95 group shadow-2xl snap-center flex flex-col items-center justify-center p-4 landscape:p-2.5 text-center gap-2 landscape:gap-1.5"
-                style={{ background: 'linear-gradient(225deg, #1e0d08 0%, #0c0502 100%)' }}
+                style={{ background: 'linear-gradient(225deg, #1e0508 0%, #0c0205 100%)' }}
               >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none" />
-                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-orange-500/20 to-transparent pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none" />
+                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-rose-500/20 to-transparent pointer-events-none" />
 
-                <div className="relative z-10 w-10 h-10 landscape:w-8 landscape:h-8 bg-orange-500/10 rounded-xl border border-orange-400/20 flex items-center justify-center text-orange-400 shrink-0">
-                  <Trophy className="w-5 h-5 landscape:w-4 landscape:h-4" />
+                <div className="relative z-10 w-10 h-10 landscape:w-8 landscape:h-8 bg-rose-500/10 rounded-xl border border-rose-400/20 flex items-center justify-center text-rose-400 shrink-0">
+                  <Clock className="w-5 h-5 landscape:w-4 landscape:h-4" />
                 </div>
 
                 <div className="relative z-10 flex flex-col items-center gap-0.5">
-                  <h3 className="text-lg landscape:text-base lg:text-3xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg leading-tight">{t('mission')}</h3>
-                  <p className="text-orange-400/80 text-[9px] landscape:text-[8px] lg:text-xs font-black uppercase tracking-[0.1em] leading-tight max-w-[180px] opacity-90">{t('mission_desc')}</p>
+                  <h3 className="text-lg landscape:text-base lg:text-3xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg leading-tight">{t('time_battle')}</h3>
+                  <p className="text-rose-400/80 text-[9px] landscape:text-[8px] lg:text-xs font-black uppercase tracking-[0.1em] leading-tight max-w-[180px] opacity-90">{t('time_battle_desc')}</p>
                 </div>
 
-                <div className="relative z-10 bg-orange-500 text-slate-950 px-4 landscape:px-3 py-1.5 landscape:py-1 rounded-full font-black text-[9px] landscape:text-[8px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-[0_8px_20px_rgba(249,115,22,0.3)] shrink-0">
-                  {user ? <Play size={9} fill="currentColor" /> : <Lock size={9} />} {user ? t('play') : t('login')}
+                <div className="relative z-10 bg-rose-500 text-slate-950 px-4 landscape:px-3 py-1.5 landscape:py-1 rounded-full font-black text-[9px] landscape:text-[8px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-[0_8px_20px_rgba(244,63,94,0.3)] shrink-0">
+                  <Play size={9} fill="currentColor" /> {t('play')}
                 </div>
               </button>
 
@@ -905,22 +903,21 @@ const Dashboard = ({
 
                 <button
                   onClick={() => {
-                    if (!user) { setLockReason('auth'); setShowMissionLock(true); }
-                    else if (energy <= 0) { setLockReason('energy'); setShowMissionLock(true); }
-                    else setView('levels');
+                    if (energy > 0) setView('timeBattlePregame');
+                    else { setLockReason('energy'); setShowMissionLock(true); }
                   }}
                   className="group relative flex-1 overflow-hidden border border-white/8 border-t-0 transition-all duration-500 active:scale-[0.99]"
-                  style={{ background: 'linear-gradient(135deg, #0f0a00 0%, #1a0e00 50%, #100800 100%)' }}
+                  style={{ background: 'linear-gradient(135deg, #0f0005 0%, #1a0008 50%, #100005 100%)' }}
                 >
-                  <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-orange-500/10 rounded-full blur-[80px] transition-all duration-700 group-hover:bg-orange-500/20 group-hover:scale-110" />
+                  <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-rose-500/10 rounded-full blur-[80px] transition-all duration-700 group-hover:bg-rose-500/20 group-hover:scale-110" />
                   <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")', backgroundSize: '128px' }} />
                   <div className="relative z-10 h-full flex flex-col items-center justify-center p-10 gap-4">
-                    <div className="w-20 h-20 bg-orange-500/15 border border-orange-500/25 rounded-3xl flex items-center justify-center text-orange-400 group-hover:scale-110 group-hover:bg-orange-500/25 group-hover:border-orange-500/50 transition-all duration-500 shadow-[0_0_30px_rgba(249,115,22,0.2)]">
-                      <Trophy size={40} />
+                    <div className="w-20 h-20 bg-rose-500/15 border border-rose-500/25 rounded-3xl flex items-center justify-center text-rose-400 group-hover:scale-110 group-hover:bg-rose-500/25 group-hover:border-rose-500/50 transition-all duration-500 shadow-[0_0_30px_rgba(244,63,94,0.2)]">
+                      <Clock size={40} />
                     </div>
                     <div className="text-center">
-                      <h3 className="text-5xl font-black text-white tracking-[-0.04em] uppercase leading-none font-outfit group-hover:text-orange-100 transition-colors">{t('mission')}</h3>
-                      <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.2em] mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">{t('mission_desc')}</p>
+                      <h3 className="text-5xl font-black text-white tracking-[-0.04em] uppercase leading-none font-outfit group-hover:text-rose-100 transition-colors">{t('time_battle')}</h3>
+                      <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.2em] mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">{t('time_battle_desc')}</p>
                     </div>
                   </div>
                 </button>
@@ -968,7 +965,7 @@ const Dashboard = ({
                       </div>
                       {user && (
                         <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-orange-500 rounded-lg border-2 border-slate-950 flex items-center justify-center shadow-lg">
-                          <span className="text-[8px] font-black text-white leading-none">{currentLevel + 1}</span>
+                          <Gamepad2 size={12} className="text-white" />
                         </div>
                       )}
                     </div>
@@ -978,27 +975,13 @@ const Dashboard = ({
                         {user ? (profile?.username || user?.email?.split('@')[0]) : t('player')}
                       </div>
                       <div className="text-[10px] font-black text-orange-400 uppercase tracking-widest mt-1">
-                        {user ? `Seviye ${currentLevel + 1}` : '— Misafir —'}
+                        {user ? (profile?.username || user?.email?.split('@')[0]) : '— Misafir —'}
                       </div>
                     </div>
                     <ChevronRight size={16} className="text-slate-700 group-hover:text-white group-hover:translate-x-1 transition-all shrink-0" />
                   </div>
 
-                  {/* XP / Level Progress Bar */}
-                  {user && (
-                    <div>
-                      <div className="flex justify-between mb-2">
-                        <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">İLERLEME</span>
-                        <span className="text-[9px] font-black text-orange-400">{currentLevel}/{levels.length || '--'}</span>
-                      </div>
-                      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-orange-500 to-rose-500 rounded-full transition-all duration-1000"
-                          style={{ width: `${Math.min(100, ((currentLevel) / (levels.length || 1)) * 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
+
 
                   {!user && (
                     <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-xl px-3 py-2.5">
@@ -1578,7 +1561,7 @@ function App() {
     grid, selectedPath, animatingCells, score, moves, difficulty,
     foundWords, gameState, resetGame, swapSelection, tools, activeTool,
     setActiveTool, changeDifficulty, selectCell, finishTurn, shuffle,
-    gameMode, currentLevelIndex, levelGoals, startMission,
+    gameMode, currentLevelIndex, levelGoals, startTimeBattle,
     coins, buyTool, addCoins, addTool, createdSpecial,
     cloudLevels, isLoadingLevels,
     user, profile, completedLevels,
@@ -1588,7 +1571,9 @@ function App() {
     totalScore, wordsFoundCount, gamesPlayed, highScore,
     arcadeSubMode, arcadeValue, timeLeft, totalMovesMade, zenDuration,
     gardenState, setGameState,
-    celebration
+    celebration,
+    timeBattleElapsed, timeBattleToolRewards, pendingToolReward,
+    timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt
   } = useGame();
 
   const [isMuted, setIsMuted] = useState(false);
@@ -1766,11 +1751,11 @@ function App() {
               resetGame(boosters, 'arcade', subMode, subValue, 'normal');
             }
           }}
-          onSelectMission={(idx, boosters) => {
+          onSelectTimeBattle={(duration, boosters) => {
             if (energy > 0) {
               setEnergy(prev => prev - 1);
               if (energy === 5) setLastEnergyRefill(Date.now());
-              startMission(idx, boosters);
+              startTimeBattle(duration, boosters);
               setShowDashboard(false);
             }
           }}
@@ -1797,10 +1782,10 @@ function App() {
               </div>
               <div className="min-w-[100px] landscape:min-w-[80px] md:min-w-[140px]">
                 <h1 className="text-lg landscape:text-base md:text-2xl font-black tracking-tight bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent italic uppercase leading-none mb-0.5 landscape:mb-0 md:mb-1">
-                  {gameMode === 'mission' ? `${t('mission')} ${currentLevelIndex + 1}` : 'WORDLENGE'}
+                  {gameMode === 'timeBattle' ? t('time_battle') : 'WORDLENGE'}
                 </h1>
                 <p className="text-[9px] landscape:text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate font-inter">
-                  {gameMode === 'mission' ? (typeof cloudLevels?.[currentLevelIndex]?.title === 'object' ? cloudLevels[currentLevelIndex].title[language] : cloudLevels?.[currentLevelIndex]?.title) : t('arcade')}
+                  {gameMode === 'timeBattle' ? t('time_battle_desc') : gameMode === 'zen' ? t('zen_desc') : t('arcade')}
                 </p>
               </div>
             </div>
@@ -1868,6 +1853,18 @@ function App() {
                     {timeLeft}s
                   </span>
                 </>
+              ) : gameMode === 'timeBattle' ? (
+                <>
+                  <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('time_left')}:</span>
+                  <span className={`text-xs landscape:text-[10px] md:text-sm font-black tabular-nums ${timeLeft < 10 ? 'text-rose-500 animate-pulse' : 'text-rose-400'}`}>
+                    {timeLeft}s
+                  </span>
+                  <div className="w-px h-3 bg-white/10" />
+                  <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('time_battle_survived')}:</span>
+                  <span className="text-xs landscape:text-[10px] md:text-sm font-black text-amber-400 tabular-nums">
+                    {Math.floor(timeBattleElapsed / 60)}:{String(timeBattleElapsed % 60).padStart(2, '0')}
+                  </span>
+                </>
               ) : (
                 <>
                   <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('moves')}:</span>
@@ -1877,11 +1874,13 @@ function App() {
             </div>
           </div>
 
-          {/* Mobile Goals Display */}
-          {gameMode === 'mission' && (
-            <div className="md:hidden bg-slate-900/60 backdrop-blur-md px-4 py-2 flex items-center gap-3 overflow-x-auto no-scrollbar border-b border-white/5">
-              <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest shrink-0">{t('goals')}:</div>
-              <MissionTracker goals={levelGoals} t={t} language={language} isCompact />
+          {/* Mobile Time Battle Next Reward (replaces mission goals) */}
+          {gameMode === 'timeBattle' && (
+            <div className="md:hidden bg-rose-500/5 backdrop-blur-md px-4 py-1.5 flex items-center justify-center gap-3 border-b border-rose-500/10">
+              <Clock size={12} className="text-rose-400" />
+              <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">
+                {t('time_battle_next_reward')}: {Math.max(0, nextToolRewardAt - timeBattleElapsed)}s
+              </span>
             </div>
           )}
 
@@ -1889,8 +1888,11 @@ function App() {
             {/* Left Side: Goals & Stats */}
             <aside className="w-56 flex flex-col gap-3 shrink-0 overflow-y-auto no-scrollbar hidden md:flex">
               <div className="bg-slate-900/40 backdrop-blur-xl p-4 rounded-3xl border border-white/5 shadow-2xl space-y-3 shrink-0">
-                {gameMode === 'mission' && (
-                  <MissionTracker goals={levelGoals} t={t} language={language} />
+                {gameMode === 'timeBattle' && (
+                  <div className="mb-3 bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">
+                    <div className="text-[8px] text-rose-400 uppercase tracking-widest font-black mb-1">{t('time_battle_next_reward')}</div>
+                    <div className="text-sm font-black text-white tabular-nums">{Math.max(0, nextToolRewardAt - timeBattleElapsed)}s</div>
+                  </div>
                 )}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="bg-slate-950/60 p-3 rounded-2xl border border-white/5 relative overflow-hidden group">
@@ -1905,6 +1907,13 @@ function App() {
                           {timeLeft}s
                         </div>
                       </>
+                    ) : gameMode === 'timeBattle' ? (
+                      <>
+                        <div className="text-[8px] text-rose-400 uppercase tracking-widest font-black mb-0.5">{t('time_left')}</div>
+                        <div className={`text-xl font-black tabular-nums ${timeLeft < 10 ? 'text-rose-500 animate-pulse' : 'text-rose-400'}`}>
+                          {timeLeft}s
+                        </div>
+                      </>
                     ) : (
                       <>
                         <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">{t('moves')}</div>
@@ -1912,6 +1921,14 @@ function App() {
                       </>
                     )}
                   </div>
+                  {gameMode === 'timeBattle' && (
+                    <div className="bg-slate-950/60 p-3 rounded-2xl border border-white/5 relative overflow-hidden group col-span-2">
+                      <div className="text-[8px] text-rose-400 uppercase tracking-widest font-black mb-0.5">{t('time_battle_survived')}</div>
+                      <div className="text-xl font-black text-amber-400 tabular-nums">
+                        {Math.floor(timeBattleElapsed / 60)}:{String(timeBattleElapsed % 60).padStart(2, '0')}
+                      </div>
+                    </div>
+                  )}
                   {gameMode === 'arcade' && arcadeSubMode === 'time' && (
                     <div className="bg-slate-950/60 p-3 rounded-2xl border border-white/5 relative overflow-hidden group col-span-2">
                       <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">{t('total_moves')}</div>
@@ -1922,23 +1939,19 @@ function App() {
               </div>
 
               <div className="flex-1 bg-slate-900/40 backdrop-blur-xl p-4 rounded-3xl border border-white/5 shadow-2xl flex flex-col min-h-0">
-                {gameMode === 'mission' ? (
-                  <MissionTracker goals={levelGoals} t={t} />
-                ) : (
-                  <>
-                    <div className="flex justify-between items-center border-b border-white/5 pb-2 shrink-0">
-                      <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('words')}</h2>
-                      <AlignLeft className="w-3.5 h-3.5 text-sky-400" />
-                    </div>
-                    <div className="flex-1 overflow-y-auto no-scrollbar py-2 space-y-2">
-                      {foundWords.map((word, idx) => (
-                        <div key={idx} className="px-2 py-1 bg-white/5 rounded-lg text-[10px] font-bold text-slate-300 border border-white/5 truncate">
-                          {word}
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
+                <>
+                  <div className="flex justify-between items-center border-b border-white/5 pb-2 shrink-0">
+                    <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('words')}</h2>
+                    <AlignLeft className="w-3.5 h-3.5 text-sky-400" />
+                  </div>
+                  <div className="flex-1 overflow-y-auto no-scrollbar py-2 space-y-2">
+                    {foundWords.map((word, idx) => (
+                      <div key={idx} className="px-2 py-1 bg-white/5 rounded-lg text-[10px] font-bold text-slate-300 border border-white/5 truncate">
+                        {word}
+                      </div>
+                    ))}
+                  </div>
+                </>
               </div>
             </aside>
 
@@ -2020,12 +2033,7 @@ function App() {
                           )}
 
                           <button onClick={() => {
-                            const nextIdx = currentLevelIndex + 1;
-                            if (nextIdx < cloudLevels.length) {
-                              startMission(nextIdx, {});
-                            } else {
-                              setShowDashboard(true);
-                            }
+                            setShowDashboard(true);
                           }} className="w-full py-3 landscape:py-2 md:py-4 bg-emerald-500 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl mb-2 landscape:mb-1 hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 text-sm landscape:text-xs md:text-base">{t('continue')}</button>
                           <button onClick={() => setShowDashboard(true)} className="w-full py-3 landscape:py-2 md:py-4 bg-white/5 text-slate-400 font-black rounded-xl landscape:rounded-lg md:rounded-2xl hover:bg-white/10 transition-all text-sm landscape:text-xs md:text-base">{t('main_menu')}</button>
                         </div>
@@ -2080,127 +2088,172 @@ function App() {
           </main>
 
           {/* Game Over Modal (Failures for ARCADE/MISSION or Analysis for ZEN) */}
-          {gameState === 'gameover' && (
-            <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 landscape:p-3 md:p-6 bg-slate-950/90 backdrop-blur-xl">
-              <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] p-5 landscape:p-3 md:p-8 text-center animate-in fade-in zoom-in duration-500">
-                {gameMode === 'zen' ? (
-                  <>
-                    <Sparkles className="w-12 h-12 landscape:w-10 landscape:h-10 md:w-16 md:h-16 text-emerald-400 mx-auto mb-3 landscape:mb-2 md:mb-4" />
-                    <h2 className="text-2xl landscape:text-xl md:text-3xl font-black text-white italic tracking-tighter mb-1 landscape:mb-0.5 md:mb-2 uppercase">{t('zen_analysis')}</h2>
-                    <p className="text-slate-500 text-[9px] landscape:text-[8px] md:text-[10px] font-bold uppercase tracking-widest mb-4 landscape:mb-2 md:mb-6 italic">{t('zen_finished_desc')}</p>
+          {
+            gameState === 'gameover' && (
+              <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 landscape:p-3 md:p-6 bg-slate-950/90 backdrop-blur-xl">
+                <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] p-5 landscape:p-3 md:p-8 text-center animate-in fade-in zoom-in duration-500">
+                  {gameMode === 'zen' ? (
+                    <>
+                      <Sparkles className="w-12 h-12 landscape:w-10 landscape:h-10 md:w-16 md:h-16 text-emerald-400 mx-auto mb-3 landscape:mb-2 md:mb-4" />
+                      <h2 className="text-2xl landscape:text-xl md:text-3xl font-black text-white italic tracking-tighter mb-1 landscape:mb-0.5 md:mb-2 uppercase">{t('zen_analysis')}</h2>
+                      <p className="text-slate-500 text-[9px] landscape:text-[8px] md:text-[10px] font-bold uppercase tracking-widest mb-4 landscape:mb-2 md:mb-6 italic">{t('zen_finished_desc')}</p>
 
-                    <div className="grid grid-cols-2 gap-2 landscape:gap-1.5 md:gap-3 mb-4 landscape:mb-2 md:mb-8">
-                      <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5 shadow-inner">
-                        <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('session_duration')}</div>
-                        <div className="text-lg landscape:text-base md:text-xl font-black text-white tabular-nums">
-                          {Math.floor(zenDuration / 60)}:{String(zenDuration % 60).padStart(2, '0')}
+                      <div className="grid grid-cols-2 gap-2 landscape:gap-1.5 md:gap-3 mb-4 landscape:mb-2 md:mb-8">
+                        <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5 shadow-inner">
+                          <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('session_duration')}</div>
+                          <div className="text-lg landscape:text-base md:text-xl font-black text-white tabular-nums">
+                            {Math.floor(zenDuration / 60)}:{String(zenDuration % 60).padStart(2, '0')}
+                          </div>
+                        </div>
+                        <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5 shadow-inner">
+                          <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('session_moves')}</div>
+                          <div className="text-lg landscape:text-base md:text-xl font-black text-white tabular-nums">{totalMovesMade}</div>
+                        </div>
+                        <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5 shadow-inner col-span-2">
+                          <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('words_found')}</div>
+                          <div className="text-lg landscape:text-base md:text-xl font-black text-emerald-400 tabular-nums">{wordsFoundCount}</div>
                         </div>
                       </div>
-                      <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5 shadow-inner">
-                        <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('session_moves')}</div>
-                        <div className="text-lg landscape:text-base md:text-xl font-black text-white tabular-nums">{totalMovesMade}</div>
-                      </div>
-                      <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5 shadow-inner col-span-2">
-                        <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('words_found')}</div>
-                        <div className="text-lg landscape:text-base md:text-xl font-black text-emerald-400 tabular-nums">{wordsFoundCount}</div>
-                      </div>
-                    </div>
 
-                    <button onClick={() => resetGame({}, 'zen')} className="w-full py-3 landscape:py-2 md:py-5 bg-emerald-500 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl shadow-xl mb-2 landscape:mb-1 md:mb-3 uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-[0.98] text-sm landscape:text-xs md:text-base">{t('new_session')}</button>
-                    <button onClick={() => setShowDashboard(true)} className="w-full py-3 landscape:py-2 md:py-4 bg-white/5 text-slate-400 font-black rounded-xl landscape:rounded-lg md:rounded-2xl hover:bg-white/10 transition-all underline decoration-emerald-500/30 underline-offset-4 text-sm landscape:text-xs md:text-base">{t('back_to_menu')}</button>
-                  </>
-                ) : (
-                  <>
-                    <div className={`w-14 h-14 landscape:w-12 landscape:h-12 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-3 landscape:mb-2 md:mb-6 border ${gameMode === 'mission' ? 'bg-rose-500/20 border-rose-400 text-rose-400' : 'bg-sky-500/20 border-sky-400 text-sky-400'}`}>
-                      {gameMode === 'mission' ? <X size={28} className="landscape:w-6 landscape:h-6 md:w-10 md:h-10" /> : <Trophy size={28} className="landscape:w-6 landscape:h-6 md:w-10 md:h-10" />}
-                    </div>
-                    <h2 className="text-2xl landscape:text-xl md:text-3xl font-black text-white italic tracking-tighter mb-1 landscape:mb-0.5 md:mb-2 uppercase">
-                      {gameMode === 'mission' ? t('mission_failed') : t('game_over')}
-                    </h2>
-                    <p className={`text-[9px] landscape:text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 landscape:mb-2 md:mb-6 italic ${gameMode === 'mission' ? 'text-rose-500' : 'text-sky-500'}`}>
-                      {gameMode === 'mission' ? t('goals_not_reached') : t('moves_exhausted')}
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-2 landscape:gap-1.5 md:gap-4 mb-4 landscape:mb-2 md:mb-8">
-                      <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5">
-                        <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('score')}</div>
-                        <div className="text-xl landscape:text-lg md:text-2xl font-black text-white italic tabular-nums">{score}</div>
+                      <button onClick={() => resetGame({}, 'zen')} className="w-full py-3 landscape:py-2 md:py-5 bg-emerald-500 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl shadow-xl mb-2 landscape:mb-1 md:mb-3 uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-[0.98] text-sm landscape:text-xs md:text-base">{t('new_session')}</button>
+                      <button onClick={() => setShowDashboard(true)} className="w-full py-3 landscape:py-2 md:py-4 bg-white/5 text-slate-400 font-black rounded-xl landscape:rounded-lg md:rounded-2xl hover:bg-white/10 transition-all underline decoration-emerald-500/30 underline-offset-4 text-sm landscape:text-xs md:text-base">{t('back_to_menu')}</button>
+                    </>
+                  ) : gameMode === 'timeBattle' ? (
+                    <>
+                      <div className="w-14 h-14 landscape:w-12 landscape:h-12 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-3 landscape:mb-2 md:mb-6 border bg-rose-500/20 border-rose-400 text-rose-400">
+                        <Clock size={28} className="landscape:w-6 landscape:h-6 md:w-10 md:h-10" />
                       </div>
-                      <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5">
-                        {gameMode === 'arcade' && arcadeSubMode === 'time' ? (
-                          <>
-                            <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('total_moves')}</div>
-                            <div className="text-xl landscape:text-lg md:text-2xl font-black text-white">{totalMovesMade}</div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('moves')}</div>
-                            <div className="text-xl landscape:text-lg md:text-2xl font-black text-white tabular-nums">{totalMovesMade}</div>
-                          </>
-                        )}
-                      </div>
-                    </div>
+                      <h2 className="text-2xl landscape:text-xl md:text-3xl font-black text-white italic tracking-tighter mb-1 landscape:mb-0.5 md:mb-2 uppercase">
+                        {t('time_battle_result_title')}
+                      </h2>
+                      <p className="text-rose-400 text-[9px] landscape:text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 landscape:mb-2 md:mb-6 italic">
+                        {t('time_battle_result_subtitle')}
+                      </p>
 
-                    <button onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)} className={`w-full py-3 landscape:py-2 md:py-5 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl shadow-xl mb-2 landscape:mb-1 md:mb-3 text-sm landscape:text-xs md:text-base ${gameMode === 'mission' ? 'bg-rose-500 hover:bg-rose-400 shadow-rose-500/20' : 'bg-sky-500 hover:bg-sky-400 shadow-sky-500/20'}`}>{t('try_again')}</button>
-                    <button onClick={() => setShowDashboard(true)} className="w-full py-3 landscape:py-2 md:py-4 bg-white/5 text-slate-400 font-black rounded-xl landscape:rounded-lg md:rounded-2xl hover:bg-white/10 transition-all underline underline-offset-4 decoration-white/10 text-sm landscape:text-xs md:text-base">{t('back_to_menu')}</button>
-                  </>
+                      <div className="grid grid-cols-2 gap-2 landscape:gap-1.5 md:gap-4 mb-4 landscape:mb-2 md:mb-8">
+                        <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-rose-500/20">
+                          <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-rose-400 font-black uppercase mb-0.5">{t('time_battle_survived')}</div>
+                          <div className="text-xl landscape:text-lg md:text-2xl font-black text-white italic tabular-nums">
+                            {Math.floor(timeBattleElapsed / 60)}:{String(timeBattleElapsed % 60).padStart(2, '0')}
+                          </div>
+                        </div>
+                        <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-amber-500/20">
+                          <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-amber-400 font-black uppercase mb-0.5">{t('time_battle_gold_earned')}</div>
+                          <div className="text-xl landscape:text-lg md:text-2xl font-black text-amber-400 italic tabular-nums">+{calculateTimeBattleGold(timeBattleElapsed)}</div>
+                        </div>
+                        <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5">
+                          <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('score')}</div>
+                          <div className="text-xl landscape:text-lg md:text-2xl font-black text-white italic tabular-nums">{score}</div>
+                        </div>
+                        <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5">
+                          <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('words_found')}</div>
+                          <div className="text-xl landscape:text-lg md:text-2xl font-black text-white tabular-nums">{wordsFoundCount}</div>
+                        </div>
+                      </div>
+
+                      {/* Rank display */}
+                      {(() => {
+                        const rank = getTimeBattleRank(timeBattleElapsed);
+                        const rankColors = { bronze: 'text-orange-400', silver: 'text-slate-300', gold: 'text-amber-400' };
+                        return (
+                          <div className="mb-4 landscape:mb-2 md:mb-6 text-center">
+                            <div className="text-[8px] landscape:text-[7px] md:text-[9px] text-slate-500 font-black uppercase tracking-widest mb-1">{t('time_battle_rank')}</div>
+                            <div className={`text-lg landscape:text-base md:text-2xl font-black italic uppercase ${rankColors[rank?.id] || 'text-white'}`}>
+                              {rank ? t(`time_battle_rank_${rank.id}`) : '—'}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      <button onClick={() => setShowDashboard(true)} className="w-full py-3 landscape:py-2 md:py-5 bg-rose-500 hover:bg-rose-400 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl shadow-xl mb-2 landscape:mb-1 md:mb-3 text-sm landscape:text-xs md:text-base shadow-rose-500/20">{t('main_menu')}</button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-14 h-14 landscape:w-12 landscape:h-12 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-3 landscape:mb-2 md:mb-6 border bg-sky-500/20 border-sky-400 text-sky-400">
+                        <Trophy size={28} className="landscape:w-6 landscape:h-6 md:w-10 md:h-10" />
+                      </div>
+                      <h2 className="text-2xl landscape:text-xl md:text-3xl font-black text-white italic tracking-tighter mb-1 landscape:mb-0.5 md:mb-2 uppercase">
+                        {t('game_over')}
+                      </h2>
+                      <p className="text-sky-500 text-[9px] landscape:text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 landscape:mb-2 md:mb-6 italic">
+                        {t('moves_exhausted')}
+                      </p>
+
+                      <div className="grid grid-cols-2 gap-2 landscape:gap-1.5 md:gap-4 mb-4 landscape:mb-2 md:mb-8">
+                        <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5">
+                          <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('score')}</div>
+                          <div className="text-xl landscape:text-lg md:text-2xl font-black text-white italic tabular-nums">{score}</div>
+                        </div>
+                        <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5">
+                          <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('moves')}</div>
+                          <div className="text-xl landscape:text-lg md:text-2xl font-black text-white tabular-nums">{totalMovesMade}</div>
+                        </div>
+                      </div>
+
+                      <button onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)} className="w-full py-3 landscape:py-2 md:py-5 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl shadow-xl mb-2 landscape:mb-1 md:mb-3 text-sm landscape:text-xs md:text-base bg-sky-500 hover:bg-sky-400 shadow-sky-500/20">{t('try_again')}</button>
+                      <button onClick={() => setShowDashboard(true)} className="w-full py-3 landscape:py-2 md:py-4 bg-white/5 text-slate-400 font-black rounded-xl landscape:rounded-lg md:rounded-2xl hover:bg-white/10 transition-all underline underline-offset-4 decoration-white/10 text-sm landscape:text-xs md:text-base">{t('back_to_menu')}</button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )
+          }
+        </>
+      )
+      }
+
+      {/* Word Celebration Overlay */}
+      {
+        celebration && (() => {
+          const config = {
+            1: { key: 'cheer_4', color: 'from-sky-400 to-cyan-300', glow: 'shadow-sky-500/40', shake: '', sparkles: 3, size: 'text-5xl md:text-8xl' },
+            2: { key: 'cheer_5', color: 'from-purple-400 to-fuchsia-400', glow: 'shadow-purple-500/40', shake: 'celebration-shake-sm', sparkles: 5, size: 'text-6xl md:text-9xl' },
+            3: { key: 'cheer_6', color: 'from-amber-400 to-yellow-300', glow: 'shadow-amber-500/50', shake: 'celebration-shake', sparkles: 8, size: 'text-7xl md:text-[10rem]' },
+            4: { key: 'cheer_7', color: 'from-orange-400 to-red-400', glow: 'shadow-orange-500/50', shake: 'celebration-shake', sparkles: 12, size: 'text-7xl md:text-[10rem]' },
+            5: { key: 'cheer_8', sub: 'cheer_8_sub', color: 'from-rose-400 via-amber-400 to-emerald-400', glow: 'shadow-rose-500/60', shake: 'celebration-shake-lg', sparkles: 18, size: 'text-8xl md:text-[12rem]' },
+          };
+          const c = config[celebration.level] || config[1];
+          return (
+            <div className="fixed inset-0 z-[400] flex items-center justify-center pointer-events-none">
+              {/* Sparkle particles */}
+              {Array.from({ length: c.sparkles }).map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute celebration-sparkle"
+                  style={{
+                    left: `${15 + Math.random() * 70}%`,
+                    top: `${20 + Math.random() * 60}%`,
+                    animationDelay: `${Math.random() * 0.5}s`,
+                    animationDuration: `${0.6 + Math.random() * 0.8}s`
+                  }}
+                >
+                  <Sparkles size={16 + Math.random() * 24} className={`bg-gradient-to-r ${c.color} text-white opacity-80`} />
+                </div>
+              ))}
+              {/* Main text */}
+              <div className={`celebration-text ${c.shake} text-center px-6`}>
+                <h2 className={`${c.size} font-black italic uppercase tracking-tight drop-shadow-2xl`}
+                  style={{
+                    color: 'white',
+                    WebkitTextStroke: '3px rgba(255,255,255,0.9)',
+                    textShadow: `0 0 40px rgba(0,0,0,0.8), 0 0 80px rgba(0,0,0,0.6), 0 0 120px rgba(0,0,0,0.4), 0 0 20px rgba(255,255,255,0.3), 0 6px 30px rgba(0,0,0,0.8)`,
+                    paintOrder: 'stroke fill'
+                  }}
+                >
+                  {t(c.key)}
+                </h2>
+                {c.sub && (
+                  <p className="text-2xl md:text-5xl font-black italic text-white/90 mt-2 tracking-wider uppercase celebration-sub-text"
+                    style={{ WebkitTextStroke: '1.5px rgba(255,255,255,0.6)', textShadow: '0 0 30px rgba(0,0,0,0.8), 0 0 60px rgba(0,0,0,0.5), 0 0 15px rgba(255,255,255,0.3)' }}
+                  >
+                    {t(c.sub)}
+                  </p>
                 )}
               </div>
             </div>
-          )}
-        </>
-      )}
-
-      {/* Word Celebration Overlay */}
-      {celebration && (() => {
-        const config = {
-          1: { key: 'cheer_4', color: 'from-sky-400 to-cyan-300', glow: 'shadow-sky-500/40', shake: '', sparkles: 3, size: 'text-5xl md:text-8xl' },
-          2: { key: 'cheer_5', color: 'from-purple-400 to-fuchsia-400', glow: 'shadow-purple-500/40', shake: 'celebration-shake-sm', sparkles: 5, size: 'text-6xl md:text-9xl' },
-          3: { key: 'cheer_6', color: 'from-amber-400 to-yellow-300', glow: 'shadow-amber-500/50', shake: 'celebration-shake', sparkles: 8, size: 'text-7xl md:text-[10rem]' },
-          4: { key: 'cheer_7', color: 'from-orange-400 to-red-400', glow: 'shadow-orange-500/50', shake: 'celebration-shake', sparkles: 12, size: 'text-7xl md:text-[10rem]' },
-          5: { key: 'cheer_8', sub: 'cheer_8_sub', color: 'from-rose-400 via-amber-400 to-emerald-400', glow: 'shadow-rose-500/60', shake: 'celebration-shake-lg', sparkles: 18, size: 'text-8xl md:text-[12rem]' },
-        };
-        const c = config[celebration.level] || config[1];
-        return (
-          <div className="fixed inset-0 z-[400] flex items-center justify-center pointer-events-none">
-            {/* Sparkle particles */}
-            {Array.from({ length: c.sparkles }).map((_, i) => (
-              <div
-                key={i}
-                className="absolute celebration-sparkle"
-                style={{
-                  left: `${15 + Math.random() * 70}%`,
-                  top: `${20 + Math.random() * 60}%`,
-                  animationDelay: `${Math.random() * 0.5}s`,
-                  animationDuration: `${0.6 + Math.random() * 0.8}s`
-                }}
-              >
-                <Sparkles size={16 + Math.random() * 24} className={`bg-gradient-to-r ${c.color} text-white opacity-80`} />
-              </div>
-            ))}
-            {/* Main text */}
-            <div className={`celebration-text ${c.shake} text-center px-6`}>
-              <h2 className={`${c.size} font-black italic uppercase tracking-tight drop-shadow-2xl`}
-                style={{
-                  color: 'white',
-                  WebkitTextStroke: '3px rgba(255,255,255,0.9)',
-                  textShadow: `0 0 40px rgba(0,0,0,0.8), 0 0 80px rgba(0,0,0,0.6), 0 0 120px rgba(0,0,0,0.4), 0 0 20px rgba(255,255,255,0.3), 0 6px 30px rgba(0,0,0,0.8)`,
-                  paintOrder: 'stroke fill'
-                }}
-              >
-                {t(c.key)}
-              </h2>
-              {c.sub && (
-                <p className="text-2xl md:text-5xl font-black italic text-white/90 mt-2 tracking-wider uppercase celebration-sub-text"
-                  style={{ WebkitTextStroke: '1.5px rgba(255,255,255,0.6)', textShadow: '0 0 30px rgba(0,0,0,0.8), 0 0 60px rgba(0,0,0,0.5), 0 0 15px rgba(255,255,255,0.3)' }}
-                >
-                  {t(c.sub)}
-                </p>
-              )}
-            </div>
-          </div>
-        );
-      })()}
+          );
+        })()
+      }
 
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -2293,7 +2346,7 @@ function App() {
           animation: sparkle-float 1s ease-out forwards;
         }
       `}</style>
-    </div>
+    </div >
   );
 }
 

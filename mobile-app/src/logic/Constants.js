@@ -87,3 +87,31 @@ export const getGridSize = (difficulty, isMobile = false, orientation = 'portrai
 
 export const MAX_ENERGY = 5;
 export const ENERGY_REGEN_TIME = 20 * 60 * 1000; // 20 minutes
+
+// ===== TIME BATTLE MODE =====
+export const TIME_BATTLE_OPTIONS = [60, 180, 300]; // 1dk, 3dk, 5dk (saniye)
+
+// Kademeli altın ödülleri (toplam dayanma süresine göre)
+export const TIME_BATTLE_GOLD_TIERS = [
+    { minSeconds: 0, maxSeconds: 60, gold: 10 },
+    { minSeconds: 60, maxSeconds: 180, gold: 30 },
+    { minSeconds: 180, maxSeconds: 300, gold: 60 },
+    { minSeconds: 300, maxSeconds: 600, gold: 120 },
+    { minSeconds: 600, maxSeconds: Infinity, gold: 200 },
+];
+
+// Rütbe eşikleri (toplam dayanma süresine göre)
+export const TIME_BATTLE_RANKS = [
+    { id: 'bronze', minSeconds: 0, label_tr: 'Bronz Savaşçı', label_en: 'Bronze Warrior' },
+    { id: 'silver', minSeconds: 300, label_tr: 'Gümüş Savaşçı', label_en: 'Silver Warrior' },
+    { id: 'gold', minSeconds: 900, label_tr: 'Altın Savaşçı', label_en: 'Gold Warrior' },
+];
+
+// Araç ödülü aralıkları (saniye)
+export const TIME_BATTLE_TOOL_REWARDS = {
+    firstAt: 60,       // İlk ödül: 1 dakikada
+    subsequentEvery: 120, // Sonrakiler: her 2 dakikada
+};
+
+// Kazanılabilecek araç havuzu (rastgele)
+export const TIME_BATTLE_REWARD_POOL = ['bomb', 'swap', 'row', 'col', 'cell'];
