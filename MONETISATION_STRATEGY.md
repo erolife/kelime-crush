@@ -1,8 +1,8 @@
 # 💰 WORDLENGE — Monetizasyon Stratejisi
 
 > **Hedef Pazar:** Türkiye (öncelikli), sonrasında global
-> **Ödeme Altyapısı:** Stripe (ABD LLC üzerinden)
-> **Fiyatlandırma:** USD bazlı (Stripe checkout'ta TL karşılığı otomatik gösterilir)
+> **Ödeme Altyapısı:** İkili sistem — Türkiye: **iyzico** (TL) | Yurtdışı: **Stripe** (USD)
+> **Fiyatlandırma:** Bölgeye göre TL veya USD
 > **Reklam:** ❌ Uygulama içinde reklam gösterimi/ödüllü reklam **olmayacak**
 
 ---
@@ -211,9 +211,64 @@ CREATE TABLE subscriptions (
 
 ---
 
-## 8. Açık Sorular / Araştırılacaklar
+## 8. İkili Ödeme Altyapısı (iyzico + Stripe)
 
-- [ ] **KDV yükümlülüğü:** ABD LLC → TR müşteri dijital satışta TR KDV'si toplanmalı mı? Stripe Tax kullanılacak mı?
-- [ ] **Wise/Mercury akışı:** Stripe → Banka hesabı aktarımı ne sıklıkla?
-- [ ] **App Store/Play Store:** Mobil uygulama mağazalarından dağıtılırsa Apple %30 / Google %15-30 komisyon keser — bu durumda Stripe yerine IAP (In-App Purchase) zorunlu olabilir
+### Neden İkili Sistem?
+
+| | 🇹🇷 Türkiye (iyzico) | 🌍 Yurtdışı (Stripe) |
+|---|---|---|
+| **Para birimi** | TL | USD |
+| **Settlement** | Direkt TL → Türk bankası | USD → ABD banka hesabı |
+| **Komisyon** | ~2.49% + ₺0.25 | 2.9% + $0.30 |
+| **Kur riski** | ❌ Yok | ❌ Yok (zaten USD) |
+| **KDV** | iyzico otomatik hesaplar | Stripe Tax ile |
+| **Ödeme yöntemleri** | TR kartları, BKM Express, Papara | Visa/MC global, Apple Pay |
+
+### Teknik Akış
+
+```
+Oyuncu "Satın Al"a basar
+    → Kullanıcının locale/IP kontrol edilir
+    → Türkiye ise → iyzico checkout (TL fiyat)
+    → Yurtdışı ise → Stripe checkout (USD fiyat)
+    → Her iki platform da webhook gönderir
+    → Supabase Edge Function → DB güncellenir
+    → Oyuncuya altın/PRO yansır
+```
+
+### TL Fiyat Tablosu (iyzico — Türkiye)
+
+| Paket | Altın | TL Fiyat | iyzico Kesinti | Net Gelir |
+|---|---|---|---|---|
+| Başlangıç | 500 🪙 | ₺29.99 | ~₺1.00 | **₺28.99** |
+| Popüler | 1,200 🪙 | ₺59.99 | ~₺1.74 | **₺58.25** |
+| Süper | 3,000 🪙 | ₺119.99 | ~₺3.24 | **₺116.75** |
+| Mega | 7,500 🪙 | ₺249.99 | ~₺6.47 | **₺243.52** |
+| PRO Aylık | — | ₺79.99 | ~₺2.24 | **₺77.75** |
+
+> ₺0.25 sabit ücret + %2.49 = çok daha verimli (özellikle küçük işlemlerde)
+
+### Avantajlar
+
+1. **TR müşteriden TL alıp TL kazanç** — kur dönüşüm derdi yok
+2. **₺0.25 sabit ücret** vs $0.30 — küçük işlemlerde büyük fark
+3. **Yurtdışı müşteriler USD ödüyor** — Stripe ideal
+4. **İki ayrı gelir kanalı** — vergisel olarak daha temiz
+
+### Dikkat Edilecekler
+
+- Webhook handler'da her iki platformu da dinlemek gerekecek (2 ayrı endpoint)
+- Ürün kataloğu **her iki platformda da** oluşturulmalı
+- Fiyatlar senkron tutulmalı (₺ ve $ ayrı olsa da altın miktarları aynı)
+- `PaymentService.js` modülü ile platform seçimi soyutlanacak
+
+---
+
+## 9. Açık Sorular / Araştırılacaklar
+
+- [ ] **iyzico hesap açılışı:** Şirket bilgileri ve onay süreci
+- [ ] **iyzico abonelik desteği:** PRO aylık/yıllık recurring ödeme destekliyor mu?
+- [ ] **KDV yükümlülüğü:** ABD LLC → TR müşteri dijital satışta TR KDV'si — iyzico bunu otomatik hallediyor mu?
+- [ ] **App Store/Play Store:** Mağazadan dağıtılırsa Apple %30 / Google %15-30 komisyon keser — Stripe/iyzico yerine IAP zorunlu olabilir
 - [ ] **Dinamit/Nükleer markete eklenmesi:** PRO-only mı, yoksa herkese pahalıya mı?
+- [ ] **IP bazlı ülke tespiti:** Locale mi, IP geolocation mı, yoksa kullanıcıya sorulacak mı?
