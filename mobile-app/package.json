@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@capacitor/android": "^8.1.0",
-    "@capacitor/cli": "^8.1.0",
     "@capacitor/core": "^8.1.0",
     "@capacitor/ios": "^8.1.0",
     "@react-three/drei": "^10.7.7",
@@ -26,6 +25,7 @@
     "three": "^0.183.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.1.0",
     "@eslint/js": "^9.39.1",
     "@tailwindcss/postcss": "^4.2.1",
     "@types/react": "^19.2.7",

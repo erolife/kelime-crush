@@ -1570,6 +1570,81 @@ const ZenGarden = ({ gardenState }) => {
   );
 };
 
+const SplashScreen = ({ onComplete }) => {
+  const [fallingLetters, setFallingLetters] = useState([]);
+  const [logoVisible, setLogoVisible] = useState(false);
+
+  useEffect(() => {
+    // Generate falling letters
+    const letters = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
+    const newLetters = Array.from({ length: 40 }, (_, i) => ({
+      id: i,
+      char: letters[Math.floor(Math.random() * letters.length)],
+      left: Math.random() * 100,
+      duration: 5 + Math.random() * 8, // Faster falling
+      delay: Math.random() * -5,
+      size: 14 + Math.random() * 40
+    }));
+    setFallingLetters(newLetters);
+
+    // Show logo after a short delay
+    const logoTimer = setTimeout(() => {
+      setLogoVisible(true);
+    }, 500);
+
+    // Complete splash screen
+    const completeTimer = setTimeout(() => {
+      onComplete();
+    }, 3500); // 3.5 seconds total
+
+    return () => {
+      clearTimeout(logoTimer);
+      clearTimeout(completeTimer);
+    };
+  }, [onComplete]);
+
+  return (
+    <div className="fixed inset-0 z-[2000] bg-slate-950 flex shadow-2xl items-center justify-center overflow-hidden animate-in fade-in duration-500 fade-out delay-3000">
+      {/* Falling Letters Background */}
+      <div className="absolute inset-0 opacity-40">
+        {fallingLetters.map((letter) => (
+          <div
+            key={letter.id}
+            className="absolute font-black text-rose-500/20 select-none animate-fall mix-blend-screen"
+            style={{
+              left: `${letter.left}%`,
+              fontSize: `${letter.size}px`,
+              animationDuration: `${letter.duration}s`,
+              animationDelay: `${letter.delay}s`,
+            }}
+          >
+            {letter.char}
+          </div>
+        ))}
+      </div>
+
+      {/* Main Logo Container */}
+      <div className={`relative z-10 transition-all duration-1000 ${logoVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}>
+        <div className="w-48 h-48 md:w-64 md:h-64 rounded-[3rem] bg-gradient-to-br from-orange-400 to-red-600 p-1 shadow-2xl shadow-rose-500/50 flex flex-col items-center justify-center relative overflow-hidden group">
+          {/* Shine effect */}
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/30 to-transparent opacity-50"></div>
+
+          <img
+            src="/logo.png"
+            alt="Wordlenge Logo"
+            className="w-full h-full object-cover rounded-[2.8rem] relative z-10"
+            onError={(e) => {
+              // Fallback if logo.png doesn't exist
+              e.target.style.display = 'none';
+              e.target.parentNode.innerHTML += '<h1 class="text-3xl md:text-5xl font-black text-white italic tracking-tighter uppercase z-10 relative">WORDLENGE</h1>';
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function App() {
   const {
     grid, selectedPath, animatingCells, score, moves, difficulty,
@@ -1594,6 +1669,7 @@ function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [currentWord, setCurrentWord] = useState('');
   const [showDashboard, setShowDashboard] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1713,7 +1789,10 @@ function App() {
   };
 
   return (
-    <div className="relative h-screen w-screen bg-[#020617] text-slate-100 font-outfit select-none overflow-hidden flex flex-col">
+    <div className="relative h-screen w-screen bg-[#020617] text-slate-100 font-outfit select-none overflow-hidden flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+      {/* Splash Screen Animation */}
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+
       {/* Auth Modal stays as utility */}
       <AuthModal
         isOpen={isAuthModalOpen}

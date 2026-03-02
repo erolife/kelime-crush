@@ -1,5 +1,14 @@
 {
-  "appId": "com.webnolojik.kelimecrush",
-  "appName": "KelimeCrush",
-  "webDir": "dist"
+  "appId": "com.hyperrealme.wordlenge",
+  "appName": "Wordlenge",
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "launchAutoHide": true,
+      "backgroundColor": "#1e293b",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP"
+    }
+  }
 }

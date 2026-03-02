@@ -14,6 +14,8 @@
   - Rütbe sistemi: Bronz (0-5dk), Gümüş (5-15dk), Altın (15dk+)
   - Game over ekranında: hayatta kalma süresi, kazanılan altın, rütbe, puan, bulunan kelime
   - `Constants.js`, `useGame.js`, `Translations.js`, `App.jsx` güncellendi
+- **Android APK (Capacitor)**: Projeye CapacitorJS eklendi ve Android platform kurulumu yapıldı. ProGuard optımızasyon hatası çözüldü.
+- **Known Issue**: Android cihazlarda uygulama SafeArea'ya (çentik / durum çubuğu altına) taşıyor. Sonraki adımda CSS `env(safe-area-inset-top)` veya Capacitor StatusBar plugin ile çözülecek.
 - **Feature (v5.3.2)**: 4+ harfli kelimelerde tebrik animasyonu:
   - 4 harf: GÜZELDİ! | 5: HARİKA! | 6: MÜKEMMEL! | 7: SÜPER! | 8+: YOK ARTIK! NE YAPTIN SEN!
   - Pop-in + shake + fade-out animasyonları, kelime uzunluğuna göre artan yoğunluk
