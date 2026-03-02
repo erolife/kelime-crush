@@ -91,10 +91,14 @@
 - **Görsel İyileştirme:** Google Fonts (Outfit, Inter) entegrasyonu ve Tailwind 4 @theme geçişi ile tipografi mükemmelleştirildi.
 
 ## 🛠️ Teknik Altyapı
-- **Frontend:** React + Tailwind CSS 4
-- **Backend:** Supabase (Auth, PostgreSQL DB, Realtime)
-- **Tipografi:** Outfit (Başlıklar) & Inter (Bilgi Metinleri)
-- **Motor:** Custom Canvas (Circular Hit Detection, Particle Systems)
+-   **Framework:** React 18
+-   **Build Tool:** Vite
+-   **Mobile Platform:** CapacitorJS (Android build, AppID: `com.hyperrealme.wordlenge`)
+-   **Styling:** TailwindCSS
+-   **State Management:** React Context / Hooks
+-   **Icons:** Lucide React
+-   **Audio:** Howler.js (managed via `SoundManager.js`)
+-   **Database:** Supabase (Auth ve Data) (Circular Hit Detection, Particle Systems)
 
 ## 🚧 Gelecek Planlar (Phase 7 ve Ötesi)
 - **Günlük Görevler (Daily Missions):** Sidebar üzerindeki kilitli buton aktif edilecek ve ödüllü dinamik görevler eklenecek.

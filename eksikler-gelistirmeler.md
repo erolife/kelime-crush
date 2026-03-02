@@ -47,3 +47,24 @@ Bir oyuncu belirlediğimizsayıda harften fazla harf kullanarak geçerli bir kel
 
 **MOBIL DENEYIM SORUNLARI**
 Mobil cihazda sayfalar ekrana sığmıyor. header çok yer kapladığı için açılan ekrandan dashboarda dönüş yapılamıyor. Bu konuda bir çözüm geliştirilmesi lazım. Mobil kullanıcı deneyimi çok önemli. Oyun oynama ekranlarında headeri gizleyip oyun bittiğinde tekrar görünür hale getirmek gibi bir çözüm düşünülebilir. Süreç içerisinde web uygulamasını mobil bir oyun uygulamasına dönüştüreceğiz bu sorunları çözmeden yapamayız. Ya mobil için ayrı bir aryüz ayarlayacağız ya da bu tasarımı mobil uyumlu hale getireceğiz.  
+
+
+
+
+
+
+**---------------**
+
+Gelelim ikon meselesine; Android Studio'da uygulama ikonunu (Launcher Icon) saniyeler içinde ve tüm cihaz ekranları için uyumlu şekilde, hiç zorlanmadan şöyle değiştirebilirsin:
+
+Android Studio'yu aç ve projenin yüklendiğinden emin ol.
+Sol taraftaki proje dosyaları ağacında (Project paneli) app klasörüne sağ tıkla.
+Açılan menüden New > Image Asset seçeneğine tıkla.
+Ekrana "Asset Studio" adında bir araç gelecektir:
+Icon Type: Launcher Icons (Adaptive and Legacy) seçili kalmalı.
+Name: ic_launcher aynen kalmalı.
+Source Asset: kısmındaki minik Klasör/Path ikonuna tıklayıp, projedeki senin kendi public/logo.png dosyanın bilgisayardaki tam dizinini bulup seç.
+Görselini seçtikten sonra alttaki "Resize" (Ölçek) kaydırıcısı ile logonu Android'in yeşil ızgaraları ve sınır çizgileri içerisinde taşmayacak şekilde boyutlandır.
+(İsteğe Bağlı) Aynı sayfanın üst tarafında "Background Layer" sekmesine geçip logonun arkasındaki rengi (Siyah, Beyaz veya Hex koduyla) belirleyebilirsin.
+Son olarak sağ alttan Next ve sonra gelen ekrandan Finish'e bas.
+İşte bu kadar! Android Studio cihazın hem eski versiyonları (kare/yuvarlak) hem de yeni versiyonları (adaptive) için logoyu onlarca klasöre otomatik olarak çizip kesti bile. Tekrar build aldığında Wordlenge logon cihazında göz alıcı duracaktır. 🪄
