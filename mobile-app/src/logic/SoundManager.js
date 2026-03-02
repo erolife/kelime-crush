@@ -17,6 +17,17 @@ class SoundManager {
             cheer_small: new Howl({ src: ['./sesler/7harf.mp3'], volume: 0.5 }),   // 4-5 harf
             cheer_big: new Howl({ src: ['./sesler/7harf.mp3'], volume: 0.7 })      // 6+ harf (alkış/ıslık)
         };
+
+        // Handle background/foreground state to stop music when app is inactive
+        if (typeof document !== 'undefined') {
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    Howler.mute(true); // Sekme / uygulama arka plana atıldığında tamamen sustur
+                } else {
+                    Howler.mute(this.muted); // Öne geldiğinde kullanıcının son mute ayarına dön
+                }
+            });
+        }
     }
 
     toggleMute() {

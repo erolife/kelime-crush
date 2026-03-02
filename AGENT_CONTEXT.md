@@ -1,8 +1,12 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
-**Son Güncelleme:** 2026-03-01
-## Proje Durumu: v6.0.0 (Zaman Savaşı Modu)
-- **Feature (v6.0.0)**: "Seviye" (Mission) modu kaldırıldı, yerine "Zaman Savaşı" (Time Battle) modu eklendi:
+**Son Güncelleme:** 2026-03-02
+## Proje Durumu: v6.0.0 (Zaman Savaşı Modu & Yeni İsimler)
+- **Feature (v6.0.0)**: Oyun modları için YENİ isimler belirlendi:
+  - ARCADE -> MACERA
+  - ZAMAN SAVAŞI -> ZAMAN ARENASI
+  - ZEN MODU -> ZEN SERÜVENİ
+- **Feature (v6.0.0)**: "Seviye" (Mission) modu kaldırıldı, yerine "Zaman Arenası" (Time Battle) modu eklendi:
   - Süre seçimi: 1dk / 3dk / 5dk
   - Kelime üretildiğinde harf sayısının yarısı kadar saniye eklenir (yukarı yuvarlama)
   - İlk araç ödülü 60sn'de, sonrakiler her 120sn'de → rastgele araç kazanımı

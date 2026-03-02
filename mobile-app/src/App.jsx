@@ -670,8 +670,17 @@ const Dashboard = ({
           </div>
         );
 
-      case 'daily':
+      case 'daily': {
         console.log('--- RENDERING DAILY VIEW ---');
+        const lastGift = parseInt(localStorage.getItem('crush_last_gift') || '0');
+        const now = Date.now();
+        const oneDay = 24 * 60 * 60 * 1000;
+        const canClaim = lastGift === 0 || (now - lastGift) >= oneDay;
+
+        const timeUntilNext = (lastGift + oneDay) - now;
+        const hLeft = Math.max(0, Math.floor(timeUntilNext / (1000 * 60 * 60)));
+        const mLeft = Math.max(0, Math.floor((timeUntilNext % (1000 * 60 * 60)) / (1000 * 60)));
+
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full flex flex-col items-center justify-center p-2">
             <div className="w-full text-center p-4 md:p-8 landscape:p-3 bg-slate-900/60 border border-amber-500/30 rounded-2xl md:rounded-[3rem] shadow-[0_0_100px_rgba(245,158,11,0.1)] relative overflow-hidden max-h-full overflow-y-auto no-scrollbar">
@@ -683,8 +692,8 @@ const Dashboard = ({
               <div className="flex justify-center flex-wrap gap-1.5 md:gap-4 landscape:gap-1 mb-3 landscape:mb-2 md:mb-12">
                 {STREAK_REWARDS.map((reward, i) => {
                   const currentDayIndex = streakCount % 7;
-                  const isDone = i < currentDayIndex;
-                  const isToday = i === currentDayIndex;
+                  const isDone = canClaim ? (i < currentDayIndex) : (i <= currentDayIndex);
+                  const isToday = canClaim ? (i === currentDayIndex) : false;
                   return (
                     <div key={i} className={`
                         w-10 h-14 landscape:w-9 landscape:h-10 md:w-20 md:h-24 rounded-lg md:rounded-2xl border flex flex-col items-center justify-center transition-all duration-500 relative
@@ -703,20 +712,25 @@ const Dashboard = ({
               <div className="bg-slate-950/50 border border-white/5 rounded-xl md:rounded-[2.5rem] p-3 landscape:p-2 md:p-10 mb-3 landscape:mb-2 md:mb-10 inline-block min-w-full md:min-w-[320px]">
                 <p className="text-slate-500 text-[8px] md:text-xs font-black uppercase tracking-[0.3em] md:tracking-[0.4em] mb-1 md:mb-4 leading-none">{t('today_reward')}</p>
                 <div className="text-lg landscape:text-base md:text-5xl font-black text-white italic tracking-tighter mb-1 md:mb-3 animate-pulse leading-none">{dailyReward?.text}</div>
-                <div className="text-amber-500 font-bold text-[8px] md:text-sm tracking-widest uppercase opacity-80 leading-none">{t('streak_day', { day: streakCount + 1 })}</div>
+                <div className="text-amber-500 font-bold text-[8px] md:text-sm tracking-widest uppercase opacity-80 leading-none">{t('streak_day', { day: (canClaim ? streakCount + 1 : streakCount) })}</div>
               </div>
 
               <div className="w-full flex justify-center px-4">
                 <button
-                  onClick={() => { claimGift(); setView('modes'); }}
-                  className="w-full max-w-md py-2.5 landscape:py-2 md:py-6 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-xl md:rounded-2xl transition-all active:scale-95 shadow-2xl shadow-amber-500/30 tracking-widest uppercase italic text-xs landscape:text-xs md:text-xl"
+                  onClick={() => { if (canClaim) { claimGift(); setView('modes'); } }}
+                  disabled={!canClaim}
+                  className={`w-full max-w-md py-2.5 landscape:py-2 md:py-6 font-black rounded-xl md:rounded-2xl transition-all shadow-2xl tracking-widest uppercase italic text-xs landscape:text-xs md:text-xl
+                    ${canClaim
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 shadow-amber-500/30 active:scale-95'
+                      : 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-80'}`}
                 >
-                  {t('claim_reward')}
+                  {canClaim ? t('claim_reward') : (language === 'tr' ? `${hLeft} SAAT ${mLeft} DAKİKA SONRA GEL` : `COME BACK IN ${hLeft}h ${mLeft}m`)}
                 </button>
               </div>
             </div>
           </div>
         );
+      }
 
       case 'profile':
         console.log('--- RENDERING PROFILE VIEW ---');
@@ -1639,6 +1653,15 @@ function App() {
   }, []);
 
   const claimGift = () => {
+    const lastGift = parseInt(localStorage.getItem('crush_last_gift') || '0');
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000;
+
+    if (lastGift !== 0 && (now - lastGift) < oneDay) {
+      setShowDailyGift(false);
+      return;
+    }
+
     if (dailyReward?.type === 'coins') {
       addCoins(dailyReward.amount);
     } else if (dailyReward?.type === 'tool') {
@@ -1651,6 +1674,11 @@ function App() {
     setStreakCount(newStreak);
     localStorage.setItem('crush_streak_count', newStreak.toString());
     localStorage.setItem('crush_last_gift', Date.now().toString());
+
+    // Sonraki günün ödülünü hazırla
+    const nextStreak = newStreak % 7;
+    setDailyReward(STREAK_REWARDS[nextStreak]);
+
     setShowDailyGift(false);
   };
 
@@ -1782,7 +1810,7 @@ function App() {
               </div>
               <div className="min-w-[100px] landscape:min-w-[80px] md:min-w-[140px]">
                 <h1 className="text-lg landscape:text-base md:text-2xl font-black tracking-tight bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent italic uppercase leading-none mb-0.5 landscape:mb-0 md:mb-1">
-                  {gameMode === 'timeBattle' ? t('time_battle') : 'WORDLENGE'}
+                  {gameMode === 'timeBattle' ? t('time_battle') : gameMode === 'zen' ? t('zen_mode') : t('arcade')}
                 </h1>
                 <p className="text-[9px] landscape:text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate font-inter">
                   {gameMode === 'timeBattle' ? t('time_battle_desc') : gameMode === 'zen' ? t('zen_desc') : t('arcade')}
