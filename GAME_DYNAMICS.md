@@ -8,17 +8,21 @@
 |-----------------|-------------------|-------|
 | 3 harf | ❌ Hiçbir şey | Normal silme |
 | 4 harf | 💥 `row_blast` veya `col_blast` | **%50-%50 rastgele** seçilir |
-| 5+ harf | 💣 `bomb` | Her zaman bomba |
+| 5 harf | 💣 `bomb` | 3×3 alan patlatma |
+| 6 harf | 🧨 `dynamite` | Çapraz X — 4 köşegen yönünde tüm hücreler |
+| 7+ harf | ☢️ `nuclear` | **Tüm grid** temizlenir |
 
 > **Konum:** Kelimenin **ilk harfinin** olduğu hücrede oluşur. O hücre silinmez, tipi değişir.
 
 ### Özel Hücre Patlatma Mekanizması
 
-| Hücre Tipi | Patlatma Alanı |
-|-----------|----------------|
-| `row_blast` | Bulunduğu satırın **tamamını** temizler |
-| `col_blast` | Bulunduğu sütunun **tamamını** temizler |
-| `bomb` | 3×3 alan (merkez ± 1 hücre) |
+| Hücre Tipi | Patlatma Alanı | Renk |
+|-----------|----------------|------|
+| `row_blast` | Bulunduğu satırın **tamamını** temizler | 🟡 Amber |
+| `col_blast` | Bulunduğu sütunun **tamamını** temizler | 🟡 Amber |
+| `bomb` | 3×3 alan (merkez ± 1 hücre) | 🟣 Mor |
+| `dynamite` | Çapraz X (4 köşegen, grid sınırına kadar) | 🔴 Kırmızı |
+| `nuclear` | **Tüm grid** (her hücre temizlenir) | 🟢 Yeşil |
 
 > **Zincir Reaksiyonu:** ✅ Var. Patlatılan alan içinde başka bir özel hücre varsa, o da kendi kuralına göre tetiklenir (recursive).
 
@@ -103,8 +107,23 @@ Altın = max(0, kelime_uzunluğu - 2) × 2
 | Alan | Durum | Öneri |
 |------|-------|-------|
 | **Harf puanları** | Tanımlı ama kullanılmıyor | Kelime puanına harf değerini katmak (nadir harfler = daha fazla puan) |
+Uygulayalım
+
 | **Oyun içi araç kazanma** | Yok | Uzun kelimeler veya zincir reaksiyonlarında araç ödülü |
+Ödül animated şekilde araçların bulunduğu alana uçabilir.
+
 | **Combo/Streak sistemi** | Yok | Arka arkaya kelime bulunca çarpan artışı |
+Uygulayalım
+
 | **Zorluk etkisi puana** | Yok | Zor modda daha yüksek puan çarpanı |
+Uygulayalım
+
 | **Vowel bonus kullanımı** | Sadece harf dağılımında | Puan hesabına da yansıtılabilir |
-| **Özel hücre çeşitliliği** | 3 tip (row, col, bomb) | Yeni tipler eklenebilir (cross, diamond, color bomb) |
+Uygulayalım
+
+**Boşa giden hamle yok** Eğer oyuncu kelime oluşurmayan bir hamle yaptıysa hamle sayısı eksilmiyor. eksiltilmeli mi?
+
+
+## 6. Monetisation 
+Şuan oyunun bir monetisation yapısı yok. Bunun hakkında beyin fırtınası yapalım ve uygulamaya geçelim.
+

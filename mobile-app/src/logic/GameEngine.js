@@ -65,7 +65,10 @@ export class GameEngine {
     }
 
     calculateScore(path) {
-        return path.length * 15; // Simplified but generous
+        // Letter-based scoring: sum of individual letter points + length bonus
+        const letterTotal = path.reduce((sum, p) => sum + this.getLetterPoint(p.letter), 0);
+        const lengthBonus = path.length * 10;
+        return letterTotal + lengthBonus;
     }
 
     applyGravity() {
@@ -108,7 +111,9 @@ export class GameEngine {
                 if (index === 0 && wordLength >= 4) {
                     const cell = this.grid[p.r][p.c];
                     if (wordLength === 4) cell.type = Math.random() > 0.5 ? 'row_blast' : 'col_blast';
-                    else if (wordLength >= 5) cell.type = 'bomb';
+                    else if (wordLength === 5) cell.type = 'bomb';
+                    else if (wordLength === 6) cell.type = 'dynamite';
+                    else if (wordLength >= 7) cell.type = 'nuclear';
                     createdSpecial = { r: p.r, c: p.c, type: cell.type };
                 } else {
                     this.grid[p.r][p.c] = null;
@@ -154,6 +159,41 @@ export class GameEngine {
         } else if (type === 'bomb') {
             for (let i = r - 1; i <= r + 1; i++) {
                 for (let j = c - 1; j <= c + 1; j++) {
+                    if (this.grid[i] && this.grid[i][j]) {
+                        const target = this.grid[i][j];
+                        const tType = target.type;
+                        if (tType !== 'normal') this.triggerSpecialCell(i, j, tType, blasted);
+                        else {
+                            blasted.push({ r: i, c: j, type: 'normal' });
+                            this.grid[i][j] = null;
+                        }
+                    }
+                }
+            }
+        } else if (type === 'dynamite') {
+            // Diagonal cross (X) — all 4 diagonal directions from center
+            const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+            for (const [dr, dc] of directions) {
+                let i = r + dr;
+                let j = c + dc;
+                while (i >= 0 && i < this.rows && j >= 0 && j < this.cols) {
+                    if (this.grid[i] && this.grid[i][j]) {
+                        const target = this.grid[i][j];
+                        const tType = target.type;
+                        if (tType !== 'normal') this.triggerSpecialCell(i, j, tType, blasted);
+                        else {
+                            blasted.push({ r: i, c: j, type: 'normal' });
+                            this.grid[i][j] = null;
+                        }
+                    }
+                    i += dr;
+                    j += dc;
+                }
+            }
+        } else if (type === 'nuclear') {
+            // Clear entire grid
+            for (let i = 0; i < this.rows; i++) {
+                for (let j = 0; j < this.cols; j++) {
                     if (this.grid[i] && this.grid[i][j]) {
                         const target = this.grid[i][j];
                         const tType = target.type;

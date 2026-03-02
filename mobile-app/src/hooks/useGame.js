@@ -542,6 +542,11 @@ export const useGame = (initialDifficulty = 'normal') => {
             const turnScore = engine.calculateScore(selectedPath);
             const { grid: newGrid, blasted, createdSpecial: newSpecial } = engine.removeCells(selectedPath);
 
+            // Bonus points from blasted cells (half value — reward for chain reactions)
+            const blastedBonus = (blasted || []).reduce((sum, b) => {
+                return sum + Math.floor(engine.getLetterPoint(b.letter || 'A') * 0.5);
+            }, 0);
+
             const allRemoved = [
                 ...selectedPath.map(p => ({ ...p, type: 'match' })),
                 ...(blasted || [])
@@ -551,7 +556,7 @@ export const useGame = (initialDifficulty = 'normal') => {
             setTimeout(() => setAnimatingCells([]), 600);
 
             setGrid([...newGrid]);
-            setScore(s => s + turnScore);
+            setScore(s => s + turnScore + blastedBonus);
 
             if (gameMode === 'zen') {
                 if (word.length >= 7) setGardenState(prev => ({ ...prev, flowers: prev.flowers + 1 }));
@@ -588,7 +593,7 @@ export const useGame = (initialDifficulty = 'normal') => {
                 setTimeout(() => setCelebration(null), durations[celebrationLevel]);
             }
             // Award coins for word
-            const coinReward = Math.max(0, word.length - 2) * 2;
+            const coinReward = Math.max(0, word.length - 3) * 2;
             if (gameMode !== 'zen') {
                 setCoins(c => c + coinReward);
             }
@@ -603,6 +608,16 @@ export const useGame = (initialDifficulty = 'normal') => {
             return true;
         }
         soundManager.play('error');
+        // Penalty: 3+ letter invalid attempts cost 1 move (except time-based modes)
+        if (selectedPath.length >= 3) {
+            setMoves(m => {
+                if (gameMode === 'arcade' && arcadeSubMode === 'time') return m;
+                if (gameMode === 'zen') return m;
+                if (gameMode === 'timeBattle') return m;
+                return m - 1;
+            });
+            setTotalMovesMade(prev => prev + 1);
+        }
         setSelectedPath([]);
         return false;
     }, [selectedPath, grid, engine, gameMode]);

@@ -1470,11 +1470,11 @@ const MissionTracker = ({ goals = [], t = (s) => s, language = 'tr', isCompact =
 
 const ShopView = ({ t = (s) => s, coins, tools, buyTool }) => {
   const items = [
-    { id: 'bomb', name: t('bomb'), desc: t('bomb_desc') || 'Seçili hücre ve etrafını patlatır', cost: 100, icon: <Zap size={20} className="text-amber-400 md:w-6 md:h-6" />, color: 'from-amber-500 to-orange-600' },
-    { id: 'row', name: t('row'), desc: t('row_desc') || 'Tüm yatay satırı temizler', cost: 150, icon: <MoveHorizontal size={20} className="text-rose-400 md:w-6 md:h-6" />, color: 'from-rose-500 to-pink-600' },
-    { id: 'col', name: t('col'), desc: t('col_desc') || 'Tüm dikey sütunu temizler', cost: 150, icon: <MoveVertical size={20} className="text-emerald-400 md:w-6 md:h-6" />, color: 'from-emerald-500 to-teal-600' },
-    { id: 'swap', name: t('swap'), desc: t('swap_desc') || 'İki harfin yerini değiştirir', cost: 200, icon: <RefreshCw size={20} className="text-sky-400 md:w-6 md:h-6" />, color: 'from-sky-500 to-blue-600' },
-    { id: 'cell', name: t('cell'), desc: t('cell_desc') || 'Tek bir harfi siler', cost: 50, icon: <Target size={20} className="text-purple-400 md:w-6 md:h-6" />, color: 'from-purple-500 to-violet-600' }
+    { id: 'bomb', name: t('bomb'), desc: t('bomb_desc') || 'Seçili hücre ve etrafını patlatır', cost: 250, icon: <Zap size={20} className="text-amber-400 md:w-6 md:h-6" />, color: 'from-amber-500 to-orange-600' },
+    { id: 'row', name: t('row'), desc: t('row_desc') || 'Tüm yatay satırı temizler', cost: 300, icon: <MoveHorizontal size={20} className="text-rose-400 md:w-6 md:h-6" />, color: 'from-rose-500 to-pink-600' },
+    { id: 'col', name: t('col'), desc: t('col_desc') || 'Tüm dikey sütunu temizler', cost: 300, icon: <MoveVertical size={20} className="text-emerald-400 md:w-6 md:h-6" />, color: 'from-emerald-500 to-teal-600' },
+    { id: 'swap', name: t('swap'), desc: t('swap_desc') || 'İki harfin yerini değiştirir', cost: 400, icon: <RefreshCw size={20} className="text-sky-400 md:w-6 md:h-6" />, color: 'from-sky-500 to-blue-600' },
+    { id: 'cell', name: t('cell'), desc: t('cell_desc') || 'Tek bir harfi siler', cost: 100, icon: <Target size={20} className="text-purple-400 md:w-6 md:h-6" />, color: 'from-purple-500 to-violet-600' }
   ];
 
   return (

@@ -46,6 +46,8 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
 
                 let color = '#38bdf8';
                 if (cell.type === 'bomb') color = '#a855f7';
+                else if (cell.type === 'dynamite') color = '#f43f5e';
+                else if (cell.type === 'nuclear') color = '#10b981';
                 else if (cell.type?.includes('blast')) color = '#f59e0b';
                 else if (cell.type === 'match') color = '#ffffff';
 
@@ -80,7 +82,9 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
             const centerY = createdSpecial.r * cellSize + cellSize / 2;
 
             let color = '#a855f7'; // Default bomb color
-            if (createdSpecial.type?.includes('blast')) color = '#f59e0b';
+            if (createdSpecial.type === 'dynamite') color = '#f43f5e';
+            else if (createdSpecial.type === 'nuclear') color = '#10b981';
+            else if (createdSpecial.type?.includes('blast')) color = '#f59e0b';
 
             // Add 3 pulses with staggered initial progress
             pulsesRef.current.push({ x: centerX, y: centerY, progress: 0, color });
@@ -250,8 +254,8 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
                 // Pulsing animation for special cells (bombs/blasts)
                 if (cell.type !== 'normal' && !isSelected) {
                     // Bigger pulse for bomb/blasts (User request)
-                    const pulseIntensity = cell.type === 'bomb' ? 0.15 : 0.08;
-                    const pulseSpeed = cell.type === 'bomb' ? 150 : 200;
+                    const pulseIntensity = (cell.type === 'nuclear') ? 0.18 : (cell.type === 'dynamite' || cell.type === 'bomb') ? 0.15 : 0.08;
+                    const pulseSpeed = (cell.type === 'nuclear') ? 120 : (cell.type === 'dynamite') ? 140 : (cell.type === 'bomb') ? 150 : 200;
                     scale = 1.0 + Math.sin(time / pulseSpeed) * pulseIntensity;
                 }
 
@@ -266,6 +270,8 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
                 ctx.shadowBlur = (isSelected || isSwapTarget) ? 30 : (cell.type !== 'normal' ? 20 + pulseEffect : 10);
                 if (isSelected) ctx.shadowColor = COLORS.line;
                 else if (isSwapTarget) ctx.shadowColor = '#fbbf24';
+                else if (cell.type === 'nuclear') ctx.shadowColor = '#10b981';
+                else if (cell.type === 'dynamite') ctx.shadowColor = '#f43f5e';
                 else if (cell.type === 'bomb') ctx.shadowColor = '#a855f7';
                 else if (cell.type?.includes('blast')) ctx.shadowColor = '#f59e0b';
                 else ctx.shadowColor = 'rgba(0,0,0,0.5)';
@@ -279,6 +285,12 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
                 } else if (isSwapTarget) {
                     grad.addColorStop(0, '#fbbf24');
                     grad.addColorStop(1, '#f59e0b');
+                } else if (cell.type === 'nuclear') {
+                    grad.addColorStop(0, '#10b981');
+                    grad.addColorStop(1, '#059669');
+                } else if (cell.type === 'dynamite') {
+                    grad.addColorStop(0, '#f43f5e');
+                    grad.addColorStop(1, '#e11d48');
                 } else if (cell.type === 'bomb') {
                     grad.addColorStop(0, '#a855f7');
                     grad.addColorStop(1, '#6b21a8');
@@ -320,7 +332,7 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
                     ctx.font = `bold ${size * 0.22}px Outfit`;
                     ctx.textAlign = 'center';
                     ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                    const indicator = cell.type === 'bomb' ? '●' : (cell.type === 'row_blast' ? '↔' : '↕');
+                    const indicator = cell.type === 'nuclear' ? '☢' : cell.type === 'dynamite' ? '✕' : cell.type === 'bomb' ? '●' : (cell.type === 'row_blast' ? '↔' : '↕');
                     ctx.fillText(indicator, centerX, centerY + size * 0.35);
                 }
                 ctx.restore();
@@ -438,6 +450,7 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
                 const success = onFinishTurn();
                 if (success) {
                     if (wordLen === 4) soundManager.play('powerup');
+                    else if (wordLen >= 7) { soundManager.play('bomb_created'); soundManager.play('confetti'); }
                     else if (wordLen >= 5) soundManager.play('bomb_created');
                     if (wordLen >= 6) {
                         soundManager.play('confetti');
