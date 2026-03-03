@@ -2251,7 +2251,7 @@ function App() {
     celebration,
     timeBattleElapsed, timeBattleToolRewards, pendingToolReward,
     timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt,
-    activeEvents, isLoadingEvents,
+    activeEvents, isLoadingEvents, currentEventId
   } = useGame();
 
   const [isMuted, setIsMuted] = useState(false);
@@ -2434,13 +2434,18 @@ function App() {
                       // Etkinlikteki ilk modu ve dinamik değerleri kullan
                       const eventMode = activeEvent.allowed_modes?.[0] || 'arcade';
                       const isTimeBased = eventMode === 'timeBattle' ||
-                        (eventMode === 'arcade' && (activeEvent.target_time > 0 || !activeEvent.target_score));
+                        (eventMode === 'arcade' && (activeEvent.target_score > 0 || activeEvent.duration_limit > 0));
 
                       const subMode = isTimeBased ? 'time' : 'moves';
-                      // Süre bazlı ise target_time, hamle bazlı ise sabit 30 hamle (etkinlik standardı)
+                      // Süre bazlı ise duration_limit, hamle bazlı ise moves_limit (etkinlik yeni standardı)
                       const subValue = isTimeBased
-                        ? (activeEvent.target_time || 60)
-                        : 30;
+                        ? (activeEvent.duration_limit || 60)
+                        : (activeEvent.moves_limit || 30);
+
+                      // Etkinliğe katılım sağlandığı an listesi yenilenmesi için 0 skorla kayıt at
+                      if (user) {
+                        SupabaseService.updateEventScore(activeEvent.id, user.id, 0);
+                      }
 
                       resetGame({}, eventMode, subMode, subValue, 'normal', activeEvent.id);
                     }}
@@ -2637,7 +2642,25 @@ function App() {
             </div>
             <div className="w-px h-3 bg-white/10" />
             <div className="flex items-center gap-2">
-              {gameMode === 'arcade' && arcadeSubMode === 'time' ? (
+              {currentEventId ? (
+                <>
+                  {timeLeft > 0 && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('time_left')}:</span>
+                      <span className={`text-xs landscape:text-[10px] md:text-sm font-black tabular-nums ${timeLeft < 10 ? 'text-rose-500 animate-pulse' : 'text-amber-400'}`}>
+                        {timeLeft}s
+                      </span>
+                    </div>
+                  )}
+                  {timeLeft > 0 && moves !== 999 && <div className="w-px h-3 bg-white/10" />}
+                  {moves !== 999 && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('moves')}:</span>
+                      <span className="text-xs landscape:text-[10px] md:text-sm font-black text-amber-400 tabular-nums">{moves}</span>
+                    </div>
+                  )}
+                </>
+              ) : gameMode === 'arcade' && arcadeSubMode === 'time' ? (
                 <>
                   <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('time_left')}:</span>
                   <span className={`text-xs landscape:text-[10px] md:text-sm font-black tabular-nums ${timeLeft < 10 ? 'text-rose-500 animate-pulse' : 'text-amber-400'}`}>
@@ -2690,8 +2713,25 @@ function App() {
                     <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">{t('score')}</div>
                     <div className="text-xl font-black text-sky-400 tabular-nums">{score}</div>
                   </div>
-                  <div className="bg-slate-950/60 p-3 rounded-2xl border border-white/5 relative overflow-hidden group">
-                    {gameMode === 'arcade' && arcadeSubMode === 'time' ? (
+                  <div className={`bg-slate-950/60 p-3 rounded-2xl border border-white/5 relative overflow-hidden group ${currentEventId && timeLeft > 0 && moves !== 999 ? 'flex flex-col gap-2' : ''}`}>
+                    {currentEventId ? (
+                      <>
+                        {timeLeft > 0 && (
+                          <div>
+                            <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">{t('time_left')}</div>
+                            <div className={`text-xl font-black tabular-nums ${timeLeft < 10 ? 'text-rose-500 animate-pulse' : 'text-amber-400'}`}>
+                              {timeLeft}s
+                            </div>
+                          </div>
+                        )}
+                        {moves !== 999 && (
+                          <div>
+                            <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">{t('moves')}</div>
+                            <div className="text-xl font-black text-amber-400 tabular-nums">{moves}</div>
+                          </div>
+                        )}
+                      </>
+                    ) : gameMode === 'arcade' && arcadeSubMode === 'time' ? (
                       <>
                         <div className="text-[8px] text-slate-500 uppercase tracking-widest font-black mb-0.5">{t('time_left')}</div>
                         <div className={`text-xl font-black tabular-nums ${timeLeft < 10 ? 'text-rose-500 animate-pulse' : 'text-amber-400'}`}>
@@ -2779,47 +2819,60 @@ function App() {
 
                   {/* Victory Overlay (Only for Victory) */}
                   {gameState === 'victory' && (() => {
-                    const levelRewards = cloudLevels?.[currentLevelIndex]?.rewards;
-                    const rewardItems = [];
-                    if (levelRewards?.coins) {
-                      rewardItems.push({ type: 'coins', amount: levelRewards.coins, icon: <Coins size={18} className="text-amber-400" />, color: 'from-amber-500/20 to-orange-500/20', borderColor: 'border-amber-500/40', textColor: 'text-amber-400' });
+                    let rewardItems = [];
+                    let victoryTitle = t('victory');
+                    let victorySubtitle = t('mission_success');
+
+                    if (currentEventId) {
+                      victoryTitle = t('event_completed') || 'ETKİNLİK TAMAMLANDI';
+                      victorySubtitle = t('target_reached') || 'HEDEF PUANA ULAŞILDI';
+                      rewardItems.push({ type: 'score', amount: score, icon: Trophy, color: 'from-amber-500/20 to-orange-500/20', borderColor: 'border-amber-500/40', textColor: 'text-amber-400' });
+                    } else {
+                      const levelRewards = cloudLevels?.[currentLevelIndex]?.rewards;
+                      if (levelRewards?.coins) {
+                        rewardItems.push({ type: 'coins', amount: levelRewards.coins, icon: Coins, color: 'from-amber-500/20 to-orange-500/20', borderColor: 'border-amber-500/40', textColor: 'text-amber-400' });
+                      }
+                      if (levelRewards?.tools) {
+                        const toolMeta = { bomb: { icon: Zap, color: 'from-rose-500/20 to-pink-500/20', borderColor: 'border-rose-500/40', textColor: 'text-rose-400' }, swap: { icon: RefreshCw, color: 'from-sky-500/20 to-blue-500/20', borderColor: 'border-sky-500/40', textColor: 'text-sky-400' }, row: { icon: MoveHorizontal, color: 'from-emerald-500/20 to-teal-500/20', borderColor: 'border-emerald-500/40', textColor: 'text-emerald-400' }, col: { icon: MoveVertical, color: 'from-green-500/20 to-emerald-500/20', borderColor: 'border-green-500/40', textColor: 'text-green-400' }, cell: { icon: Target, color: 'from-purple-500/20 to-violet-500/20', borderColor: 'border-purple-500/40', textColor: 'text-purple-400' } };
+                        Object.entries(levelRewards.tools).forEach(([id, amt]) => {
+                          const meta = toolMeta[id] || toolMeta.bomb;
+                          rewardItems.push({ type: 'tool', id, amount: amt, icon: meta.icon, color: meta.color, borderColor: meta.borderColor, textColor: meta.textColor });
+                        });
+                      }
                     }
-                    if (levelRewards?.tools) {
-                      const toolMeta = { bomb: { icon: <Zap size={18} className="text-rose-400" />, color: 'from-rose-500/20 to-pink-500/20', borderColor: 'border-rose-500/40', textColor: 'text-rose-400' }, swap: { icon: <RefreshCw size={18} className="text-sky-400" />, color: 'from-sky-500/20 to-blue-500/20', borderColor: 'border-sky-500/40', textColor: 'text-sky-400' }, row: { icon: <MoveHorizontal size={18} className="text-emerald-400" />, color: 'from-emerald-500/20 to-teal-500/20', borderColor: 'border-emerald-500/40', textColor: 'text-emerald-400' }, col: { icon: <MoveVertical size={18} className="text-green-400" />, color: 'from-green-500/20 to-emerald-500/20', borderColor: 'border-green-500/40', textColor: 'text-green-400' }, cell: { icon: <Target size={18} className="text-purple-400" />, color: 'from-purple-500/20 to-violet-500/20', borderColor: 'border-purple-500/40', textColor: 'text-purple-400' } };
-                      Object.entries(levelRewards.tools).forEach(([id, amt]) => {
-                        const meta = toolMeta[id] || toolMeta.bomb;
-                        rewardItems.push({ type: 'tool', id, amount: amt, icon: meta.icon, color: meta.color, borderColor: meta.borderColor, textColor: meta.textColor });
-                      });
-                    }
+
                     return (
                       <div className="absolute inset-0 z-[300] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 landscape:p-3 md:p-8 text-center animate-in fade-in zoom-in duration-500">
                         <div className="max-w-xs w-full">
                           <div className="w-14 h-14 landscape:w-12 landscape:h-12 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-3 landscape:mb-2 md:mb-6 border bg-green-500/20 border-green-400 text-green-400">
                             <Award size={28} className="landscape:w-6 landscape:h-6 md:w-10 md:h-10" />
                           </div>
-                          <h2 className="text-2xl landscape:text-xl md:text-4xl font-black text-white italic tracking-tighter mb-1 landscape:mb-0.5 md:mb-2 uppercase">{t('victory')}</h2>
-                          <p className="text-emerald-500 text-[9px] landscape:text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-3 landscape:mb-1.5 md:mb-4 italic">{t('mission_success')}</p>
+                          <h2 className="text-2xl landscape:text-xl md:text-4xl font-black text-white italic tracking-tighter mb-1 landscape:mb-0.5 md:mb-2 uppercase">{victoryTitle}</h2>
+                          <p className="text-emerald-500 text-[9px] landscape:text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-3 landscape:mb-1.5 md:mb-4 italic">{victorySubtitle}</p>
 
                           {/* Reward Animations */}
                           {rewardItems.length > 0 && (
                             <div className="flex flex-col gap-2 landscape:gap-1.5 md:gap-2.5 mb-4 landscape:mb-2 md:mb-6">
-                              {rewardItems.map((reward, idx) => (
-                                <div
-                                  key={idx}
-                                  className={`reward-pop-in flex items-center gap-3 landscape:gap-2 bg-gradient-to-r ${reward.color} border ${reward.borderColor} rounded-xl landscape:rounded-lg md:rounded-2xl px-4 landscape:px-3 py-3 landscape:py-2 md:px-5 md:py-3.5 shadow-lg`}
-                                  style={{ animationDelay: `${0.3 + idx * 0.25}s` }}
-                                >
-                                  <div className="w-9 h-9 landscape:w-7 landscape:h-7 md:w-10 md:h-10 rounded-lg landscape:rounded-md md:rounded-xl bg-slate-950/60 border border-white/10 flex items-center justify-center shrink-0 reward-icon-pulse">
-                                    {reward.icon}
+                              {rewardItems.map((reward, idx) => {
+                                const IconComponent = reward.icon;
+                                return (
+                                  <div
+                                    key={idx}
+                                    className={`reward-pop-in flex items-center gap-3 landscape:gap-2 bg-gradient-to-r ${reward.color} border ${reward.borderColor} rounded-xl landscape:rounded-lg md:rounded-2xl px-4 landscape:px-3 py-3 landscape:py-2 md:px-5 md:py-3.5 shadow-lg`}
+                                    style={{ animationDelay: `${0.3 + idx * 0.25}s` }}
+                                  >
+                                    <div className="w-9 h-9 landscape:w-7 landscape:h-7 md:w-10 md:h-10 rounded-lg landscape:rounded-md md:rounded-xl bg-slate-950/60 border border-white/10 flex items-center justify-center shrink-0 reward-icon-pulse">
+                                      <IconComponent size={18} className={reward.textColor} />
+                                    </div>
+                                    <div className="flex-1 text-left">
+                                      <span className={`text-sm landscape:text-xs md:text-base font-black ${reward.textColor}`}>
+                                        +{reward.amount} {reward.type === 'coins' ? t('gold') : reward.type === 'score' ? (t('score') || 'Puan') : t(reward.id)}
+                                      </span>
+                                    </div>
+                                    <Sparkles size={14} className={`${reward.textColor} animate-pulse opacity-60`} />
                                   </div>
-                                  <div className="flex-1 text-left">
-                                    <span className={`text-sm landscape:text-xs md:text-base font-black ${reward.textColor}`}>
-                                      +{reward.amount} {reward.type === 'coins' ? t('gold') : t(reward.id)}
-                                    </span>
-                                  </div>
-                                  <Sparkles size={14} className={`${reward.textColor} animate-pulse opacity-60`} />
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           )}
 
@@ -2967,7 +3020,7 @@ function App() {
                         {t('game_over')}
                       </h2>
                       <p className="text-sky-500 text-[9px] landscape:text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 landscape:mb-2 md:mb-6 italic">
-                        {t('moves_exhausted')}
+                        {timeLeft <= 0 ? (t('time_up') || 'SÜRE DOLDU') : t('moves_exhausted')}
                       </p>
 
                       <div className="grid grid-cols-2 gap-2 landscape:gap-1.5 md:gap-4 mb-4 landscape:mb-2 md:mb-8">

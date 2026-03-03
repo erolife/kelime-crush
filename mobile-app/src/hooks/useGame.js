@@ -239,10 +239,13 @@ export const useGame = (initialDifficulty = 'normal') => {
         return () => clearInterval(interval);
     }, [energy, lastEnergyRefill]);
 
-    // Arcade Timer Logic (for arcade time mode)
+    // Arcade & Event Timer Logic (for time modes or events with duration_limit)
     useEffect(() => {
         let timer;
-        if (gameState === 'playing' && gameMode === 'arcade' && arcadeSubMode === 'time' && timeLeft > 0) {
+        const isTimeEvent = currentEventId && timeLeft > 0;
+        const isArcadeTime = gameMode === 'arcade' && arcadeSubMode === 'time' && timeLeft > 0;
+
+        if (gameState === 'playing' && (isTimeEvent || isArcadeTime)) {
             timer = setInterval(() => {
                 setTimeLeft(prev => {
                     if (prev <= 1) {
@@ -255,7 +258,7 @@ export const useGame = (initialDifficulty = 'normal') => {
             }, 1000);
         }
         return () => clearInterval(timer);
-    }, [gameState, gameMode, arcadeSubMode, timeLeft]);
+    }, [gameState, gameMode, arcadeSubMode, timeLeft, currentEventId]);
 
     // Time Battle Timer Logic
     useEffect(() => {
@@ -686,6 +689,16 @@ export const useGame = (initialDifficulty = 'normal') => {
             setTimeLeft(0);
         }
 
+        // --- HİBRİT ETKİNLİK LİMİTLERİ OVERRIDE ---
+        const activeEvent = eventId ? activeEvents?.find(e => e.id === eventId) : null;
+        if (activeEvent) {
+            const eTime = parseInt(activeEvent.duration_limit) || 0;
+            const eMoves = parseInt(activeEvent.moves_limit) || 0;
+
+            setTimeLeft(eTime > 0 ? eTime : 0);
+            setMoves(eMoves > 0 ? eMoves : 999);
+        }
+
         const settings = DIFFICULTY_SETTINGS[currentDiff];
         const { rows, cols } = getGridSize(currentDiff, isMobile, orientation);
         const newEngine = new GameEngine(rows, cols, settings.vowelBonus, language);
@@ -737,10 +750,21 @@ export const useGame = (initialDifficulty = 'normal') => {
             setHighScore(prev => Math.max(prev, score));
         }
         if (gameState === 'playing') {
-            if (moves <= 0 && gameMode !== 'zen' && gameMode !== 'timeBattle') {
-                setGameState('gameover');
-            } else if (gameMode === 'arcade' && arcadeSubMode === 'time' && timeLeft <= 0) {
-                setGameState('gameover');
+            // Check Victory for Event
+            const activeEvent = currentEventId ? activeEvents?.find(e => e.id === currentEventId) : null;
+            if (activeEvent && activeEvent.target_score > 0 && score >= activeEvent.target_score) {
+                setGameState('victory');
+            } else {
+                const isEventMovesOut = currentEventId && activeEvent?.moves_limit > 0 && moves <= 0;
+                if (isEventMovesOut || (moves <= 0 && !currentEventId && gameMode !== 'zen' && gameMode !== 'timeBattle')) {
+                    setGameState('gameover');
+                } else if (timeLeft <= 0) {
+                    const isArcadeTime = gameMode === 'arcade' && arcadeSubMode === 'time';
+                    const isTimeEvent = currentEventId && activeEvent?.duration_limit > 0;
+                    if (isArcadeTime || isTimeEvent) {
+                        setGameState('gameover');
+                    }
+                }
             }
             // timeBattle gameover is handled by the timeBattle timer effect
         }
@@ -785,6 +809,6 @@ export const useGame = (initialDifficulty = 'normal') => {
         timeBattleElapsed, timeBattleToolRewards, pendingToolReward,
         timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt,
         // Event exports
-        activeEvents, isLoadingEvents, fetchActiveEvents
+        activeEvents, isLoadingEvents, fetchActiveEvents, currentEventId
     };
 };

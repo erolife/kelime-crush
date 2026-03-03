@@ -138,6 +138,8 @@
 - **Seviye Editörü:** Kullanıcıların kendi seviyelerini tasarlayabileceği bir modül.
 - **Topluluk:** Arkadaş ekleme, düello modu ve klan sistemleri.
 - **Günlük Çark (Daily Spin):** Kullanıcıların günde 1 kez çevirerek sürpriz ödüller kazanabileceği şans çarkı mekanizması (Not: Mevcut basit günlük ödül mantığının yerine entegre edilebilir; ikili ödül enflasyonu yaratmaması hedefleniyor).
+- **Hedef Puan ve Kısıtlamalar (v7.0.1):** Etkinlik şemasına (`target_score`, `duration_limit`, `moves_limit`) parametreleri eklendi. Kelime-crush App.jsx içerisindeki sabit (hardcoded) 60sn/30 hamle sınırları dinamik hale getirildi. İlgili kısıtlamalar "0" olarak girildiğinde o sınır kaldırılacak şekilde esnek (hibrit sayaç) mimarisine kavuşturuldu.
+- **Katılım Anında Liderlik Listelenmesi:** Etkinlik başlatılırken (join_event) `updateEventScore` ile asenkron olarak "0" puan gönderilerek kullanıcıların etkinlik tablosunda anında görünmesi sağlandı.
 
 ## ⚖️ Oyun Ekonomisi ve Denge (Rebalancing)
 - **Dinamik Zorluk:** 
