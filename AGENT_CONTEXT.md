@@ -10,6 +10,14 @@
     - Admin Panel (`wordlengenext`) üzerinden tam yönetim (CRUD).
     - Mobil Uygulama (`kelime-crush`) Dashboard entegrasyonu (Aktif Etkinlik Banner & Detay).
     - Otomatik puan senkronizasyonu (Oyun sonu servis tetikleme).
+- **Rank & Mastery Sistemi (v8.0.0):**
+    - **Faz 1 (Mantık):** XP hesaplama, Seviye formülü ve Mastery Points altyapısı kuruldu.
+    - **Faz 2 (UI):** 
+        - Dashboard Header: Minimalist seviye rozeti ve XP barı.
+        - Profil Sayfası: Detaylı gelişim kartı ve Kariyer Kademesi (Unvanlar).
+        - Oyun Sonu (Victory/GameOver): Kazanılan XP animasyonları ve göstergeleri.
+    - **Unvanlar:** Rookie'den Word Deity'ye kadar 5 kademeli kariyer sistemi.
+    - **Teknik:** `useGame.js` ve `App.jsx` arasında tam senkronizasyon.
 
 - **Admin Panel Düzenlemeleri:**
     - `Seviye Yönetimi` geçici olarak devre dışı bırakıldı (Sidebar'dan kaldırıldı).
@@ -137,9 +145,37 @@
 - **Günlük Görevler (Daily Missions):** Sidebar üzerindeki kilitli buton aktif edilecek ve ödüllü dinamik görevler eklenecek.
 - **Seviye Editörü:** Kullanıcıların kendi seviyelerini tasarlayabileceği bir modül.
 - **Topluluk:** Arkadaş ekleme, düello modu ve klan sistemleri.
-- **Günlük Çark (Daily Spin):** Kullanıcıların günde 1 kez çevirerek sürpriz ödüller kazanabileceği şans çarkı mekanizması (Not: Mevcut basit günlük ödül mantığının yerine entegre edilebilir; ikili ödül enflasyonu yaratmaması hedefleniyor).
+- **Günlük Çark (Daily Spin):** Kullanıcıların günde 1 kez çevirerek sürpriz ödüller kazanabileceği, "sadece üyelere özel" 8 dilimli ağırlıklı çark mekanizması mevcut `Seri Ödül` yapısının iptali üzerine başarıyla entegre edildi. Eski `streak` mantığı temizlendi ve yerine daha etkileşimli olan bu çark sistemi konuldu.
+- **Rank & Mastery Sistemi (Gelecek - v8.0.0):** XP tabanlı sonsuz ilerleme, seviye unvanları ve pasif yetenekler (Perks) sistemi planlandı. (`GAME_LEVEL_STRATEGY.md`)
 - **Hedef Puan ve Kısıtlamalar (v7.0.1):** Etkinlik şemasına (`target_score`, `duration_limit`, `moves_limit`) parametreleri eklendi. Kelime-crush App.jsx içerisindeki sabit (hardcoded) 60sn/30 hamle sınırları dinamik hale getirildi. İlgili kısıtlamalar "0" olarak girildiğinde o sınır kaldırılacak şekilde esnek (hibrit sayaç) mimarisine kavuşturuldu.
 - **Katılım Anında Liderlik Listelenmesi:** Etkinlik başlatılırken (join_event) `updateEventScore` ile asenkron olarak "0" puan gönderilerek kullanıcıların etkinlik tablosunda anında görünmesi sağlandı.
+- **Günlük Çark Güvenlik Entegrasyonu (v7.0.2):**
+    - `localStorage` tabanlı takipten Supabase tabanlı takibe geçildi.
+    - `profiles` tablosuna `crush_last_spin` (TEXT) sütunu eklendi.
+    - `App.jsx` üzerinden `DailySpin` bileşenine profil verileri ve güncelleme fonksiyonu aktarıldı.
+    - Hileli spin kullanımı önlendi ve veriler veritabanı ile senkronize edildi. (03.03.2026)
+- **Etkinlik Liderlik Tablosu Düzeltmesi (v7.0.3):**
+    - `event_participants` ve `profiles` arasındaki ilişki (JOIN) hatası giderildi.
+    - `user_id` referansı `auth.users` yerine `public.profiles` olarak güncellendi. (03.03.2026)
+- **Etkinlik Enerji ve Skor Senkronizasyonu (v7.0.4):**
+    - Etkinliğe her girişte 1 enerji tüketilmesi sağlandı.
+    - Oyun bittiğinde (Victory/GameOver) skorun otomatik olarak etkinliğe senkronize edilmesi eklendi.
+    - Sözdizimi (syntax) hataları giderildi ve sistem stabilize edildi. (03.03.2026)
+- **Enerji Tüketim ve Yenileme Mantığı Düzeltmesi (v7.0.5):**
+    - Enerji 5 iken (full) tüketildiğinde yenileme süresinin anında sıfırlanması sorunu giderildi (`lastEnergyRefill` güncellemesi).
+    - Etkinlik giriş ekranında enerji yetersizse buton pasifleştirildi ve uyarı eklendi. (03.03.2026)
+- **Splash Screen Takılma ve Performans Düzeltmesi (v7.0.6):**
+    - Saniyelik enerji güncellemelerinin re-render döngüsü nedeniyle Splash Screen'in takılı kalması sorunu giderildi (`useCallback` memoization).
+    - Uygulama başlangıç ve çalışma kararlılığı artırıldı. (03.03.2026)
+- **Hata Düzeltme ve Markalama (v7.0.7):**
+    - `App.jsx` üzerindeki `useCallback` eksik import hatası giderildi.
+    - `kelime-crush` ve `wordlengenext` projelerindeki varsayılan faviconlar Wordlenge logosu ile güncellendi. (03.03.2026)
+- **Kelime Takip Sistemi (v7.0.8):**
+    - Masaüstü yan paneline toplam bulunan kelime sayısı (`foundWords.length`) eklendi.
+    - Mobil görünüm için bulunan kelimeleri yatayda listeleyen şık bir şerit ve giriş alanına toplam kelime rozeti eklendi. (03.03.2026)
+- **Mobil Kelime Takip İyileştirmesi (v7.0.9):**
+    - Bulunan kelimeler şeridinin ekrandan taşma sorunu giderildi.
+    - Dokunmatik kaydırma (touch scroll) özellikleri eklenerek kullanıcı deneyimi iyileştirildi. (03.03.2026)
 
 ## ⚖️ Oyun Ekonomisi ve Denge (Rebalancing)
 - **Dinamik Zorluk:** 

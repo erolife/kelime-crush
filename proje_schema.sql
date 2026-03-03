@@ -24,6 +24,11 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     best_score_time_arena BIGINT DEFAULT 0,
     best_score_zen BIGINT DEFAULT 0,
     mode_stats JSONB DEFAULT '{"zen": {"words": 0, "moves": 0, "duration": 0, "game_count": 0}, "arcade": {"words": 0, "moves": 0, "duration": 0, "game_count": 0}, "mission": {"words": 0, "moves": 0, "duration": 0, "game_count": 0}}'::jsonb,
+    crush_last_spin TEXT,
+    xp BIGINT DEFAULT 0,
+    level INTEGER DEFAULT 1,
+    mastery_points INTEGER DEFAULT 0,
+    perks_json JSONB DEFAULT '{}'::jsonb,
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -101,9 +106,9 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS language TEXT DEFAULT 'tr';
 -- Liderlik Tablosu View'ı (Seviye ve Altın puanına göre sıralı)
 DROP VIEW IF EXISTS public.leaderboard;
 CREATE VIEW public.leaderboard AS
-SELECT id, username, avatar_url, coins, current_level_index, total_score, high_score, updated_at
+SELECT id, username, avatar_url, coins, level, xp, total_score, high_score, updated_at
 FROM public.profiles
-ORDER BY current_level_index DESC, high_score DESC, coins DESC
+ORDER BY level DESC, xp DESC, coins DESC
 LIMIT 100;
 
 -- Mod Bazlı Liderlik Tabloları
@@ -142,7 +147,7 @@ CREATE TABLE IF NOT EXISTS public.events (
 
 CREATE TABLE IF NOT EXISTS public.event_participants (
     event_id UUID REFERENCES public.events(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
     score INTEGER DEFAULT 0,
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     PRIMARY KEY (event_id, user_id)

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import PremiumCanvas from './components/Game/PremiumCanvas';
 import { useGame } from './hooks/useGame';
 import { soundManager } from './logic/SoundManager';
@@ -15,6 +15,7 @@ import {
 import { LETTER_POINTS, TIME_BATTLE_OPTIONS } from './logic/Constants';
 import { AuthService } from './logic/AuthService';
 import { SupabaseService } from './logic/SupabaseService';
+import DailySpin from './components/DailySpin';
 
 
 const DictionaryLoader = ({ language, t }) => (
@@ -210,9 +211,10 @@ const Dashboard = ({
   onSelectTimeBattle, onSelectArcade, onSelectZen, currentLevel, coins, tools, streakCount,
   levels = [], isLoading, user, profile, fetchProfile, onOpenAuth, language, setLanguage, t = (s) => s,
   isMuted, toggleMute, difficulty, changeDifficulty, dailyReward, claimGift, STREAK_REWARDS = [],
-  showDailyGift, energy, nextEnergyIn, buyTool,
+  showDailyGift, energy, nextEnergyIn, buyTool, addCoins, addTool, soundManager,
   totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId, completedLevels,
-  activeEvents = [], activeEvent, setSelectedEventId, setView
+  activeEvents = [], activeEvent, setSelectedEventId, setView,
+  xp, level, masteryPoints, sessionXP, getNextLevelXp
 }) => {
   const [dashboardView, setDashboardView] = React.useState('modes');
   const [selectedEventIdLocal, setSelectedEventIdLocal] = React.useState(null);
@@ -250,13 +252,6 @@ const Dashboard = ({
     }));
     setFallingLetters(newLetters);
   }, [language]);
-
-  // Auto-show daily reward screen on mount if needed
-  React.useEffect(() => {
-    if (showDailyGift && dashboardView === 'modes') {
-      setDashboardView('daily');
-    }
-  }, [showDailyGift]);
 
   const renderView = () => {
     console.log('--- DASHBOARD RENDERVIEW CALLED ---', dashboardView);
@@ -752,64 +747,23 @@ const Dashboard = ({
         );
 
       case 'daily': {
-        console.log('--- RENDERING DAILY VIEW ---');
-        const lastGift = parseInt(localStorage.getItem('crush_last_gift') || '0');
-        const now = Date.now();
-        const oneDay = 24 * 60 * 60 * 1000;
-        const canClaim = lastGift === 0 || (now - lastGift) >= oneDay;
-
-        const timeUntilNext = (lastGift + oneDay) - now;
-        const hLeft = Math.max(0, Math.floor(timeUntilNext / (1000 * 60 * 60)));
-        const mLeft = Math.max(0, Math.floor((timeUntilNext % (1000 * 60 * 60)) / (1000 * 60)));
-
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full flex flex-col items-center justify-center p-2">
-            <div className="w-full text-center p-4 md:p-8 landscape:p-3 bg-slate-900/60 border border-amber-500/30 rounded-2xl md:rounded-[3rem] shadow-[0_0_100px_rgba(245,158,11,0.1)] relative overflow-hidden max-h-full overflow-y-auto no-scrollbar">
-              <button onClick={() => setDashboardView('modes')} className="absolute top-4 left-4 md:top-8 md:left-8 p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
-                <X size={20} className="md:w-6 md:h-6" />
-              </button>
-              <h2 className="text-lg landscape:text-base md:text-4xl font-black text-white italic tracking-tighter mb-3 landscape:mb-2 md:mb-10 bg-gradient-to-r from-amber-400 to-orange-600 bg-clip-text text-transparent uppercase leading-tight">{t('daily_reward_title')}</h2>
-
-              <div className="flex justify-center flex-wrap gap-1.5 md:gap-4 landscape:gap-1 mb-3 landscape:mb-2 md:mb-12">
-                {STREAK_REWARDS.map((reward, i) => {
-                  const currentDayIndex = streakCount % 7;
-                  const isDone = canClaim ? (i < currentDayIndex) : (i <= currentDayIndex);
-                  const isToday = canClaim ? (i === currentDayIndex) : false;
-                  return (
-                    <div key={i} className={`
-                        w-10 h-14 landscape:w-9 landscape:h-10 md:w-20 md:h-24 rounded-lg md:rounded-2xl border flex flex-col items-center justify-center transition-all duration-500 relative
-                        ${isDone ? 'bg-green-500/10 border-green-500/40 text-green-500' :
-                        isToday ? 'bg-amber-500/20 border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.3)] scale-110 z-10 text-amber-500' :
-                          'bg-slate-800/40 border-white/5 text-slate-600'}
-                      `}>
-                      <span className="text-[6px] landscape:text-[5px] md:text-[10px] font-black opacity-60 mb-0.5 landscape:mb-0 md:mb-2 uppercase tracking-widest leading-none">{language === 'tr' ? 'GÜN' : 'DAY'} {i + 1}</span>
-                      {isDone ? <CheckCircle2 size={12} className="landscape:w-3 landscape:h-3 md:w-6 md:h-6" /> : React.cloneElement(reward.icon, { size: 12, className: 'landscape:w-3 landscape:h-3 md:w-6 md:h-6' })}
-                      {isToday && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 md:w-4 md:h-4 bg-amber-500 rounded-full animate-ping" />}
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="bg-slate-950/50 border border-white/5 rounded-xl md:rounded-[2.5rem] p-3 landscape:p-2 md:p-10 mb-3 landscape:mb-2 md:mb-10 inline-block min-w-full md:min-w-[320px]">
-                <p className="text-slate-500 text-[8px] md:text-xs font-black uppercase tracking-[0.3em] md:tracking-[0.4em] mb-1 md:mb-4 leading-none">{t('today_reward')}</p>
-                <div className="text-lg landscape:text-base md:text-5xl font-black text-white italic tracking-tighter mb-1 md:mb-3 animate-pulse leading-none">{dailyReward?.text}</div>
-                <div className="text-amber-500 font-bold text-[8px] md:text-sm tracking-widest uppercase opacity-80 leading-none">{t('streak_day', { day: (canClaim ? streakCount + 1 : streakCount) })}</div>
-              </div>
-
-              <div className="w-full flex justify-center px-4">
-                <button
-                  onClick={() => { if (canClaim) { claimGift(); setDashboardView('modes'); } }}
-                  disabled={!canClaim}
-                  className={`w-full max-w-md py-2.5 landscape:py-2 md:py-6 font-black rounded-xl md:rounded-2xl transition-all shadow-2xl tracking-widest uppercase italic text-xs landscape:text-xs md:text-xl
-                    ${canClaim
-                      ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 shadow-amber-500/30 active:scale-95'
-                      : 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-80'}`}
-                >
-                  {canClaim ? t('claim_reward') : (language === 'tr' ? `${hLeft} SAAT ${mLeft} DAKİKA SONRA GEL` : `COME BACK IN ${hLeft}h ${mLeft}m`)}
-                </button>
-              </div>
-            </div>
-          </div>
+          <DailySpin
+            onClose={() => setDashboardView('modes')}
+            user={user}
+            profile={profile}
+            updateProfile={async (updates) => {
+              const success = await SupabaseService.updateProfile(user.id, updates);
+              if (success) {
+                await fetchProfile(user.id);
+              }
+              return success;
+            }}
+            addCoins={addCoins}
+            addTool={addTool}
+            t={t}
+            soundManager={soundManager}
+          />
         );
       }
 
@@ -1073,6 +1027,58 @@ const Dashboard = ({
                       <div className="text-xl md:text-2xl font-black text-white italic tracking-tighter leading-none">{stat.value?.toLocaleString()}</div>
                     </div>
                   ))}
+                </div>
+
+                {/* Rank & Mastery: Gelişim Kartı (v8.0.0) */}
+                <div className="bg-gradient-to-br from-slate-900/80 to-slate-950/80 border border-white/10 rounded-[2.5rem] p-6 backdrop-blur-xl relative overflow-hidden shadow-2xl">
+                  {/* Background Glow */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full blur-[60px] pointer-events-none" />
+
+                  <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+                    <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-orange-400 to-rose-600 rounded-[2rem] flex items-center justify-center text-white border-2 border-white/20 shadow-[0_0_30px_rgba(245,158,11,0.2)] shrink-0">
+                      <span className="text-3xl md:text-4xl font-black italic">Lvl {level}</span>
+                    </div>
+
+                    <div className="flex-1 w-full text-center md:text-left">
+                      <div className="flex flex-col md:flex-row md:items-end gap-2 mb-3">
+                        <h3 className="text-xl md:text-3xl font-black text-white uppercase italic tracking-tighter leading-none">
+                          {(() => {
+                            if (level <= 10) return language === 'tr' ? 'Kelime Çaylağı' : 'Word Rookie';
+                            if (level <= 25) return language === 'tr' ? 'Hece Ustası' : 'Syllable Master';
+                            if (level <= 50) return language === 'tr' ? 'Sözlük Gurusu' : 'Dictionary Guru';
+                            if (level <= 75) return language === 'tr' ? 'Efsanevi Yazar' : 'Legendary Author';
+                            return language === 'tr' ? 'Kelime Tanrısı' : 'Word Deity';
+                          })()}
+                        </h3>
+                        <span className="text-[9px] font-black text-sky-400 uppercase tracking-[0.3em] opacity-80 mb-0.5">Kariyer Kademesi</span>
+                      </div>
+
+                      {/* Detailed XP Bar */}
+                      <div className="relative pt-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                              {xp?.toLocaleString()} XP
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[10px] font-black text-sky-500 uppercase tracking-widest">
+                              SEVİYE {level + 1} HEDEFİ: {getNextLevelXp(level)?.toLocaleString()} XP
+                            </span>
+                          </div>
+                        </div>
+                        <div className="overflow-hidden h-3 mb-1 text-xs flex rounded-full bg-slate-800/50 border border-white/5 p-0.5">
+                          <div
+                            style={{ width: `${Math.min(100, (xp / getNextLevelXp(level)) * 100)}%` }}
+                            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-600 rounded-full transition-all duration-1000 animate-shimmer"
+                          ></div>
+                        </div>
+                        <p className="text-[8px] font-bold text-slate-600 uppercase tracking-widest text-center mt-1">
+                          Bir sonraki seviyeye {Math.max(0, getNextLevelXp(level) - xp)?.toLocaleString()} XP kaldı
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="bg-slate-900/40 border border-white/5 rounded-[2.5rem] p-6 backdrop-blur-md">
@@ -1382,7 +1388,7 @@ const Dashboard = ({
                   </button>
 
                   <button
-                    onClick={() => setDashboardView('daily')}
+                    onClick={() => { if (!user) { setLockReason('auth'); setShowMissionLock(true); } else setDashboardView('daily'); }}
                     className="group relative overflow-hidden rounded-[1.5rem] border border-white/8 p-5 flex flex-col items-center gap-3 transition-all duration-300 hover:border-amber-500/30 active:scale-[0.98]"
                     style={{ background: 'linear-gradient(135deg, #12090a 0%, #0e0608 100%)' }}
                   >
@@ -1390,11 +1396,11 @@ const Dashboard = ({
                       <div className="w-12 h-12 bg-amber-500/10 border-amber-500/20 rounded-xl flex items-center justify-center group-hover:bg-amber-500/20 group-hover:border-amber-500/40 transition-all">
                         <Gift size={20} className="text-amber-400" />
                       </div>
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-slate-950 animate-pulse" />
+                      {/* Note: The red dot / ping can be derived dynamically if we know user hasn't spun */}
                     </div>
                     <div className="text-center">
-                      <div className="text-sm font-black text-white uppercase tracking-tight leading-none">DAILY</div>
-                      <div className="text-[9px] text-amber-500 font-black uppercase tracking-widest mt-1">GÜN {streakCount + 1}</div>
+                      <div className="text-sm font-black text-white uppercase tracking-tight leading-none">{t('daily_reward_title') || 'ŞANS ÇARKI'}</div>
+                      <div className="text-[9px] text-amber-500 font-black uppercase tracking-widest mt-1">SÜRPRİZ ÖDÜLLER</div>
                     </div>
                   </button>
                 </div>
@@ -1445,12 +1451,11 @@ const Dashboard = ({
               </button>
 
               <button
-                onClick={() => setDashboardView('daily')}
+                onClick={() => { if (!user) { setLockReason('auth'); setShowMissionLock(true); } else setDashboardView('daily'); }}
                 className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'daily' ? 'text-amber-400 scale-110' : 'text-slate-500'}`}
               >
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'daily' ? 'bg-amber-500/20 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'bg-white/5 border-transparent'} relative`}>
                   <Gift size={20} />
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-slate-950 animate-pulse" />
                 </div>
                 <span className="text-[8px] font-black uppercase tracking-widest">{t('daily') || 'Hediye'}</span>
               </button>
@@ -1569,6 +1574,11 @@ const Dashboard = ({
                   </div>
                   <div className="flex flex-col font-outfit min-w-[25px] md:min-w-[40px]">
                     <span className="text-[9px] md:text-xs font-black text-white leading-none whitespace-nowrap">{energy}/5</span>
+                    {energy < 5 && (
+                      <span className="text-[7px] md:text-[8px] font-bold text-sky-400/80 mt-0.5 whitespace-nowrap animate-pulse">
+                        {Math.floor(nextEnergyIn / 60)}:{(nextEnergyIn % 60).toString().padStart(2, '0')}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -1595,18 +1605,24 @@ const Dashboard = ({
                     profile?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()
                   )}
                 </div>
-                <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white text-[6px] md:text-[8px] font-black leading-none px-1.5 md:px-2 py-0.5 rounded-md border-2 border-slate-950 shadow-lg">
-                  {completedLevels + 1}
+                <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-amber-400 to-orange-600 text-white text-[7px] md:text-[9px] font-black leading-none px-1.5 md:px-2 py-0.5 rounded-md border-2 border-slate-950 shadow-lg z-20">
+                  Lvl {level}
                 </div>
               </div>
-              <div className="hidden sm:flex flex-col">
-                <span className="text-[10px] md:text-xs font-black text-white leading-none truncate max-w-[80px]" title={profile?.username || user?.email?.split('@')[0]}>
+              <div className="hidden sm:flex flex-col ml-1">
+                <span className="text-[10px] md:text-xs font-black text-white leading-none truncate max-w-[100px]" title={profile?.username || user?.email?.split('@')[0]}>
                   {(() => {
                     const name = profile?.username || user?.email?.split('@')[0] || '';
                     return name.length > 12 ? name.substring(0, 12) + '...' : name;
                   })()}
                 </span>
-                <span className="text-[6px] md:text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight mt-0.5">{t('profile')}</span>
+                {/* Minimalist XP Bar */}
+                <div className="mt-1 w-full bg-white/10 h-[3px] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-sky-400 to-indigo-500 transition-all duration-1000"
+                    style={{ width: `${Math.min(100, (xp / getNextLevelXp(level)) * 100)}%` }}
+                  />
+                </div>
               </div>
             </button>
           ) : (
@@ -2251,6 +2267,7 @@ function App() {
     celebration,
     timeBattleElapsed, timeBattleToolRewards, pendingToolReward,
     timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt,
+    xp, level, masteryPoints, sessionXP, getNextLevelXp,
     activeEvents, isLoadingEvents, currentEventId
   } = useGame();
 
@@ -2262,6 +2279,10 @@ function App() {
   const [view, setView] = useState('dashboard'); // 'dashboard', 'settings', 'profile', 'event'
   const [selectedEventId, setSelectedEventId] = useState(null);
   const [eventTab, setEventTab] = useState('leaderboard'); // 'leaderboard' or 'rewards'
+
+  const handleSplashComplete = useCallback(() => {
+    setShowSplash(false);
+  }, []);
 
   const actuallyActiveEvents = (activeEvents || []).filter(e => e.isActive);
   const activeEvent = actuallyActiveEvents.length > 0
@@ -2283,77 +2304,8 @@ function App() {
     return () => window.removeEventListener('pointerdown', startAudio);
   }, []);
 
-  const STREAK_REWARDS = [
-    { type: 'coins', amount: 100, text: '100 Altın', icon: <Coins size={24} /> },
-    { type: 'coins', amount: 200, text: '200 Altın', icon: <Coins size={24} /> },
-    { type: 'tool', id: 'bomb', amount: 1, text: '1 Bomba', icon: <Zap size={24} /> },
-    { type: 'coins', amount: 300, text: '300 Altın', icon: <Coins size={24} /> },
-    { type: 'tool', id: 'swap', amount: 1, text: '1 Yer Değiştirme', icon: <RefreshCw size={24} /> },
-    { type: 'coins', amount: 400, text: '400 Altın', icon: <Coins size={24} /> },
-    { type: 'tool', id: 'bomb', amount: 2, text: '2 Bomba + 500 Altın', extraCoins: 500, icon: <Sparkles size={24} /> },
-  ];
 
-  const [showDailyGift, setShowDailyGift] = useState(false);
-  const [dailyReward, setDailyReward] = useState(null);
-  const [streakCount, setStreakCount] = useState(() => parseInt(localStorage.getItem('crush_streak_count') || "0"));
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    const lastGift = localStorage.getItem('crush_last_gift');
-    const now = Date.now();
-    const oneDay = 24 * 60 * 60 * 1000;
-    const twoDays = 48 * 60 * 60 * 1000;
-
-    if (!lastGift) {
-      // İlk defa hediye alıyor
-      setDailyReward(STREAK_REWARDS[0]);
-      setShowDailyGift(true);
-    } else {
-      const timeDiff = now - parseInt(lastGift);
-      if (timeDiff > twoDays) {
-        // Seri bozuldu, sıfırla
-        setStreakCount(0);
-        localStorage.setItem('crush_streak_count', "0");
-        setDailyReward(STREAK_REWARDS[0]);
-        setShowDailyGift(true);
-      } else if (timeDiff > oneDay) {
-        // Yeni gün ödülü aktif
-        const nextStreak = streakCount % 7;
-        setDailyReward(STREAK_REWARDS[nextStreak]);
-        setShowDailyGift(true);
-      }
-    }
-  }, []);
-
-  const claimGift = () => {
-    const lastGift = parseInt(localStorage.getItem('crush_last_gift') || '0');
-    const now = Date.now();
-    const oneDay = 24 * 60 * 60 * 1000;
-
-    if (lastGift !== 0 && (now - lastGift) < oneDay) {
-      setShowDailyGift(false);
-      return;
-    }
-
-    if (dailyReward?.type === 'coins') {
-      addCoins(dailyReward.amount);
-    } else if (dailyReward?.type === 'tool') {
-      addTool(dailyReward.id, dailyReward.amount);
-      if (dailyReward.extraCoins) addCoins(dailyReward.extraCoins);
-    }
-
-    soundManager.play('powerup');
-    const newStreak = (streakCount + 1);
-    setStreakCount(newStreak);
-    localStorage.setItem('crush_streak_count', newStreak.toString());
-    localStorage.setItem('crush_last_gift', Date.now().toString());
-
-    // Sonraki günün ödülünü hazırla
-    const nextStreak = newStreak % 7;
-    setDailyReward(STREAK_REWARDS[nextStreak]);
-
-    setShowDailyGift(false);
-  };
 
   const toggleMute = () => {
     const muted = soundManager.toggleMute();
@@ -2429,30 +2381,43 @@ function App() {
                 <div className="flex flex-col gap-3 mt-8">
                   <button
                     onClick={() => {
+                      if (energy <= 0) return;
                       setView('dashboard');
                       setShowDashboard(false);
-                      // Etkinlikteki ilk modu ve dinamik değerleri kullan
-                      const eventMode = activeEvent.allowed_modes?.[0] || 'arcade';
+                      // Etkinlikteki modları ve limitleri kontrol et
+                      const allowedModes = activeEvent.allowed_modes || ['arcade'];
+                      const hasMovesLimit = (parseInt(activeEvent.moves_limit) || 0) > 0;
+                      const hasTimeLimit = (parseInt(activeEvent.duration_limit) || 0) > 0;
+
+                      // Mod seçimi: Eğer sadece moves_limit varsa arcade tercih et, yoksa duration_limit varsa timeBattle/arcade-time tercih et
+                      const eventMode = (hasMovesLimit && !hasTimeLimit)
+                        ? (allowedModes.find(m => m === 'arcade') || allowedModes[0])
+                        : (allowedModes[0] || 'arcade');
+
                       const isTimeBased = eventMode === 'timeBattle' ||
-                        (eventMode === 'arcade' && (activeEvent.target_score > 0 || activeEvent.duration_limit > 0));
+                        (eventMode === 'arcade' && hasTimeLimit);
 
                       const subMode = isTimeBased ? 'time' : 'moves';
-                      // Süre bazlı ise duration_limit, hamle bazlı ise moves_limit (etkinlik yeni standardı)
                       const subValue = isTimeBased
-                        ? (activeEvent.duration_limit || 60)
-                        : (activeEvent.moves_limit || 30);
+                        ? (parseInt(activeEvent.duration_limit) || 60)
+                        : (parseInt(activeEvent.moves_limit) || 30);
 
                       // Etkinliğe katılım sağlandığı an listesi yenilenmesi için 0 skorla kayıt at
-                      if (user) {
+                      if (user && energy > 0) {
                         SupabaseService.updateEventScore(activeEvent.id, user.id, 0);
+                        // Enerji tüketimi
+                        setEnergy(e => e - 1);
+                        if (energy === 5) setLastEnergyRefill(Date.now());
                       }
 
                       resetGame({}, eventMode, subMode, subValue, 'normal', activeEvent.id);
                     }}
-                    className="w-full py-5 bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 font-black rounded-2xl transition-all active:scale-95 shadow-xl shadow-amber-500/20 uppercase text-xs tracking-widest"
+                    disabled={energy <= 0}
+                    className={`w-full py-5 font-black rounded-2xl transition-all active:scale-95 shadow-xl uppercase text-xs tracking-widest ${energy > 0 ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 shadow-amber-500/20' : 'bg-slate-800 text-slate-500 shadow-none cursor-not-allowed'}`}
                   >
-                    {t('join_event')}
+                    {energy > 0 ? t('join_event') : (language === 'tr' ? 'ENERJİ YETERSİZ' : 'NOT ENOUGH ENERGY')}
                   </button>
+
                   <button
                     onClick={() => setView('dashboard')}
                     className="w-full py-4 text-slate-500 font-bold hover:text-white transition-colors text-[10px] uppercase tracking-widest"
@@ -2472,7 +2437,7 @@ function App() {
   return (
     <div className="relative h-screen w-screen bg-[#020617] text-slate-100 font-outfit select-none overflow-hidden flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       {/* Splash Screen Animation */}
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+      {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
 
       {/* Auth Modal stays as utility */}
       <AuthModal
@@ -2515,7 +2480,6 @@ function App() {
             coins={coins}
             tools={tools}
             buyTool={buyTool}
-            streakCount={streakCount}
             user={user}
             profile={profile}
             fetchProfile={fetchProfile}
@@ -2526,10 +2490,9 @@ function App() {
             toggleMute={toggleMute}
             difficulty={difficulty}
             changeDifficulty={changeDifficulty}
-            dailyReward={dailyReward}
-            claimGift={claimGift}
-            showDailyGift={showDailyGift}
-            STREAK_REWARDS={STREAK_REWARDS}
+            addCoins={addCoins}
+            addTool={addTool}
+            soundManager={soundManager}
             onOpenAuth={() => setIsAuthModalOpen(true)}
             energy={energy}
             nextEnergyIn={nextEnergyIn}
@@ -2564,6 +2527,11 @@ function App() {
             activeEvents={activeEvents}
             activeEvent={activeEvent}
             setSelectedEventId={setSelectedEventId}
+            xp={xp}
+            level={level}
+            masteryPoints={masteryPoints}
+            sessionXP={sessionXP}
+            getNextLevelXp={getNextLevelXp}
             setView={setView}
           />
           {renderAppView()}
@@ -2772,7 +2740,7 @@ function App() {
               <div className="flex-1 bg-slate-900/40 backdrop-blur-xl p-4 rounded-3xl border border-white/5 shadow-2xl flex flex-col min-h-0">
                 <>
                   <div className="flex justify-between items-center border-b border-white/5 pb-2 shrink-0">
-                    <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('words')}</h2>
+                    <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('words')} <span className="text-sky-400 ml-1">({foundWords.length})</span></h2>
                     <AlignLeft className="w-3.5 h-3.5 text-sky-400" />
                   </div>
                   <div className="flex-1 overflow-y-auto no-scrollbar py-2 space-y-2">
@@ -2788,14 +2756,38 @@ function App() {
 
             {/* Center: Grid Area */}
             <div className="flex-1 flex flex-col gap-2 md:gap-3 min-w-0 h-full">
-              {/* Word Display Area - Mobile visible only */}
-              <div className={`
-                md:hidden flex items-center justify-center px-3 landscape:px-2 py-1.5 landscape:py-1 rounded-lg landscape:rounded-md md:rounded-xl backdrop-blur-3xl border-2 transition-all duration-500 mx-auto
-                ${currentWord.length >= 3 ? 'bg-sky-500/10 border-sky-400/50' : 'bg-slate-900/40 border-white/5'}
-              `}>
-                <span className={`text-base landscape:text-sm md:text-lg font-black tracking-[0.3em] ${currentWord.length >= 3 ? 'text-white' : 'text-slate-500'}`}>
-                  {currentWord || '..........'}
-                </span>
+              <div className="md:hidden flex flex-col gap-2 items-center w-full overflow-hidden">
+                {/* Word Display Area - Mobile visible only */}
+                <div className={`
+                  flex items-center justify-center px-4 py-2 rounded-2xl backdrop-blur-3xl border-2 transition-all duration-500
+                  ${currentWord.length >= 3 ? 'bg-sky-500/10 border-sky-400/50 scale-105 shadow-lg shadow-sky-500/10' : 'bg-slate-900/40 border-white/5'}
+                `}>
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className={`text-base landscape:text-sm font-black tracking-[0.3em] ${currentWord.length >= 3 ? 'text-white' : 'text-slate-500'}`}>
+                        {currentWord || '..........'}
+                      </span>
+                      {foundWords.length > 0 && (
+                        <div className="bg-sky-500 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded-full flex items-center justify-center min-w-[20px] shadow-lg shadow-sky-500/20">
+                          {foundWords.length}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Found Words Horizontal Scroll - Mobile only */}
+                {foundWords.length > 0 && (
+                  <div className="w-full relative px-4 flex justify-center">
+                    <div className="w-full max-w-full overflow-x-auto no-scrollbar flex items-center gap-2 py-1 scroll-smooth touch-pan-x active:cursor-grabbing" style={{ WebkitOverflowScrolling: 'touch' }}>
+                      {foundWords.slice().reverse().map((word, idx) => (
+                        <div key={idx} className="shrink-0 px-3 py-1 bg-slate-900/60 border border-white/10 rounded-full text-[9px] font-bold text-slate-300 shadow-sm whitespace-nowrap">
+                          {word}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex-1 flex items-center justify-center min-h-0 relative">
@@ -2841,6 +2833,11 @@ function App() {
                       }
                     }
 
+                    // Add XP Reward (v8.0.0)
+                    if (sessionXP > 0) {
+                      rewardItems.push({ type: 'xp', amount: sessionXP + (gameMode === 'arcade' ? 100 : gameMode === 'timeBattle' ? 200 : 50), icon: Star, color: 'from-sky-500/20 to-indigo-500/20', borderColor: 'border-sky-500/40', textColor: 'text-sky-400' });
+                    }
+
                     return (
                       <div className="absolute inset-0 z-[300] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 landscape:p-3 md:p-8 text-center animate-in fade-in zoom-in duration-500">
                         <div className="max-w-xs w-full">
@@ -2866,7 +2863,7 @@ function App() {
                                     </div>
                                     <div className="flex-1 text-left">
                                       <span className={`text-sm landscape:text-xs md:text-base font-black ${reward.textColor}`}>
-                                        +{reward.amount} {reward.type === 'coins' ? t('gold') : reward.type === 'score' ? (t('score') || 'Puan') : t(reward.id)}
+                                        +{reward.amount} {reward.type === 'coins' ? t('gold') : reward.type === 'score' ? (t('score') || 'Puan') : reward.type === 'xp' ? 'XP' : t(reward.id)}
                                       </span>
                                     </div>
                                     <Sparkles size={14} className={`${reward.textColor} animate-pulse opacity-60`} />
@@ -2991,7 +2988,11 @@ function App() {
                         </div>
                         <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5">
                           <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('words_found')}</div>
-                          <div className="text-xl landscape:text-lg md:text-2xl font-black text-white tabular-nums">{wordsFoundCount}</div>
+                          <div className="text-xl landscape:text-lg md:text-2xl font-black text-white italic tabular-nums">{wordsFoundCount}</div>
+                        </div>
+                        <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-sky-500/20 col-span-2">
+                          <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-sky-400 font-black uppercase mb-0.5">Kazanılan Tecrübe</div>
+                          <div className="text-xl landscape:text-lg md:text-2xl font-black text-sky-400 italic tabular-nums">+{sessionXP + 200} XP</div>
                         </div>
                       </div>
 
@@ -3031,6 +3032,10 @@ function App() {
                         <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5">
                           <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('moves')}</div>
                           <div className="text-xl landscape:text-lg md:text-2xl font-black text-white tabular-nums">{totalMovesMade}</div>
+                        </div>
+                        <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-sky-500/20 col-span-2">
+                          <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-sky-400 font-black uppercase mb-0.5">Kazanılan Tecrübe</div>
+                          <div className="text-xl landscape:text-lg md:text-2xl font-black text-sky-400 italic tabular-nums">+{sessionXP + 100} XP</div>
                         </div>
                       </div>
 

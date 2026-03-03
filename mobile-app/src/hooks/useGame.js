@@ -58,6 +58,64 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [activeEvents, setActiveEvents] = useState([]);
     const [isLoadingEvents, setIsLoadingEvents] = useState(false);
     const [currentEventId, setCurrentEventId] = useState(null);
+    const [hasAwardedXP, setHasAwardedXP] = useState(false);
+
+    // Rank & Mastery State (v8.0.0)
+    const [xp, setXp] = useState(0);
+    const [level, setLevel] = useState(1);
+    const [masteryPoints, setMasteryPoints] = useState(0);
+    const [perks, setPerks] = useState({});
+    const [sessionXP, setSessionXP] = useState(0);
+
+    // Seviye atlamak için gereken XP hesaplama
+    const getNextLevelXp = useCallback((lvl) => {
+        return Math.floor(1000 * Math.pow(1.15, lvl - 1));
+    }, []);
+
+    // XP Ekleme ve Seviye Kontrolü
+    const addXP = useCallback(async (amount) => {
+        if (!user) return; // Misafirler XP kazanmaz (opsiyonel, şimdilik böyle)
+
+        setXp(currentXp => {
+            const newXp = currentXp + amount;
+            let currentLevel = level;
+            let newLevel = currentLevel;
+            let currentMasteryPoints = masteryPoints;
+
+            // Seviye atlama kontrolü (Döngü ile birden fazla seviye atlama ihtimaline karşı)
+            while (newXp >= getNextLevelXp(newLevel)) {
+                newLevel++;
+                currentMasteryPoints++;
+                // Sound effect tetiklenebilir: soundManager.playSound('levelup');
+                console.log(`TEBRİKLER! Seviye Atladın: ${newLevel}`);
+            }
+
+            if (newLevel !== currentLevel) {
+                setLevel(newLevel);
+                setMasteryPoints(currentMasteryPoints);
+                // Veritabanını güncelle
+                SupabaseService.updateProfile(user.id, {
+                    xp: newXp,
+                    level: newLevel,
+                    mastery_points: currentMasteryPoints
+                });
+            } else {
+                // Sadece XP güncelle
+                SupabaseService.updateProfile(user.id, { xp: newXp });
+            }
+
+            return newXp;
+        });
+    }, [user, level, masteryPoints, getNextLevelXp]);
+
+    // Kelime uzunluğuna göre XP hesaplama (GAME_LEVEL_STRATEGY tabanlı)
+    const calculateWordXP = useCallback((wordLength) => {
+        if (wordLength < 3) return 0;
+        if (wordLength === 3) return 10;
+        if (wordLength === 4) return 25;
+        // 5+ harf: 50 + (10 * ekstra her harf)
+        return 50 + (Math.max(0, wordLength - 5) * 10);
+    }, []);
 
     // Dynamic Level Loader (disabled - levels replaced by Time Battle)
     // useEffect(() => { ... }, []);
@@ -118,6 +176,10 @@ export const useGame = (initialDifficulty = 'normal') => {
             if (data.games_played) setGamesPlayed(data.games_played);
             if (data.high_score) setHighScore(data.high_score);
             if (data.avatar_id) setAvatarId(data.avatar_id);
+            if (data.xp !== undefined) setXp(data.xp);
+            if (data.level !== undefined) setLevel(data.level);
+            if (data.mastery_points !== undefined) setMasteryPoints(data.mastery_points);
+            if (data.perks_json) setPerks(data.perks_json);
             localStorage.setItem('crush_completed_levels', (data.current_level_index || 0).toString());
         }
         setIsLoadingProfile(false);
@@ -176,7 +238,6 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [score, setScore] = useState(0);
     const [createdSpecial, setCreatedSpecial] = useState(null);
     const [moves, setMoves] = useState(DIFFICULTY_SETTINGS[initialDifficulty].moves);
-    const [level, setLevel] = useState(1);
     const [isDictionaryLoaded, setIsDictionaryLoaded] = useState(false);
     const [foundWords, setFoundWords] = useState([]);
     const [gameState, setGameState] = useState('playing'); // 'playing', 'gameover', 'victory'
@@ -263,24 +324,36 @@ export const useGame = (initialDifficulty = 'normal') => {
     // Time Battle Timer Logic
     useEffect(() => {
         let timer;
-        if (gameState === 'playing' && gameMode === 'timeBattle' && timeLeft > 0) {
+        const activeEvent = currentEventId ? activeEvents?.find(e => e.id === currentEventId) : null;
+        // Eğer bir etkinlikteysek ve süre sınırı 0 (sınırsız) ise timeBattle'da süre bitişini engelle
+        const isInfiniteTimeEvent = currentEventId && activeEvent && (parseInt(activeEvent.duration_limit) || 0) === 0;
+
+        if (gameState === 'playing' && gameMode === 'timeBattle' && (timeLeft > 0 || isInfiniteTimeEvent)) {
             timer = setInterval(() => {
-                setTimeLeft(prev => {
-                    if (prev <= 1) {
-                        setGameState('gameover');
-                        soundManager.play('error');
-                        return 0;
-                    }
-                    return prev - 1;
-                });
+                if (timeLeft > 0) {
+                    setTimeLeft(prev => {
+                        if (prev <= 1) {
+                            if (!isInfiniteTimeEvent) {
+                                setGameState('gameover');
+                                soundManager.play('error');
+                                return 0;
+                            }
+                            return 0; // Infinite time event but let it stay at 0
+                        }
+                        return prev - 1;
+                    });
+                }
                 setTimeBattleElapsed(prev => prev + 1);
             }, 1000);
-        } else if (gameState === 'playing' && gameMode === 'timeBattle' && timeLeft <= 0) {
+        } else if (gameState === 'playing' && gameMode === 'timeBattle' && timeLeft <= 0 && currentEventId && !activeEvent) {
+            // Wait for event data to load before ending based on time
+            return () => clearInterval(timer);
+        } else if (gameState === 'playing' && gameMode === 'timeBattle' && timeLeft <= 0 && !isInfiniteTimeEvent) {
             setGameState('gameover');
             soundManager.play('error');
         }
         return () => clearInterval(timer);
-    }, [gameState, gameMode, timeLeft]);
+    }, [gameState, gameMode, timeLeft, currentEventId, activeEvents]);
 
     // Time Battle: Tool Reward Check
     useEffect(() => {
@@ -582,6 +655,21 @@ export const useGame = (initialDifficulty = 'normal') => {
             setGrid([...newGrid]);
             setScore(s => s + turnScore + blastedBonus);
 
+            // Rank & Mastery: Accumulate XP for found word (display at end of game)
+            // Zen mode penalty: 50% XP and soft cap of 500 XP per session (v8.0.2)
+            let wordXP = calculateWordXP(word.length);
+            if (gameMode === 'zen') {
+                wordXP = Math.floor(wordXP * 0.5);
+            }
+
+            if (wordXP > 0) {
+                setSessionXP(prev => {
+                    const nextXP = prev + wordXP;
+                    if (gameMode === 'zen' && nextXP > 500) return 500; // soft cap
+                    return nextXP;
+                });
+            }
+
             if (gameMode === 'zen') {
                 if (word.length >= 7) setGardenState(prev => ({ ...prev, flowers: prev.flowers + 1 }));
                 else if (word.length >= 5) setGardenState(prev => ({ ...prev, stones: prev.stones + 1 }));
@@ -708,10 +796,11 @@ export const useGame = (initialDifficulty = 'normal') => {
         setGrid(initialGrid);
 
         setScore(0);
-        setLevel(1);
+        setSessionXP(0);
         setFoundWords([]);
         setSelectedPath([]);
         setGameState('playing');
+        setHasAwardedXP(false);
         setActiveTool(null);
         setAnimatingCells([]);
 
@@ -742,7 +831,7 @@ export const useGame = (initialDifficulty = 'normal') => {
             }
         }
         setGamesPlayed(prev => prev + 1);
-    }, [engine, difficulty, gameMode, startTimeBattle, language, tools]);
+    }, [engine, difficulty, gameMode, startTimeBattle, language, tools, activeEvents]);
 
     // Game Over / Victory: Update highScore based on final session score
     useEffect(() => {
@@ -761,20 +850,37 @@ export const useGame = (initialDifficulty = 'normal') => {
                 } else if (timeLeft <= 0) {
                     const isArcadeTime = gameMode === 'arcade' && arcadeSubMode === 'time';
                     const isTimeEvent = currentEventId && activeEvent?.duration_limit > 0;
+
+                    if (currentEventId && !activeEvent) {
+                        // Wait for event data to load
+                        return;
+                    }
+
                     if (isArcadeTime || isTimeEvent) {
                         setGameState('gameover');
                     }
                 }
             }
-            // timeBattle gameover is handled by the timeBattle timer effect
         }
+        // timeBattle gameover is handled by the timeBattle timer effect
 
         // Time Battle: award gold on game end
         if (gameState === 'gameover' && gameMode === 'timeBattle' && timeBattleElapsed > 0) {
             const goldReward = calculateTimeBattleGold(timeBattleElapsed);
             setCoins(c => c + goldReward);
         }
-    }, [moves, timeLeft, gameState, score, gameMode, arcadeSubMode, timeBattleElapsed]);
+        if (gameState !== 'playing' && !hasAwardedXP) {
+            const completionXP = gameMode === 'arcade' ? 100 : gameMode === 'timeBattle' ? 200 : 50;
+            const totalSessionXP = sessionXP + completionXP;
+            addXP(totalSessionXP);
+            setHasAwardedXP(true);
+        }
+
+        // Sync score to event if active
+        if (currentEventId && user && (gameState === 'victory' || gameState === 'gameover')) {
+            SupabaseService.updateEventScore(currentEventId, user.id, score);
+        }
+    }, [moves, timeLeft, gameState, score, gameMode, arcadeSubMode, timeBattleElapsed, currentEventId, activeEvents, hasAwardedXP, addXP, sessionXP]);
 
     const buyTool = useCallback((toolId, price) => {
         if (coins >= price) {
@@ -805,6 +911,8 @@ export const useGame = (initialDifficulty = 'normal') => {
         arcadeSubMode, arcadeValue, timeLeft, totalMovesMade, zenDuration,
         gardenState, setGameState,
         celebration,
+        // Rank & Mastery exports
+        xp, level, masteryPoints, sessionXP, getNextLevelXp,
         // Time Battle exports
         timeBattleElapsed, timeBattleToolRewards, pendingToolReward,
         timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt,

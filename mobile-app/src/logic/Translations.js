@@ -149,6 +149,14 @@ export const TRANSLATIONS = {
         target_score: "HEDEF PUAN",
         coming_soon: "YAKINDA",
         starts_at: "BAŞLANGIÇ",
+        // Daily Spin
+        daily_spin_title: "GÜNLÜK ŞANS ÇARKI",
+        spin_wheel: "ÇARKI ÇEVİR",
+        spinning: "ÇEVRİLİYOR...",
+        wait_tomorrow: "YARIN TEKRAR GEL",
+        next_spin_in: "SONRAKİ HAKKINA KALAN SÜRE:",
+        you_won: "KAZANDIN!",
+        awesome: "HARİKA!",
     },
     en: {
         arcade: "ARCADE",
@@ -299,5 +307,13 @@ export const TRANSLATIONS = {
         target_score: "TARGET SCORE",
         coming_soon: "COMING SOON",
         starts_at: "STARTS AT",
+        // Daily Spin
+        daily_spin_title: "DAILY SPIN WHEEL",
+        spin_wheel: "SPIN THE WHEEL",
+        spinning: "SPINNING...",
+        wait_tomorrow: "COME BACK TOMORROW",
+        next_spin_in: "NEXT SPIN IN:",
+        you_won: "YOU WON!",
+        awesome: "AWESOME!",
     }
 };
