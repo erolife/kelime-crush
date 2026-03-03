@@ -114,4 +114,4 @@ export const TIME_BATTLE_TOOL_REWARDS = {
 };
 
 // Kazanılabilecek araç havuzu (rastgele)
-export const TIME_BATTLE_REWARD_POOL = ['bomb', 'swap', 'row', 'col', 'cell'];
+export const TIME_BATTLE_REWARD_POOL = ['bomb', 'swap', 'row', 'col', 'cell', 'xbomb', 'nuclear'];

@@ -55,6 +55,9 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [zenDuration, setZenDuration] = useState(0);
     const [gardenState, setGardenState] = useState({ flowers: 0, stones: 0, ripples: 0 });
     const [celebration, setCelebration] = useState(null); // { text, level, duration }
+    const [activeEvents, setActiveEvents] = useState([]);
+    const [isLoadingEvents, setIsLoadingEvents] = useState(false);
+    const [currentEventId, setCurrentEventId] = useState(null);
 
     // Dynamic Level Loader (disabled - levels replaced by Time Battle)
     // useEffect(() => { ... }, []);
@@ -118,6 +121,14 @@ export const useGame = (initialDifficulty = 'normal') => {
             localStorage.setItem('crush_completed_levels', (data.current_level_index || 0).toString());
         }
         setIsLoadingProfile(false);
+        fetchActiveEvents();
+    };
+
+    const fetchActiveEvents = async () => {
+        setIsLoadingEvents(true);
+        const events = await SupabaseService.getActiveEvents();
+        setActiveEvents(events || []);
+        setIsLoadingEvents(false);
     };
 
     const setLanguage = useCallback((lang) => {
@@ -177,7 +188,7 @@ export const useGame = (initialDifficulty = 'normal') => {
     });
 
     const [tools, setTools] = useState({
-        bomb: 1, swap: 2, row: 1, col: 1, cell: 3
+        bomb: 1, swap: 2, row: 1, col: 1, cell: 3, xbomb: 0, nuclear: 0
     });
 
     useEffect(() => {
@@ -302,7 +313,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         return () => clearInterval(timer);
     }, [gameState, gameMode]);
 
-    // Session Statistics Recording
+    // Session Statistics & Event Scoring Recording
     useEffect(() => {
         if (gameState !== 'playing' && gameState !== 'initial' && user) {
             const saveStats = async () => {
@@ -312,6 +323,13 @@ export const useGame = (initialDifficulty = 'normal') => {
                     duration: gameMode === 'zen' ? zenDuration : (gameMode === 'timeBattle' ? timeBattleElapsed : (gameMode === 'arcade' && arcadeSubMode === 'time' ? (arcadeValue - timeLeft) : totalMovesMade * 3))
                 };
                 await SupabaseService.updateModeStats(user.id, gameMode, sessionStats);
+
+                // Event Scoring: Record if we are in a specific event
+                if (score > 0 && currentEventId) {
+                    await SupabaseService.updateEventScore(currentEventId, user.id, score);
+                    // Refresh data to show in leaderboard
+                    fetchActiveEvents();
+                }
             };
             saveStats();
         }
@@ -350,7 +368,7 @@ export const useGame = (initialDifficulty = 'normal') => {
     }, [language]);
 
     // Time Battle Mode Initialization
-    const startTimeBattle = useCallback((duration, selectedBoosters = {}) => {
+    const startTimeBattle = useCallback((duration, selectedBoosters = {}, eventId = null) => {
         const settings = DIFFICULTY_SETTINGS[difficulty];
         const { rows, cols } = getGridSize(difficulty, isMobile, orientation);
         const newEngine = new GameEngine(rows, cols, settings.vowelBonus, language);
@@ -362,6 +380,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         setTimeBattleToolRewards([]);
         setNextToolRewardAt(TIME_BATTLE_TOOL_REWARDS.firstAt);
         setPendingToolReward(null);
+        setCurrentEventId(eventId);
         newEngine.setLanguage(language);
         setEngine(newEngine);
         const newGrid = newEngine.initGrid();
@@ -449,6 +468,8 @@ export const useGame = (initialDifficulty = 'normal') => {
             case 'row': result = engine.removeRow(r); break;
             case 'col': result = engine.removeCol(c); break;
             case 'cell': result = engine.removeSingle(r, c); break;
+            case 'xbomb': result = { ...engine.removeSingle(r, c), blasted: [] }; engine.triggerSpecialCell(r, c, 'dynamite', result.blasted); break;
+            case 'nuclear': result = { ...engine.removeSingle(r, c), blasted: [] }; engine.triggerSpecialCell(r, c, 'nuclear', result.blasted); break;
             case 'swap':
                 if (!swapSelection) {
                     setSwapSelection({ r, c });
@@ -636,12 +657,12 @@ export const useGame = (initialDifficulty = 'normal') => {
         soundManager.play('swap');
     }, [engine, moves, gameState]);
 
-    const resetGame = useCallback((selectedBoosters = {}, mode = null, subMode = 'moves', subValue = 30, targetDifficulty = null) => {
+    const resetGame = useCallback((selectedBoosters = {}, mode = null, subMode = 'moves', subValue = 30, targetDifficulty = null, eventId = null) => {
         const targetMode = mode || gameMode;
         const currentDiff = targetDifficulty || difficulty;
 
         if (targetMode === 'timeBattle') {
-            startTimeBattle(subValue, selectedBoosters);
+            startTimeBattle(subValue, selectedBoosters, eventId);
             return;
         }
 
@@ -652,6 +673,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         setTotalMovesMade(0);
         setZenDuration(0);
         setGardenState({ flowers: 0, stones: 0, ripples: 0 });
+        setCurrentEventId(eventId);
 
         if (targetMode === 'zen') {
             setMoves(999);
@@ -715,7 +737,7 @@ export const useGame = (initialDifficulty = 'normal') => {
             setHighScore(prev => Math.max(prev, score));
         }
         if (gameState === 'playing') {
-            if (gameMode === 'arcade' && arcadeSubMode === 'moves' && moves <= 0) {
+            if (moves <= 0 && gameMode !== 'zen' && gameMode !== 'timeBattle') {
                 setGameState('gameover');
             } else if (gameMode === 'arcade' && arcadeSubMode === 'time' && timeLeft <= 0) {
                 setGameState('gameover');
@@ -752,7 +774,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         gameMode, currentLevelIndex, levelGoals, startTimeBattle,
         coins, buyTool, addCoins, addTool,
         cloudLevels, isLoadingLevels,
-        user, profile, isLoadingProfile, completedLevels,
+        user, profile, isLoadingProfile, fetchProfile, completedLevels,
         language, setLanguage, t,
         energy, nextEnergyIn, setEnergy, setLastEnergyRefill,
         totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId,
@@ -761,6 +783,8 @@ export const useGame = (initialDifficulty = 'normal') => {
         celebration,
         // Time Battle exports
         timeBattleElapsed, timeBattleToolRewards, pendingToolReward,
-        timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt
+        timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt,
+        // Event exports
+        activeEvents, isLoadingEvents, fetchActiveEvents
     };
 };

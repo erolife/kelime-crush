@@ -3,9 +3,17 @@
 **Son Güncelleme:** 2026-03-02
 ## Proje Durumu: v6.0.0 (Zaman Savaşı Modu & Yeni İsimler)
 - **Feature (v6.0.0)**: Oyun modları için YENİ isimler belirlendi:
-  - ARCADE -> MACERA
-  - ZAMAN SAVAŞI -> ZAMAN ARENASI
-  - ZEN MODU -> ZEN SERÜVENİ
+- **Feature (v7.0.0)**: **Ultra Esnek Etkinlik Sistemi (v7.0.0):**
+    - Periyodik (Haftalık vb.) ve Manuel (2 saatlik vb.) etkinlik desteği.
+    - Mod kısıtlaması (Sadece Arcade veya TimeBattle puanları geçerli olabilir).
+    - Dereceye göre (Rank-based) esnek ödül sistemi (Altın, Bomba, vb.).
+    - Admin Panel (`wordlengenext`) üzerinden tam yönetim (CRUD).
+    - Mobil Uygulama (`kelime-crush`) Dashboard entegrasyonu (Aktif Etkinlik Banner & Detay).
+    - Otomatik puan senkronizasyonu (Oyun sonu servis tetikleme).
+
+- **Admin Panel Düzenlemeleri:**
+    - `Seviye Yönetimi` geçici olarak devre dışı bırakıldı (Sidebar'dan kaldırıldı).
+    - `Etkinlikler` menüsü stratejik öncelik olarak eklendi.
 - **Feature (v6.0.0)**: "Seviye" (Mission) modu kaldırıldı, yerine "Zaman Arenası" (Time Battle) modu eklendi:
   - Süre seçimi: 1dk / 3dk / 5dk
   - Kelime üretildiğinde harf sayısının yarısı kadar saniye eklenir (yukarı yuvarlama)
@@ -101,9 +109,35 @@
 -   **Database:** Supabase (Auth ve Data) (Circular Hit Detection, Particle Systems)
 
 ## 🚧 Gelecek Planlar (Phase 7 ve Ötesi)
+### Yapılan İşlemler (03.03.2026)
+- [SQL] `events` ve `event_participants` tabloları oluşturuldu. RLS politikaları ve `update_event_score` fonksiyonu eklendi.
+- [Admin] `EventsAdmin` sayfası (`/admin/events`) oluşturuldu. Etkinlik ekleme/düzenleme formu (zamanlayıcı, mod seçimi, JSON ödül yapısı) tamamlandı.
+- [Mobile] `SupabaseService.js` içerisine `getActiveEvents`, `getEventLeaderboard` ve `updateEventScore` metodları eklendi.
+- [Mobile] `useGame.js` kancasına aktif etkinlikleri takip eden ve oyun sonunda puanları kaydeden mantık entegre edildi.
+- [Mobile] `App.jsx` üzerinde `EventView` ve `EventLeaderboard` bileşenleri ile Dashboard banner yapısı kuruldu.
+- [Mobile] `App.jsx` üzerinde `EventView` ve `EventLeaderboard` bileşenleri ile Dashboard banner yapısı kuruldu.
+- [Fix] `App.jsx` içerisindeki `Identifier 'activeEvent' has already been declared` hatası düzeltildi. Dashboard bileşenine aynı isimli prop gönderildiği için içerideki mükerrer tanım kaldırıldı. (03.03.2026)
+- [Fix] `App.jsx` içerisinde Arcade ve Zaman Savaşı modu butonlarındaki yanlış View yönlendirmesi düzeltildi (`setView` -> `setDashboardView`). Oyun modlarının açılmama sorunu giderildi. (03.03.2026)
+- [Fix] `SupabaseService.js` içerisinde mükerrer olan `updateProfile` fonksiyonu temizlendi. 
+- [Feature] `App.jsx` içerisindeki Profil Düzenleme formuna Cinsiyet seçeneği eklendi. Ayrıca profil düzenleme işlemi başarılı olduğunda arayüzün anında güncellenmesi için `useGame.js` teki `fetchProfile` fonksiyonu prop olarak geçirilerek çağrıldı. (03.03.2026)
+- [Fix] Supabase profil resmi yükleme işleminde (avatarFile) File nesnesi iletişiminin kopması ihtimaline karşın; önizleme formatındaki Base64 görsel verisinin decode edilip gönderilmesi sağlandı (`SupabaseService.js` içerisinde `uploadAvatar` fonksiyonu güncellendi). (03.03.2026)
+- [DB Config] Kullanıcının Supabase tarafında `game-assets` isimli bir Storage/Bucket klasörüne sahip olmadığı tespit edildi. İlerisi için `proje_schema.sql` dosyasına Bucket ve Policy izin (RLS) scriptleri eklendi. `App.jsx` üzerindeki fotoğraf kaydetme fonksiyonu tekrar `File` objesi gönderecek hâle getirildi. (03.03.2026)
+- [Fix] `App.jsx` içerisindeki Profil Resim Yükleme input'una (`accept`) MIME kısıtlaması getirildi ve hata uyarı bloğu oluşturuldu (Sadece jpg, png, webp formatlarına izin verilecek). (03.03.2026)
+- [Feature] Uygulamanın Dashboard Header bölümündeki profil gösterge alanı güncellendi; kullanıcının yüklemiş olduğu profil resmi (avatar_url) varsa UI üzerinde gösterilmesi sağlandı. (03.03.2026)
+- [Fix] Header alanında görüntülenen profil isimlerine ve mail adreslerine JavaScript ile maksimum 12 karakter sınırı getirildi. Uzun isimlerin tasarımı bozması engellendi ve ekrana sığmayan isimler "..." ile kısaltılarak üzerine gelindiğinde tam halinin (title attribute) görünmesi sağlandı. (03.03.2026)
+### Etkinlik Sistemi ve Admin Panel Geliştirmeleri (Mart 2026)
+- **Çok Dilli Destek:** Etkinlik isimleri ve açıklamaları `JSONB` formatında (tr/en) saklanacak şekilde güncellendi.
+- **Periyodik Etkinlikler:** Haftalık otomatik tekrarlanan etkinlikler için admin paneline gün/saat seçici eklendi.
+- **Esnek Ödül Tablosu:** Admin panelinden her sıralama aralığı için birden fazla ödül tanımlanabilen dinamik bir yapı kuruldu.
+- **RLS Düzeltmesi:** `events` tablosunda admin girişi için eksik olan politikalar `fix_events_rls.sql` ile giderildi.
+- **Periyodiklik & Nullable Fix:** Periyodik etkinliklerin kaydedilebilmesi için `start_at`/`end_at` alanları nullable yapıldı (`fix_events_nullable.sql`) ve mobil uygulamada (SupabaseService) periyodik vakitleri kontrol eden akıllı filtreleme mantığına geçildi.
+- **Dashboard Entegrasyonu:** Mobil uygulamada çok dilli başlık/açıklama render desteği eklendi.
+- [Fix] `App.jsx` boş ekran hatası giderildi: JSX syntax hataları temizlendi ve `Dashboard` yerel state'i `dashboardView` olarak izole edildi.
+- [Admin] Seviye yönetimi sidebar'dan yoruma alınarak kaldırıldı.
 - **Günlük Görevler (Daily Missions):** Sidebar üzerindeki kilitli buton aktif edilecek ve ödüllü dinamik görevler eklenecek.
 - **Seviye Editörü:** Kullanıcıların kendi seviyelerini tasarlayabileceği bir modül.
 - **Topluluk:** Arkadaş ekleme, düello modu ve klan sistemleri.
+- **Günlük Çark (Daily Spin):** Kullanıcıların günde 1 kez çevirerek sürpriz ödüller kazanabileceği şans çarkı mekanizması (Not: Mevcut basit günlük ödül mantığının yerine entegre edilebilir; ikili ödül enflasyonu yaratmaması hedefleniyor).
 
 ## ⚖️ Oyun Ekonomisi ve Denge (Rebalancing)
 - **Dinamik Zorluk:** 

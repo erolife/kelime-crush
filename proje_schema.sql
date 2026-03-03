@@ -15,6 +15,14 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     games_played INTEGER DEFAULT 0,
     high_score INTEGER DEFAULT 0,
     avatar_id TEXT DEFAULT 'default',
+    avatar_url TEXT,
+    gender TEXT,
+    age INTEGER,
+    location TEXT,
+    bio TEXT,
+    best_score_adventure BIGINT DEFAULT 0,
+    best_score_time_arena BIGINT DEFAULT 0,
+    best_score_zen BIGINT DEFAULT 0,
     mode_stats JSONB DEFAULT '{"zen": {"words": 0, "moves": 0, "duration": 0, "game_count": 0}, "arcade": {"words": 0, "moves": 0, "duration": 0, "game_count": 0}, "mission": {"words": 0, "moves": 0, "duration": 0, "game_count": 0}}'::jsonb,
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -91,25 +99,95 @@ CREATE TRIGGER on_auth_user_created
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS language TEXT DEFAULT 'tr';
 
 -- Liderlik Tablosu View'ı (Seviye ve Altın puanına göre sıralı)
--- Not: View'lar varsayılan olarak owner (postgres) yetkisiyle çalışır ve RLS'i baypas eder.
--- Bu sayede profiles tablosu gizli kalsa bile bu view üzerinden sıralama görünebilir.
 DROP VIEW IF EXISTS public.leaderboard;
 CREATE VIEW public.leaderboard AS
-SELECT 
-    id,
-    username,
-    coins,
-    current_level_index,
-    total_score,
-    high_score,
-    updated_at
-FROM 
-    public.profiles
-ORDER BY 
-    current_level_index DESC, 
-    high_score DESC,
-    coins DESC
+SELECT id, username, avatar_url, coins, current_level_index, total_score, high_score, updated_at
+FROM public.profiles
+ORDER BY current_level_index DESC, high_score DESC, coins DESC
+LIMIT 100;
+
+-- Mod Bazlı Liderlik Tabloları
+CREATE OR REPLACE VIEW public.leaderboard_adventure AS
+SELECT id, username, avatar_url, best_score_adventure as score, updated_at
+FROM public.profiles
+WHERE best_score_adventure > 0
+ORDER BY best_score_adventure DESC
+LIMIT 100;
+
+CREATE OR REPLACE VIEW public.leaderboard_time_arena AS
+SELECT id, username, avatar_url, best_score_time_arena as score, updated_at
+FROM public.profiles
+WHERE best_score_time_arena > 0
+ORDER BY best_score_time_arena DESC
 LIMIT 100;
 
 -- Sadece SELECT yetkisi veriyoruz (anon ve authenticated rolleri için)
-GRANT SELECT ON public.leaderboard TO anon, authenticated;
+-- 6. ETKİNLİK SİSTEMİ (Phase 7 - v7.0.0)
+CREATE TABLE IF NOT EXISTS public.events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    description TEXT,
+    type TEXT DEFAULT 'manual' CHECK (type IN ('periodic', 'manual')),
+    allowed_modes JSONB DEFAULT '["arcade", "timeBattle"]'::jsonb,
+    start_at TIMESTAMPTZ NOT NULL,
+    end_at TIMESTAMPTZ NOT NULL,
+    rewards JSONB DEFAULT '[]'::jsonb,
+    is_processed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT valid_dates CHECK (end_at > start_at)
+);
+
+CREATE TABLE IF NOT EXISTS public.event_participants (
+    event_id UUID REFERENCES public.events(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    score INTEGER DEFAULT 0,
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (event_id, user_id)
+);
+
+ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.event_participants ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Etkinlikler herkes tarafından okunabilir" ON public.events FOR SELECT USING (TRUE);
+CREATE POLICY "Katılımcılar kendi skorlarını görebilir" ON public.event_participants FOR SELECT USING (TRUE);
+CREATE POLICY "Kullanıcılar kendi skorlarını güncelleyebilir" ON public.event_participants FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Kullanıcılar kendi skorlarını yükseltebilir" ON public.event_participants FOR UPDATE USING (auth.uid() = user_id);
+
+-- 7. FONKSİYONLAR (Etkinlik Skoru Güncelleme)
+CREATE OR REPLACE FUNCTION public.update_event_score(p_event_id UUID, p_user_id UUID, p_score_to_add INTEGER)
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO public.event_participants (event_id, user_id, score)
+    VALUES (p_event_id, p_user_id, p_score_to_add)
+    ON CONFLICT (event_id, user_id)
+    DO UPDATE SET 
+        score = public.event_participants.score + p_score_to_add,
+        updated_at = NOW();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 8. STORAGE (Dosya Yükleme) AYARLARI
+-- 'game-assets' adında bir bucket oluştur (Bunu Supabase dasboard üzerinden de yapabilirsiniz, SQL ile karşılığı)
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('game-assets', 'game-assets', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage için okuma (SELECT) izni (Herkes görebilir)
+CREATE POLICY "Public Access" 
+ON storage.objects FOR SELECT 
+USING ( bucket_id = 'game-assets' );
+
+-- Storage için yazma/yükleme (INSERT) izni (Sadece giriş yapmış kullanıcılar)
+CREATE POLICY "Auth Users Upload" 
+ON storage.objects FOR INSERT 
+WITH CHECK ( auth.role() = 'authenticated' AND bucket_id = 'game-assets' );
+
+-- Storage güncellemeleri (UPDATE) 
+CREATE POLICY "Auth Users Update"
+ON storage.objects FOR UPDATE
+USING ( auth.role() = 'authenticated' AND bucket_id = 'game-assets' );
+
+-- Storage silme işlemleri (DELETE)
+CREATE POLICY "Auth Users Delete"
+ON storage.objects FOR DELETE
+USING ( auth.role() = 'authenticated' AND bucket_id = 'game-assets' );

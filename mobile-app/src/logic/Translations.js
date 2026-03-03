@@ -142,6 +142,13 @@ export const TRANSLATIONS = {
         time_battle_result_subtitle: "ZAMANA KARŞI ARENA SAVAŞIN SONA ERDİ",
         time_battle_rank: "RÜTBEN",
         share_msg_timebattle: "Wordlenge Zaman Arenası'nda {duration} saniye dayandım ve {score} puan yaptım! #wordlenge",
+        join_event: "ETKİNLİĞE KATIL",
+        no_participants: "HENÜZ KATILIMCI YOK",
+        active_events: "AKTİF ETKİNLİKLER",
+        ends_on: "BİTİŞ TARİHİ",
+        target_score: "HEDEF PUAN",
+        coming_soon: "YAKINDA",
+        starts_at: "BAŞLANGIÇ",
     },
     en: {
         arcade: "ARCADE",
@@ -285,5 +292,12 @@ export const TRANSLATIONS = {
         time_battle_result_subtitle: "YOUR BATTLE AGAINST TIME IS OVER",
         time_battle_rank: "YOUR RANK",
         share_msg_timebattle: "I survived {duration} seconds and scored {score} in Wordlenge Time Battle! #wordlenge",
+        join_event: "JOIN EVENT",
+        no_participants: "NO PARTICIPANTS YET",
+        active_events: "ACTIVE EVENTS",
+        ends_on: "ENDS ON",
+        target_score: "TARGET SCORE",
+        coming_soon: "COMING SOON",
+        starts_at: "STARTS AT",
     }
 };

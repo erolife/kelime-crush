@@ -9,7 +9,8 @@ import {
   ChevronRight, Play, CheckCircle2, Award, History,
   LayoutGrid, RotateCcw, Coins, Calendar, Box,
   ListTodo, Gift, ShoppingBag, BarChart3, Share2,
-  User, LogOut, Mail, Lock, UserPlus, LogIn, Clock, Home
+  User, LogOut, Mail, Lock, UserPlus, LogIn, Clock, Home,
+  Bomb, Radiation, Star, MapPin, Camera
 } from 'lucide-react';
 import { LETTER_POINTS, TIME_BATTLE_OPTIONS } from './logic/Constants';
 import { AuthService } from './logic/AuthService';
@@ -207,12 +208,14 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess, t = (s) => s }) => {
 
 const Dashboard = ({
   onSelectTimeBattle, onSelectArcade, onSelectZen, currentLevel, coins, tools, streakCount,
-  levels = [], isLoading, user, profile, onOpenAuth, language, setLanguage, t = (s) => s,
+  levels = [], isLoading, user, profile, fetchProfile, onOpenAuth, language, setLanguage, t = (s) => s,
   isMuted, toggleMute, difficulty, changeDifficulty, dailyReward, claimGift, STREAK_REWARDS = [],
   showDailyGift, energy, nextEnergyIn, buyTool,
-  totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId, completedLevels
+  totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId, completedLevels,
+  activeEvents = [], activeEvent, setSelectedEventId, setView
 }) => {
-  const [view, setView] = React.useState('modes');
+  const [dashboardView, setDashboardView] = React.useState('modes');
+  const [selectedEventIdLocal, setSelectedEventIdLocal] = React.useState(null);
   const [selectedLevelIdx, setSelectedLevelIdx] = React.useState(null);
   const [selectedBoosters, setSelectedBoosters] = React.useState({ bomb: false, row: false, col: false });
   const [arcadeSubMode, setArcadeSubMode] = React.useState('moves'); // 'moves' | 'time'
@@ -221,9 +224,12 @@ const Dashboard = ({
   const [showMemberOnlyModal, setShowMemberOnlyModal] = React.useState(false);
   const [showMissionLock, setShowMissionLock] = React.useState(false);
   const [lockReason, setLockReason] = React.useState('auth'); // 'auth' | 'energy'
+  const [isEditingProfile, setIsEditingProfile] = React.useState(false);
+  const [editData, setEditData] = React.useState({});
+  const [isSavingProfile, setIsSavingProfile] = React.useState(false);
 
   console.log('--- DASHBOARD RENDER ---');
-  console.log('Current View:', view);
+  console.log('Current View:', dashboardView);
   console.log('User:', user?.email);
   console.log('Coins:', coins);
 
@@ -247,20 +253,95 @@ const Dashboard = ({
 
   // Auto-show daily reward screen on mount if needed
   React.useEffect(() => {
-    if (showDailyGift && view === 'modes') {
-      setView('daily');
+    if (showDailyGift && dashboardView === 'modes') {
+      setDashboardView('daily');
     }
   }, [showDailyGift]);
 
   const renderView = () => {
-    console.log('--- DASHBOARD RENDERVIEW CALLED ---', view);
-    switch (view) {
+    console.log('--- DASHBOARD RENDERVIEW CALLED ---', dashboardView);
+    switch (dashboardView) {
+      case 'eventsList':
+        return (
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-20 landscape:pb-16 px-4 landscape:px-3">
+            <div className="flex items-center gap-4 mb-4 landscape:mb-3 md:mb-8">
+              <button onClick={() => setDashboardView('modes')} className="p-2 landscape:p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
+                <X size={20} className="md:w-6 md:h-6" />
+              </button>
+              <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase">{t('active_events') || (language === 'tr' ? 'AKTİF ETKİNLİKLER' : 'ACTIVE EVENTS')}</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[...(activeEvents || [])].sort((a, b) => (b.isActive ? 1 : 0) - (a.isActive ? 1 : 0)).map((event) => (
+                <button
+                  key={event.id}
+                  onClick={() => { setSelectedEventId?.(event.id); setView?.('event'); }}
+                  className={`group relative overflow-hidden rounded-[2rem] border p-6 text-left transition-all duration-300 active:scale-[0.98] bg-slate-900/40 backdrop-blur-md ${event.isActive ? 'border-white/8 hover:border-amber-500/30' : 'border-white/5 opacity-80 hover:border-blue-500/30'}`}
+                >
+                  {!event.isActive && (
+                    <div className="absolute top-4 right-6 bg-blue-500/20 text-blue-400 text-[9px] font-black px-2 py-0.5 rounded-full border border-blue-500/30 animate-pulse">
+                      {t('coming_soon') || 'COMING SOON'}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-4">
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all shrink-0 ${event.isActive ? 'bg-amber-500/10 border border-amber-500/20 group-hover:bg-amber-500/20 group-hover:border-amber-500/40' : 'bg-blue-500/10 border border-blue-500/20 group-hover:bg-blue-500/20 group-hover:border-blue-500/40'}`}>
+                      <Trophy size={28} className={event.isActive ? 'text-amber-400' : 'text-blue-400'} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-[9px] font-black uppercase tracking-widest leading-none mb-1 ${event.isActive ? 'text-amber-500' : 'text-blue-500'}`}>
+                        {event.type === 'manual' ? t('special_event') : (language === 'tr' ? 'HER HAFTA' : 'WEEKLY')}
+                      </div>
+                      <h3 className="text-lg font-black text-white italic truncate tracking-tight uppercase">
+                        {event.title?.[language] || event.title}
+                      </h3>
+                      <div className="flex items-center gap-3 mt-2">
+                        <div className="flex items-center gap-1 text-[10px] font-black text-slate-500">
+                          <Target size={12} className="text-sky-400" />
+                          <span>{event.target_score?.toLocaleString()}</span>
+                        </div>
+                        <div className="w-px h-2.5 bg-white/10" />
+                        <div className="flex items-center gap-1 text-[10px] font-black text-slate-500 uppercase">
+                          <Clock size={12} className={event.isActive ? 'text-rose-400' : 'text-blue-400'} />
+                          <span>
+                            {event.isActive ? (() => {
+                              const end = new Date(event.end_at);
+                              const now = new Date();
+                              const diff = end - now;
+
+                              if (diff <= 0) return language === 'tr' ? 'BİTTİ' : 'ENDED';
+
+                              const hours = Math.floor(diff / (1000 * 60 * 60));
+                              const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                              const days = Math.floor(hours / 24);
+
+                              if (days > 0) return `${days}${language === 'tr' ? ' gün ' : 'd '}${hours % 24}${language === 'tr' ? ' sa' : 'h'}`;
+                              if (hours > 0) return `${hours}${language === 'tr' ? ' sa ' : 'h '}${mins}${language === 'tr' ? ' dk' : 'm'}`;
+                              return `${mins}${language === 'tr' ? ' dk' : 'm'}`;
+                            })() : (
+                              `${t('starts_at') || (language === 'tr' ? 'BAŞLAR' : 'STARTS AT')}: ${new Date(event.start_at).toLocaleDateString()}`
+                            )}
+                          </span>
+                        </div>
+                        <div className="w-px h-2.5 bg-white/10" />
+                        <div className="flex items-center gap-1 text-[10px] font-black text-slate-500 uppercase">
+                          <User size={12} className="text-sky-400" />
+                          <span>{event.participant_count || 0}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <ChevronRight size={20} className={`text-slate-700 transition-all shrink-0 ${event.isActive ? 'group-hover:text-amber-500' : 'group-hover:text-blue-500'} group-hover:translate-x-1`} />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
       case 'timeBattlePregame': {
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full max-h-screen">
             <div className="flex items-center justify-between gap-2 md:gap-4 mb-2 landscape:mb-1 md:mb-6 shrink-0 pt-2 md:pt-0">
               <div className="flex items-center gap-2 md:gap-4 min-w-0">
-                <button onClick={() => setView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
+                <button onClick={() => setDashboardView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
                   <X size={20} className="md:w-6 md:h-6" />
                 </button>
                 <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase truncate">{t('time_battle')}</h2>
@@ -346,7 +427,7 @@ const Dashboard = ({
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full max-h-screen">
             <div className="flex items-center justify-between gap-2 md:gap-4 mb-2 landscape:mb-1 md:mb-6 shrink-0 pt-2 md:pt-0">
               <div className="flex items-center gap-2 md:gap-4 min-w-0">
-                <button onClick={() => setView(isArcade ? 'modes' : 'levels')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
+                <button onClick={() => setDashboardView(isArcade ? 'modes' : 'levels')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
                   <X size={20} className="md:w-6 md:h-6" />
                 </button>
                 <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase truncate">{isArcade ? t('arcade') : `${t('level')} ${selectedLevelIdx + 1}`}</h2>
@@ -528,7 +609,7 @@ const Dashboard = ({
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full overflow-y-auto no-scrollbar pb-6 landscape:pb-20">
             <div className="flex items-center gap-3 md:gap-4 mb-2 md:mb-8 shrink-0">
               <button
-                onClick={() => setView('modes')}
+                onClick={() => setDashboardView('modes')}
                 className="p-1.5 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
               >
                 <X size={18} className="md:w-6 md:h-6" />
@@ -536,7 +617,7 @@ const Dashboard = ({
               <h2 className="text-base md:text-2xl font-black text-white italic tracking-tighter uppercase leading-none mr-auto">{t('inventory')}</h2>
 
               <button
-                onClick={() => setView('shop')}
+                onClick={() => setDashboardView('shop')}
                 className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 px-3 py-1.5 rounded-xl flex items-center gap-2 transition-all active:scale-95 shadow-lg group"
               >
                 <ShoppingBag size={14} className="md:w-4 md:h-4 group-hover:scale-110 transition-transform" />
@@ -553,8 +634,8 @@ const Dashboard = ({
               </div>
               <div className="landscape:col-span-3 lg:col-span-3 bg-slate-900/40 border border-white/5 rounded-2xl md:rounded-3xl p-2 md:p-6 backdrop-blur-md grid grid-cols-2 landscape:grid-cols-3 lg:grid-cols-3 gap-2 md:gap-3">
                 {Object.entries(tools || {}).map(([key, count]) => {
-                  const Icon = key === 'bomb' ? Zap : key === 'swap' ? AlignLeft : key === 'row' ? MoveHorizontal : key === 'col' ? MoveVertical : Target;
-                  const colorCls = key === 'bomb' ? 'text-orange-400' : key === 'swap' ? 'text-blue-400' : key === 'row' ? 'text-purple-400' : key === 'col' ? 'text-green-400' : 'text-red-400';
+                  const Icon = key === 'bomb' ? Zap : key === 'swap' ? AlignLeft : key === 'row' ? MoveHorizontal : key === 'col' ? MoveVertical : key === 'xbomb' ? Bomb : key === 'nuclear' ? Radiation : Target;
+                  const colorCls = key === 'bomb' ? 'text-orange-400' : key === 'swap' ? 'text-blue-400' : key === 'row' ? 'text-purple-400' : key === 'col' ? 'text-green-400' : key === 'xbomb' ? 'text-amber-500' : key === 'nuclear' ? 'text-rose-500' : 'text-red-400';
                   return (
                     <div key={key} className="bg-slate-950/30 border border-white/5 p-1.5 md:p-4 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-4 group hover:border-white/10 transition-all">
                       <div className={`w-7 h-7 md:w-10 md:h-10 bg-white/5 rounded-lg md:rounded-xl flex items-center justify-center ${colorCls} border border-white/5 group-hover:scale-110 transition-transform`}>
@@ -579,7 +660,7 @@ const Dashboard = ({
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full flex flex-col p-2 md:p-0">
             <div className="flex items-center gap-4 mb-2 md:mb-6 shrink-0">
               <button
-                onClick={() => setView('modes')}
+                onClick={() => setDashboardView('modes')}
                 className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
               >
                 <X size={20} className="md:w-6 md:h-6" />
@@ -597,7 +678,7 @@ const Dashboard = ({
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto">
             <div className="flex items-center gap-4 mb-4 landscape:mb-3 md:mb-8">
               <button
-                onClick={() => setView('modes')}
+                onClick={() => setDashboardView('modes')}
                 className="p-2 landscape:p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
               >
                 <X size={20} className="md:w-6 md:h-6" />
@@ -652,7 +733,7 @@ const Dashboard = ({
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto flex flex-col h-full max-h-[85vh]">
             <div className="flex items-center justify-between mb-4 md:mb-6 shrink-0 pt-2 md:pt-0">
               <div className="flex items-center gap-4 min-w-0">
-                <button onClick={() => setView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
+                <button onClick={() => setDashboardView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
                   <X size={20} className="md:w-6 md:h-6" />
                 </button>
                 <h2 className="text-xl md:text-3xl font-black bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent italic tracking-tighter uppercase leading-none pr-2">{t('market')}</h2>
@@ -665,7 +746,7 @@ const Dashboard = ({
             </div>
 
             <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 backdrop-blur-md flex-1 overflow-y-auto no-scrollbar flex flex-col landscape:pb-20">
-              <ShopView t={t} coins={coins} tools={tools} buyTool={buyTool} />
+              <ShopView t={t} coins={coins} tools={tools} buyTool={buyTool} language={language} />
             </div>
           </div>
         );
@@ -684,7 +765,7 @@ const Dashboard = ({
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full flex flex-col items-center justify-center p-2">
             <div className="w-full text-center p-4 md:p-8 landscape:p-3 bg-slate-900/60 border border-amber-500/30 rounded-2xl md:rounded-[3rem] shadow-[0_0_100px_rgba(245,158,11,0.1)] relative overflow-hidden max-h-full overflow-y-auto no-scrollbar">
-              <button onClick={() => setView('modes')} className="absolute top-4 left-4 md:top-8 md:left-8 p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
+              <button onClick={() => setDashboardView('modes')} className="absolute top-4 left-4 md:top-8 md:left-8 p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
                 <X size={20} className="md:w-6 md:h-6" />
               </button>
               <h2 className="text-lg landscape:text-base md:text-4xl font-black text-white italic tracking-tighter mb-3 landscape:mb-2 md:mb-10 bg-gradient-to-r from-amber-400 to-orange-600 bg-clip-text text-transparent uppercase leading-tight">{t('daily_reward_title')}</h2>
@@ -717,7 +798,7 @@ const Dashboard = ({
 
               <div className="w-full flex justify-center px-4">
                 <button
-                  onClick={() => { if (canClaim) { claimGift(); setView('modes'); } }}
+                  onClick={() => { if (canClaim) { claimGift(); setDashboardView('modes'); } }}
                   disabled={!canClaim}
                   className={`w-full max-w-md py-2.5 landscape:py-2 md:py-6 font-black rounded-xl md:rounded-2xl transition-all shadow-2xl tracking-widest uppercase italic text-xs landscape:text-xs md:text-xl
                     ${canClaim
@@ -732,67 +813,294 @@ const Dashboard = ({
         );
       }
 
+      case 'event': {
+        // Bu blok renderAppView içindeki global modal yapısıyla değiştirildi.
+        // Gereksiz kod kalabalığını ve çakışmaları önlemek için dashboardView içinden kaldırıldı.
+        return null;
+      }
       case 'profile':
         console.log('--- RENDERING PROFILE VIEW ---');
+        const handleSaveProfile = async () => {
+          if (!user) return;
+          setIsSavingProfile(true);
+
+          let updatedData = { ...editData };
+
+          // Eğer yeni bir fotoğraf seçildiyse önce onu yükle
+          if (updatedData.avatarFile) {
+            console.log('Fotoğraf yüklemesi (File Object ile) başlıyor...', updatedData.avatarFile.name);
+            const publicUrl = await SupabaseService.uploadAvatar(user.id, updatedData.avatarFile);
+            console.log('Supabase yanıt Url:', publicUrl);
+
+            if (publicUrl) {
+              updatedData.avatar_url = publicUrl;
+            } else {
+              console.error('Fotoğraf yüklenemediği için profil resmi boş geçiliyor.');
+            }
+            // Backend'e gönderilmemesi için geçici alanları sil
+            delete updatedData.avatarFile;
+            delete updatedData.avatarPreview;
+          }
+
+          const success = await SupabaseService.updateProfile(user.id, updatedData);
+          if (success) {
+            setIsEditingProfile(false);
+            if (fetchProfile) await fetchProfile(user.id); // Arayüzü güncelle
+          }
+          setIsSavingProfile(false);
+        };
+
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-20 landscape:pb-16 px-4 landscape:px-3">
-            <div className="flex items-center gap-4 mb-4 landscape:mb-3 md:mb-8">
-              <button onClick={() => setView('modes')} className="p-2 landscape:p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
-                <X size={20} className="md:w-6 md:h-6" />
-              </button>
-              <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase">{t('profile')}</h2>
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-24 px-4 landscape:px-3">
+            <div className="flex items-center justify-between mb-4 md:mb-8">
+              <div className="flex items-center gap-4">
+                <button onClick={() => setDashboardView('modes')} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
+                  <X size={20} className="md:w-6 md:h-6" />
+                </button>
+                <h2 className="text-xl md:text-3xl font-black text-white italic tracking-tighter uppercase">{t('profile')}</h2>
+              </div>
+              {user && !isEditingProfile && (
+                <button
+                  onClick={() => {
+                    setEditData({
+                      age: profile?.age || '',
+                      location: profile?.location || '',
+                      gender: profile?.gender || 'not_specified',
+                      bio: profile?.bio || '',
+                      avatar_url: profile?.avatar_url || ''
+                    });
+                    setIsEditingProfile(true);
+                  }}
+                  className="px-4 py-2 bg-sky-500/10 border border-sky-500/20 text-sky-400 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-sky-500/20 transition-all"
+                >
+                  {t('edit') || 'Düzenle'}
+                </button>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 landscape:grid-cols-[auto_1fr] lg:grid-cols-3 gap-4 landscape:gap-3 md:gap-6">
-              <div className="lg:col-span-1 space-y-3 landscape:space-y-2 md:space-y-6">
-                <div className="bg-slate-900/60 border border-white/5 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] p-4 landscape:p-3 md:p-8 backdrop-blur-md flex flex-col landscape:flex-row items-center text-center landscape:text-left landscape:gap-3">
-                  <div className="relative mb-3 landscape:mb-0 group shrink-0">
-                    <div className="w-20 h-20 landscape:w-14 landscape:h-14 md:w-32 md:h-32 bg-gradient-to-br from-sky-500 to-purple-600 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] flex items-center justify-center text-white shadow-2xl overflow-hidden">
-                      <User size={36} className="landscape:w-7 landscape:h-7 md:w-16 md:h-16" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+              {/* Sol Sütun: Profil Özeti */}
+              <div className="space-y-4 md:space-y-6">
+                <div className="bg-slate-900/60 border border-white/5 rounded-[2.5rem] p-6 backdrop-blur-md flex flex-col items-center text-center">
+                  <div className="relative mb-4 group">
+                    <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-sky-500 to-purple-600 rounded-[2.5rem] flex items-center justify-center text-white shadow-2xl overflow-hidden relative">
+                      {profile?.avatar_url ? (
+                        <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <User size={48} className="md:w-16 md:h-16" />
+                      )}
                     </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg landscape:text-sm md:text-2xl font-black text-white italic tracking-tighter uppercase mb-0.5 truncate">{user?.user_metadata?.username || user?.email?.split('@')[0] || t('player')}</h3>
-                    <p className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 landscape:mb-2 md:mb-6">{user?.created_at ? `${t('member_since')}: ${new Date(user.created_at).toLocaleDateString()}` : t('member_since_guest')}</p>
-
-                    {user ? (
-                      <button onClick={() => AuthService.signOut()} className="w-full py-2.5 landscape:py-1.5 md:py-4 bg-white/5 hover:bg-red-500/10 hover:border-red-500/30 border border-white/5 rounded-xl landscape:rounded-lg md:rounded-2xl text-[10px] landscape:text-[9px] md:text-xs font-black text-slate-400 hover:text-red-400 transition-all uppercase tracking-widest italic">
-                        {t('logout')}
-                      </button>
-                    ) : (
-                      <button onClick={onOpenAuth} className="w-full py-2.5 landscape:py-1.5 md:py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black rounded-xl landscape:rounded-lg md:rounded-2xl transition-all uppercase tracking-widest italic text-[10px] landscape:text-[9px] md:text-sm">
-                        {t('signin_button')}
-                      </button>
+                    {isEditingProfile && (
+                      <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-amber-500 rounded-full border-4 border-slate-950 flex items-center justify-center text-slate-950">
+                        <Camera size={14} />
+                      </div>
                     )}
                   </div>
+                  <h3 className="text-xl font-black text-white italic tracking-tighter uppercase mb-1">{profile?.username || user?.email?.split('@')[0] || t('player')}</h3>
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-[9px] font-black bg-white/5 px-2 py-1 rounded-lg text-slate-400 uppercase tracking-widest border border-white/5">
+                      {t('level_abbr')}{profile?.current_level_index + 1}
+                    </span>
+                    {profile?.location && (
+                      <span className="text-[9px] font-black text-sky-400 uppercase tracking-widest flex items-center gap-1">
+                        <MapPin size={10} /> {profile.location}
+                      </span>
+                    )}
+                  </div>
+
+                  {profile?.bio && !isEditingProfile && (
+                    <p className="text-slate-400 text-xs italic mb-4 line-clamp-3">"{profile.bio}"</p>
+                  )}
+
+                  {!user && (
+                    <button onClick={onOpenAuth} className="w-full py-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-black rounded-2xl transition-all uppercase tracking-widest italic text-sm">
+                      {t('signin_button')}
+                    </button>
+                  )}
+                  {user && !isEditingProfile && (
+                    <button onClick={() => AuthService.signOut()} className="w-full py-3 bg-white/5 hover:bg-red-500/10 hover:border-red-500/30 border border-white/5 rounded-2xl text-xs font-black text-slate-400 hover:text-red-400 transition-all uppercase tracking-widest italic">
+                      {t('logout')}
+                    </button>
+                  )}
                 </div>
 
+                {/* Düzenleme Modu Formu */}
+                {isEditingProfile && (
+                  <div className="bg-slate-900/60 border border-amber-500/20 rounded-[2.5rem] p-6 backdrop-blur-md space-y-4 animate-in slide-in-from-bottom duration-300">
+                    <div className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                      <User size={12} /> {t('edit_profile') || 'Profilini Düzenle'}
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* Avatar Upload UI */}
+                      <div>
+                        <label className="text-[9px] font-black text-slate-500 uppercase ml-2 mb-2 block">{t('avatar') || 'PROFİL FOTOĞRAFI'}</label>
+                        <div className="flex items-center gap-4 bg-slate-950/50 p-3 rounded-2xl border border-white/5">
+                          <label className="relative group cursor-pointer shrink-0">
+                            <div className="w-16 h-16 bg-slate-900 border-2 border-dashed border-white/20 rounded-2xl flex items-center justify-center overflow-hidden transition-all group-hover:border-amber-500/50">
+                              {editData.avatarPreview || editData.avatar_url ? (
+                                <img src={editData.avatarPreview || editData.avatar_url} alt="Preview" className="w-full h-full object-cover" />
+                              ) : (
+                                <Camera size={24} className="text-slate-500 group-hover:text-amber-500 transition-colors" />
+                              )}
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity">
+                                <span className="text-[8px] font-bold text-white uppercase tracking-widest mt-1">Seç</span>
+                              </div>
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/jpeg, image/png, image/webp"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (!file) return;
+
+                                // MIME kontrolü
+                                const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+                                if (!allowedTypes.includes(file.type)) {
+                                  alert(t('invalid_file_type') || 'Sadece JPG, PNG veya WEBP formatında dosyalar yükleyebilirsiniz.');
+                                  return;
+                                }
+
+                                // Önizleme için FileReader kullan
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                  setEditData(prev => ({
+                                    ...prev,
+                                    avatarPreview: e.target.result,
+                                    avatarFile: file
+                                  }));
+                                };
+                                reader.readAsDataURL(file);
+                              }}
+                            />
+                          </label>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+                              {t('avatar_upload_hint') || 'Cihazından bir fotoğraf seç. (JPG, PNG - Max 2MB)'}
+                            </p>
+                            {(editData.avatarFile || editData.avatarPreview) && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setEditData(prev => ({ ...prev, avatarPreview: null, avatarFile: null, avatar_url: '' }));
+                                }}
+                                className="mt-2 text-[9px] font-black text-rose-500 uppercase hover:text-rose-400 transition-colors"
+                              >
+                                {t('remove') || 'Kaldır'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[9px] font-black text-slate-500 uppercase ml-2 mb-1 block">{t('age') || 'YAŞ'}</label>
+                          <input
+                            type="number" value={editData.age || ''}
+                            onChange={e => setEditData({ ...editData, age: e.target.value })}
+                            placeholder="25"
+                            className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-amber-500/50"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-black text-slate-500 uppercase ml-2 mb-1 block">{t('location') || 'KONUM'}</label>
+                          <input
+                            type="text" value={editData.location || ''}
+                            onChange={e => setEditData({ ...editData, location: e.target.value })}
+                            placeholder="İstanbul"
+                            className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-amber-500/50"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-black text-slate-500 uppercase ml-2 mb-1 block">{t('gender') || 'CİNSİYET'}</label>
+                        <select
+                          value={editData.gender || 'not_specified'}
+                          onChange={e => setEditData({ ...editData, gender: e.target.value })}
+                          className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-amber-500/50 appearance-none"
+                        >
+                          <option value="not_specified">{language === 'tr' ? 'Belirtmek İstemiyorum' : 'Not Specified'}</option>
+                          <option value="male">{language === 'tr' ? 'Erkek' : 'Male'}</option>
+                          <option value="female">{language === 'tr' ? 'Kadın' : 'Female'}</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-black text-slate-500 uppercase ml-2 mb-1 block">{t('bio') || 'BİYO'}</label>
+                        <textarea
+                          value={editData.bio || ''}
+                          onChange={e => setEditData({ ...editData, bio: e.target.value })}
+                          placeholder="Kelime avcısı..."
+                          rows={2}
+                          className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-amber-500/50 resize-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        onClick={() => setIsEditingProfile(false)}
+                        className="flex-1 py-3 bg-white/5 text-slate-400 rounded-xl text-[10px] font-black uppercase hover:bg-white/10 transition-all"
+                      >
+                        {t('cancel') || 'İptal'}
+                      </button>
+                      <button
+                        onClick={handleSaveProfile}
+                        disabled={isSavingProfile}
+                        className="flex-2 px-6 py-3 bg-amber-500 text-slate-900 rounded-xl text-[10px] font-black uppercase hover:bg-amber-400 shadow-lg shadow-amber-500/20 active:scale-95 transition-all disabled:opacity-50"
+                      >
+                        {isSavingProfile ? t('saving') : (t('save') || 'Kaydet')}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="lg:col-span-2 space-y-3 landscape:space-y-2 md:space-y-6">
-                <div className="grid grid-cols-2 landscape:grid-cols-4 gap-2 landscape:gap-1.5 md:gap-4">
+              {/* Sağ Sütun: İstatistikler ve Başarılar */}
+              <div className="md:col-span-2 space-y-4 md:space-y-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                   {[
-                    { label: t('total_score'), value: totalScore, icon: <Trophy size={16} className="landscape:w-4 landscape:h-4 md:w-5 md:h-5" />, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-                    { label: t('high_score'), value: highScore, icon: <Zap size={16} className="landscape:w-4 landscape:h-4 md:w-5 md:h-5" />, color: 'text-orange-500', bg: 'bg-orange-500/10' },
-                    { label: t('words_found'), value: wordsFoundCount, icon: <AlignLeft size={16} className="landscape:w-4 landscape:h-4 md:w-5 md:h-5" />, color: 'text-sky-500', bg: 'bg-sky-500/10' },
-                    { label: t('games_played'), value: gamesPlayed, icon: <Gamepad2 size={16} className="landscape:w-4 landscape:h-4 md:w-5 md:h-5" />, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+                    { label: t('total_score'), value: totalScore, icon: <Trophy size={16} />, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+                    { label: t('high_score'), value: highScore, icon: <Zap size={16} />, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+                    { label: t('words_found'), value: wordsFoundCount, icon: <AlignLeft size={16} />, color: 'text-sky-500', bg: 'bg-sky-500/10' },
+                    { label: t('games_played'), value: gamesPlayed, icon: <Gamepad2 size={16} />, color: 'text-purple-500', bg: 'bg-purple-500/10' },
                   ].map((stat, i) => (
-                    <div key={i} className="bg-slate-900/60 border border-white/5 rounded-xl landscape:rounded-lg md:rounded-[2rem] p-3 landscape:p-2 md:p-6 backdrop-blur-md flex flex-col items-center justify-center text-center group hover:border-white/20 transition-all">
-                      <div className={`w-8 h-8 landscape:w-7 landscape:h-7 md:w-12 md:h-12 ${stat.bg} ${stat.color} rounded-lg landscape:rounded-md md:rounded-2xl flex items-center justify-center mb-2 landscape:mb-1 md:mb-4 group-hover:scale-110 transition-transform`}>
+                    <div key={i} className="bg-slate-900/60 border border-white/5 rounded-[2rem] p-4 flex flex-col items-center justify-center text-center group hover:border-white/20 transition-all">
+                      <div className={`w-10 h-10 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
                         {stat.icon}
                       </div>
-                      <div className="text-[8px] landscape:text-[7px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest mb-0.5">{stat.label}</div>
-                      <div className="text-lg landscape:text-base md:text-3xl font-black text-white italic tracking-tighter leading-none">{stat.value?.toLocaleString()}</div>
+                      <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-0.5">{stat.label}</div>
+                      <div className="text-xl md:text-2xl font-black text-white italic tracking-tighter leading-none">{stat.value?.toLocaleString()}</div>
                     </div>
                   ))}
                 </div>
 
-                <div className="bg-slate-900/40 border border-white/5 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] p-4 landscape:p-2.5 md:p-8 backdrop-blur-md">
-                  <div className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3 landscape:mb-2 md:mb-6 font-inter">{t('achievements')}</div>
-                  <div className="flex flex-wrap gap-2 landscape:gap-1.5 md:gap-4">
-                    {[1, 2, 3, 4, 5].map(i => (
-                      <div key={i} className="w-10 h-10 landscape:w-8 landscape:h-8 md:w-16 md:h-16 bg-slate-950/50 border border-white/5 rounded-xl landscape:rounded-lg md:rounded-2xl flex items-center justify-center text-slate-700 opacity-40 grayscale group hover:opacity-100 transition-all">
-                        <Award size={20} className="landscape:w-4 landscape:h-4 md:w-8 md:h-8" />
+                <div className="bg-slate-900/40 border border-white/5 rounded-[2.5rem] p-6 backdrop-blur-md">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] font-inter">{t('personal_stats') || 'BİREYSEL VERİLER'}</div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 bg-slate-950/40 border border-white/5 rounded-2xl">
+                      <div className="text-[8px] font-black text-slate-600 uppercase mb-1">Cinsiyet</div>
+                      <div className="text-sm font-bold text-white uppercase italic">{profile?.gender === 'male' ? 'Erkek' : profile?.gender === 'female' ? 'Kadın' : 'Belirtilmedi'}</div>
+                    </div>
+                    <div className="p-4 bg-slate-950/40 border border-white/5 rounded-2xl">
+                      <div className="text-[8px] font-black text-slate-600 uppercase mb-1">Yaş</div>
+                      <div className="text-sm font-bold text-white italic">{profile?.age || '-'}</div>
+                    </div>
+                    <div className="p-4 bg-slate-950/40 border border-white/5 rounded-2xl">
+                      <div className="text-[8px] font-black text-slate-600 uppercase mb-1">Kayıt Tarihi</div>
+                      <div className="text-sm font-bold text-white italic">{user?.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900/40 border border-white/5 rounded-[2.5rem] p-6 backdrop-blur-md">
+                  <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 font-inter">{t('achievements')}</div>
+                  <div className="flex flex-wrap gap-3">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                      <div key={i} className="w-12 h-12 md:w-16 md:h-16 bg-slate-950/50 border border-white/5 rounded-2xl flex items-center justify-center text-slate-700 opacity-40 grayscale group hover:opacity-100 transition-all">
+                        <Award size={24} />
                       </div>
                     ))}
                   </div>
@@ -806,13 +1114,43 @@ const Dashboard = ({
         console.log('--- RENDERING MODES (MAIN) VIEW ---');
         return (
           <div className="w-full h-full flex flex-col lg:flex-row gap-0 lg:gap-6 max-w-7xl mx-auto px-1 lg:px-6 animate-in fade-in duration-500 overflow-hidden">
+            {/* Active Event Banner */}
+            {activeEvent && (
+              <button
+                onClick={() => {
+                  if (activeEvents.length > 1) {
+                    setDashboardView('eventsList');
+                  } else {
+                    setSelectedEventId?.(activeEvent?.id);
+                    setView?.('event');
+                  }
+                }}
+                className="w-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between group hover:border-amber-500/50 transition-all mb-4 shrink-0 lg:hidden"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center text-amber-500 animate-pulse">
+                    <Trophy size={20} />
+                  </div>
+                  <div className="text-left">
+                    <div className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1 ${activeEvent?.isActive ? 'text-amber-500' : 'text-blue-500'}`}>
+                      {activeEvent?.isActive ? (language === 'tr' ? 'AKTİF ETKİNLİK' : 'ACTIVE EVENT') : (language === 'tr' ? 'YAKINDA' : 'COMING SOON')}
+                    </div>
+                    <div className="text-sm font-black text-white italic truncate max-w-[150px]">
+                      {activeEvent?.title?.[language] || activeEvent?.title}
+                      {activeEvents.length > 1 && ` + ${activeEvents.length - 1} ${language === 'tr' ? 'DAHA' : 'MORE'}`}
+                    </div>
+                  </div>
+                </div>
+                <ChevronRight size={20} className="text-amber-500 group-hover:translate-x-1 transition-transform" />
+              </button>
+            )}
 
             {/* ── MOBILE MODES VIEW (Horizontal Carousel) ── */}
             <div className="lg:hidden flex-1 overflow-x-auto no-scrollbar px-6 flex flex-row gap-4 lg:gap-6 snap-x snap-mandatory items-center min-h-0 landscape:pb-16">
               {/* Arcade Mode Card */}
               <button
                 onClick={() => {
-                  if (energy > 0) { setSelectedLevelIdx(null); setView('pregame'); }
+                  if (energy > 0) { setSelectedLevelIdx(null); setDashboardView('pregame'); }
                   else { setLockReason('energy'); setShowMissionLock(true); }
                 }}
                 className="relative w-[85vw] max-w-[280px] landscape:max-w-[240px] h-[65vh] landscape:h-auto lg:h-[55vh] max-h-[320px] landscape:max-h-[180px] shrink-0 rounded-[2rem] landscape:rounded-xl border border-white/10 overflow-hidden transition-all active:scale-95 group shadow-2xl snap-center flex flex-col items-center justify-center p-4 landscape:p-2.5 text-center gap-2 landscape:gap-1.5"
@@ -838,7 +1176,7 @@ const Dashboard = ({
               {/* Time Battle Mode Card */}
               <button
                 onClick={() => {
-                  if (energy > 0) setView('timeBattlePregame');
+                  if (energy > 0) setDashboardView('timeBattlePregame');
                   else { setLockReason('energy'); setShowMissionLock(true); }
                 }}
                 className="relative w-[85vw] max-w-[280px] landscape:max-w-[240px] h-[65vh] landscape:h-auto lg:h-[55vh] max-h-[320px] landscape:max-h-[180px] shrink-0 rounded-[2rem] landscape:rounded-xl border border-white/10 overflow-hidden transition-all active:scale-95 group shadow-2xl snap-center flex flex-col items-center justify-center p-4 landscape:p-2.5 text-center gap-2 landscape:gap-1.5"
@@ -894,7 +1232,7 @@ const Dashboard = ({
               <div className="flex-1 flex flex-col gap-0 min-h-0 overflow-hidden">
                 <button
                   onClick={() => {
-                    if (energy > 0) { setSelectedLevelIdx(null); setView('pregame'); }
+                    if (energy > 0) { setSelectedLevelIdx(null); setDashboardView('pregame'); }
                     else { setLockReason('energy'); setShowMissionLock(true); }
                   }}
                   className="group relative flex-1 overflow-hidden rounded-t-[2rem] border border-white/8 transition-all duration-500 active:scale-[0.99]"
@@ -917,7 +1255,7 @@ const Dashboard = ({
 
                 <button
                   onClick={() => {
-                    if (energy > 0) setView('timeBattlePregame');
+                    if (energy > 0) setDashboardView('timeBattlePregame');
                     else { setLockReason('energy'); setShowMissionLock(true); }
                   }}
                   className="group relative flex-1 overflow-hidden border border-white/8 border-t-0 transition-all duration-500 active:scale-[0.99]"
@@ -962,52 +1300,42 @@ const Dashboard = ({
 
               {/* ── DESKTOP SIDEBAR ── */}
               <div className="hidden lg:flex w-80 xl:w-96 shrink-0 flex-col gap-4">
-
-                {/* Profil Kartı */}
-                <button
-                  onClick={() => { if (!user) setShowMissionLock(true); else setView('profile'); }}
-                  className="group relative overflow-hidden rounded-[2rem] border border-white/8 p-6 text-left transition-all duration-300 hover:border-white/15 active:scale-[0.98]"
-                  style={{ background: 'linear-gradient(135deg, #111827 0%, #0f172a 100%)' }}
-                >
-                  {/* Top shimmer */}
-                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-                  <div className="flex items-center gap-4 mb-5">
-                    <div className="relative">
-                      <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-rose-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-[0_0_20px_rgba(249,115,22,0.4)]">
-                        {user ? (profile?.username?.[0] || user?.email?.[0])?.toUpperCase() : '?'}
+                {/* Active Event Banner (Desktop) */}
+                {activeEvent && (
+                  <button
+                    onClick={() => {
+                      if (activeEvents.length > 1) {
+                        setDashboardView('eventsList');
+                      } else {
+                        setSelectedEventId?.(activeEvent?.id);
+                        setView?.('event');
+                      }
+                    }}
+                    className="group relative overflow-hidden rounded-[1.5rem] border border-orange-500/20 p-5 flex items-center justify-between gap-4 text-left transition-all duration-300 hover:border-orange-500/40 active:scale-[0.98]"
+                    style={{ background: 'linear-gradient(135deg, #1a0f05 0%, #110904 100%)' }}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center justify-center group-hover:bg-orange-500/20 group-hover:border-orange-500/40 transition-all shrink-0">
+                        <Trophy size={24} className="text-amber-400" />
                       </div>
-                      {user && (
-                        <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-orange-500 rounded-lg border-2 border-slate-950 flex items-center justify-center shadow-lg">
-                          <Gamepad2 size={12} className="text-white" />
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1 ${activeEvent?.isActive ? 'text-amber-500' : 'text-blue-500'}`}>
+                          {activeEvent?.isActive ? (language === 'tr' ? 'AKTİF ETKİNLİK' : 'ACTIVE EVENT') : (language === 'tr' ? 'YAKINDA' : 'COMING SOON')}
                         </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] leading-none mb-1">PROFIL</div>
-                      <div className="text-lg font-black text-white uppercase tracking-tight truncate leading-none">
-                        {user ? (profile?.username || user?.email?.split('@')[0]) : t('player')}
-                      </div>
-                      <div className="text-[10px] font-black text-orange-400 uppercase tracking-widest mt-1">
-                        {user ? (profile?.username || user?.email?.split('@')[0]) : '— Misafir —'}
+                        <div className="text-lg font-black text-white italic tracking-tighter uppercase truncate max-w-[150px] xl:max-w-none">
+                          {activeEvent?.title?.[language] || activeEvent?.title}
+                          {activeEvents.length > 1 && ` + ${activeEvents.length - 1} ${language === 'tr' ? 'DAHA' : 'MORE'}`}
+                        </div>
                       </div>
                     </div>
-                    <ChevronRight size={16} className="text-slate-700 group-hover:text-white group-hover:translate-x-1 transition-all shrink-0" />
-                  </div>
+                    <ChevronRight size={18} className="text-amber-500/50 group-hover:text-amber-500 group-hover:translate-x-1 transition-all shrink-0" />
+                  </button>
+                )}
 
-
-
-                  {!user && (
-                    <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-xl px-3 py-2.5">
-                      <Lock size={12} className="text-orange-400 shrink-0" />
-                      <span className="text-[10px] font-black text-orange-300 leading-tight">İlerleme kaydetmek için giriş yapın</span>
-                    </div>
-                  )}
-                </button>
 
                 {/* RANK Kartı (full width, herkese açık) */}
                 <button
-                  onClick={() => setView('leaderboard')}
+                  onClick={() => setDashboardView('leaderboard')}
                   className="group relative overflow-hidden rounded-[1.5rem] border border-white/8 p-5 flex items-center gap-4 text-left transition-all duration-300 hover:border-sky-500/30 active:scale-[0.98]"
                   style={{ background: 'linear-gradient(135deg, #0a1020 0%, #080e1a 100%)' }}
                 >
@@ -1023,7 +1351,7 @@ const Dashboard = ({
 
                 {/* MARKET Kartı (full width) */}
                 <button
-                  onClick={() => { if (!user) setShowMissionLock(true); else setView('shop'); }}
+                  onClick={() => { if (!user) setShowMissionLock(true); else setDashboardView('shop'); }}
                   className="group relative overflow-hidden rounded-[1.5rem] border border-white/8 p-5 flex items-center gap-4 text-left transition-all duration-300 hover:border-emerald-500/30 active:scale-[0.98]"
                   style={{ background: 'linear-gradient(135deg, #061810 0%, #04100b 100%)' }}
                 >
@@ -1040,7 +1368,7 @@ const Dashboard = ({
                 {/* ENVANTER + DAILY (2 col grid) */}
                 <div className="grid grid-cols-2 gap-3">
                   <button
-                    onClick={() => { if (!user) setShowMissionLock(true); else setView('inventory'); }}
+                    onClick={() => { if (!user) setShowMissionLock(true); else setDashboardView('inventory'); }}
                     className="group relative overflow-hidden rounded-[1.5rem] border border-white/8 p-5 flex flex-col items-center gap-3 transition-all duration-300 hover:border-purple-500/30 active:scale-[0.98]"
                     style={{ background: 'linear-gradient(135deg, #0d0a14 0%, #0a0810 100%)' }}
                   >
@@ -1054,12 +1382,12 @@ const Dashboard = ({
                   </button>
 
                   <button
-                    onClick={() => setView('daily')}
+                    onClick={() => setDashboardView('daily')}
                     className="group relative overflow-hidden rounded-[1.5rem] border border-white/8 p-5 flex flex-col items-center gap-3 transition-all duration-300 hover:border-amber-500/30 active:scale-[0.98]"
                     style={{ background: 'linear-gradient(135deg, #12090a 0%, #0e0608 100%)' }}
                   >
                     <div className="relative">
-                      <div className="w-12 h-12 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-center group-hover:bg-amber-500/20 group-hover:border-amber-500/40 transition-all">
+                      <div className="w-12 h-12 bg-amber-500/10 border-amber-500/20 rounded-xl flex items-center justify-center group-hover:bg-amber-500/20 group-hover:border-amber-500/40 transition-all">
                         <Gift size={20} className="text-amber-400" />
                       </div>
                       <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-slate-950 animate-pulse" />
@@ -1071,62 +1399,62 @@ const Dashboard = ({
                   </button>
                 </div>
               </div>
-            </div >
+            </div>
 
             {/* ── MOBİL: Alt İkon Barı (Premium Bottom Nav) ── */}
-            < div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-2xl border-t border-white/10 px-6 py-4 flex justify-between items-center shadow-[0_-15px_40px_rgba(0,0,0,0.5)]" >
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-2xl border-t border-white/10 px-6 py-4 flex justify-between items-center shadow-[0_-15px_40px_rgba(0,0,0,0.5)]">
               <button
-                onClick={() => setView('leaderboard')}
-                className={`flex flex-col items-center gap-1 transition-all ${view === 'leaderboard' ? 'text-sky-400 scale-110' : 'text-slate-500'}`}
+                onClick={() => setDashboardView('modes')}
+                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'modes' ? 'text-sky-400 scale-110' : 'text-slate-500'}`}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${view === 'leaderboard' ? 'bg-sky-500/20 border-sky-500/40 shadow-[0_0_15px_rgba(14,165,233,0.3)]' : 'bg-white/5 border-transparent'}`}>
-                  <BarChart3 size={20} />
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'modes' ? 'bg-sky-500/20 border-sky-500/40 shadow-[0_0_15px_rgba(14,165,233,0.3)]' : 'bg-white/5 border-transparent'}`}>
+                  <Gamepad2 size={20} />
                 </div>
-                <span className="text-[8px] font-black uppercase tracking-widest">{t('rank') || 'Rank'}</span>
+                <span className="text-[8px] font-black uppercase tracking-widest">{t('play') || 'Oyun'}</span>
               </button>
 
               <button
-                onClick={() => { if (!user) setShowMissionLock(true); else setView('inventory'); }}
-                className={`flex flex-col items-center gap-1 transition-all ${view === 'inventory' ? 'text-purple-400 scale-110' : 'text-slate-500'}`}
+                onClick={() => { if (!user) setShowMissionLock(true); else setDashboardView('inventory'); }}
+                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'inventory' ? 'text-purple-400 scale-110' : 'text-slate-500'}`}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${view === 'inventory' ? 'bg-purple-500/20 border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'bg-white/5 border-transparent'}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'inventory' ? 'bg-purple-500/20 border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'bg-white/5 border-transparent'}`}>
                   <Box size={20} />
                 </div>
                 <span className="text-[8px] font-black uppercase tracking-widest">{t('tools') || 'Araçlar'}</span>
               </button>
 
               <button
-                onClick={() => setView('modes')}
-                className={`flex flex-col items-center gap-1 -mt-8 transition-all ${view === 'modes' ? 'scale-125' : 'scale-100 opacity-80'}`}
+                onClick={() => setDashboardView('leaderboard')}
+                className={`flex flex-col items-center gap-1 -mt-8 transition-all ${dashboardView === 'leaderboard' ? 'scale-125' : 'scale-100 opacity-80'}`}
               >
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-rose-600 flex items-center justify-center text-white border-2 border-slate-950 shadow-2xl relative overflow-hidden">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-slate-950 border-2 border-slate-950 shadow-2xl relative overflow-hidden">
                   <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                  <Gamepad2 size={28} className="relative z-10" />
+                  <Trophy size={28} className="relative z-10" />
                 </div>
-                <span className={`text-[8px] font-black uppercase tracking-widest mt-1 ${view === 'modes' ? 'text-orange-400' : 'text-slate-500'}`}>{t('play') || 'Başla'}</span>
+                <span className={`text-[8px] font-black uppercase tracking-widest mt-1 ${dashboardView === 'leaderboard' ? 'text-amber-400' : 'text-slate-500'}`}>{t('rank') || 'Sıra'}</span>
               </button>
 
               <button
-                onClick={() => { if (!user) setShowMissionLock(true); else setView('shop'); }}
-                className={`flex flex-col items-center gap-1 transition-all ${view === 'shop' ? 'text-emerald-400 scale-110' : 'text-slate-500'}`}
+                onClick={() => { if (!user) setShowMissionLock(true); else setDashboardView('shop'); }}
+                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'shop' ? 'text-emerald-400 scale-110' : 'text-slate-500'}`}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${view === 'shop' ? 'bg-emerald-500/20 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'bg-white/5 border-transparent'}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'shop' ? 'bg-emerald-500/20 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'bg-white/5 border-transparent'}`}>
                   <ShoppingBag size={20} />
                 </div>
                 <span className="text-[8px] font-black uppercase tracking-widest">{t('market') || 'Shop'}</span>
               </button>
 
               <button
-                onClick={() => setView('daily')}
-                className={`flex flex-col items-center gap-1 transition-all ${view === 'daily' ? 'text-amber-400 scale-110' : 'text-slate-500'}`}
+                onClick={() => setDashboardView('daily')}
+                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'daily' ? 'text-amber-400 scale-110' : 'text-slate-500'}`}
               >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${view === 'daily' ? 'bg-amber-500/20 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'bg-white/5 border-transparent'} relative`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'daily' ? 'bg-amber-500/20 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'bg-white/5 border-transparent'} relative`}>
                   <Gift size={20} />
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-slate-950 animate-pulse" />
                 </div>
                 <span className="text-[8px] font-black uppercase tracking-widest">{t('daily') || 'Hediye'}</span>
               </button>
-            </div >
+            </div>
 
           </div >
         );
@@ -1206,7 +1534,7 @@ const Dashboard = ({
               </button>
 
               <button
-                onClick={() => setView('settings')}
+                onClick={() => setDashboardView('settings')}
                 className="w-8 h-8 md:w-8 md:h-8 bg-slate-900/40 hover:bg-white/5 border border-white/5 rounded-lg md:rounded-xl flex items-center justify-center text-slate-500 hover:text-white transition-all active:scale-95 group"
               >
                 <Settings className="w-4 h-4 group-hover:rotate-45 transition-transform" />
@@ -1256,20 +1584,27 @@ const Dashboard = ({
 
           {user ? (
             <button
-              onClick={() => setView('profile')}
+              onClick={() => setDashboardView('profile')}
               className="flex items-center gap-2 md:gap-3 bg-slate-900/60 border border-white/5 p-1 pr-2 md:pr-4 rounded-xl md:rounded-2xl group transition-all hover:border-sky-500/50 font-outfit text-left shadow-lg shrink-0"
             >
               <div className="relative shrink-0">
-                <div className="w-8 h-8 md:w-11 md:h-11 bg-gradient-to-br from-sky-500 to-indigo-600 rounded-lg md:rounded-xl flex items-center justify-center text-white font-black italic text-xs md:text-base border border-white/20">
-                  {profile?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()}
+                <div className="w-8 h-8 md:w-11 md:h-11 bg-gradient-to-br from-sky-500 to-indigo-600 rounded-lg md:rounded-xl flex items-center justify-center text-white font-black italic text-xs md:text-base border border-white/20 overflow-hidden">
+                  {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    profile?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase()
+                  )}
                 </div>
                 <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white text-[6px] md:text-[8px] font-black leading-none px-1.5 md:px-2 py-0.5 rounded-md border-2 border-slate-950 shadow-lg">
                   {completedLevels + 1}
                 </div>
               </div>
               <div className="hidden sm:flex flex-col">
-                <span className="text-[10px] md:text-xs font-black text-white leading-none truncate max-w-[80px]">
-                  {profile?.username || user?.email?.split('@')[0]}
+                <span className="text-[10px] md:text-xs font-black text-white leading-none truncate max-w-[80px]" title={profile?.username || user?.email?.split('@')[0]}>
+                  {(() => {
+                    const name = profile?.username || user?.email?.split('@')[0] || '';
+                    return name.length > 12 ? name.substring(0, 12) + '...' : name;
+                  })()}
                 </span>
                 <span className="text-[6px] md:text-[8px] font-bold text-slate-500 uppercase tracking-widest leading-tight mt-0.5">{t('profile')}</span>
               </div>
@@ -1371,68 +1706,319 @@ const Dashboard = ({
 };
 
 // Helper component for Leaderboard view to encapsulate its state
+const EventLeaderboard = ({ eventId, t, profile }) => {
+  const [board, setBoard] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBoard = async () => {
+      setLoading(true);
+      const data = await SupabaseService.getEventLeaderboard(eventId);
+      setBoard(data || []);
+      setLoading(false);
+    };
+    fetchBoard();
+  }, [eventId]);
+
+  if (loading) return (
+    <div className="flex flex-col gap-2">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="h-14 bg-white/5 rounded-xl animate-pulse" />
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto no-scrollbar">
+      {board.map((row, i) => (
+        <div key={i} className={`flex items-center justify-between p-3 rounded-xl border ${row.user_id === profile?.id ? 'bg-sky-500/10 border-sky-500/30' : 'bg-slate-950/40 border-white/5'}`}>
+          <div className="flex items-center gap-3">
+            <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black ${i === 0 ? 'bg-amber-500 text-slate-950' : i === 1 ? 'bg-slate-300 text-slate-950' : i === 2 ? 'bg-orange-400 text-slate-950' : 'bg-white/10 text-slate-500'}`}>
+              {i + 1}
+            </div>
+            <div>
+              <div className="text-xs font-bold text-white uppercase truncate max-w-[120px]">{row.profiles?.username || 'Gamer'}</div>
+              <div className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">{t('rank')} {i + 1}</div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-sm font-black text-sky-400 tabular-nums">{row.score.toLocaleString()}</div>
+            <div className="text-[8px] font-black text-slate-600 uppercase">{t('points')}</div>
+          </div>
+        </div>
+      ))}
+      {board.length === 0 && (
+        <div className="text-center py-8 text-slate-600 text-[10px] font-black uppercase tracking-widest italic">{t('no_participants')}</div>
+      )}
+    </div>
+  );
+};
+
+// Helper component for Event Rewards
+const EventRewards = ({ eventId, t, language }) => {
+  const [rewards, setRewards] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRewards = async () => {
+      setLoading(true);
+      try {
+        const data = await SupabaseService.getEventRewards(eventId);
+        console.log('--- EVENT REWARDS FETCHED ---', data);
+
+        // Veriyi normalize et (Diziye çevir)
+        let normalized = [];
+        if (Array.isArray(data)) {
+          normalized = data;
+        } else if (data && typeof data === 'object') {
+          // Eğer data bir nesne ise (rank anahtarlı), diziye çevir
+          normalized = Object.entries(data).map(([key, value]) => ({
+            rank_min: key,
+            rank_max: key,
+            items: value
+          }));
+        }
+        setRewards(normalized || []);
+      } catch (err) {
+        console.error('Error fetching rewards:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRewards();
+  }, [eventId]);
+
+  // Derin iç içe geçmiş dizileri ve nesneleri düz bir ödül listesine çevirir
+  const flattenItems = (input) => {
+    if (!input) return [];
+
+    // Eğer girdi bir dizi ise, her elemanı kontrol et
+    if (Array.isArray(input)) {
+      let result = [];
+      input.forEach(item => {
+        // Eğer eleman bir dizi ise (nested), tekrar içeri gir
+        if (Array.isArray(item)) {
+          result = [...result, ...flattenItems(item)];
+        }
+        // Eğer eleman bir nesne ise
+        else if (item && typeof item === 'object') {
+          // Eğer bu zaten bir ödül objesi ise
+          if (item.type && (item.amount !== undefined || item.count !== undefined || item.value !== undefined)) {
+            result.push(item);
+          } else {
+            // Değilse, içindeki liste anahtarlarını kontrol et
+            const subItems = item.items || item.rewards_config || item.rewards || item.prizes;
+            if (subItems) result = [...result, ...flattenItems(subItems)];
+            else {
+              // Hala bir nesne ise ve tip içermiyorsa, key-value olabilir
+              result = [...result, ...flattenItems(item)];
+            }
+          }
+        } else {
+          result.push(item);
+        }
+      });
+      return result;
+    }
+
+    // Eğer girdi bir nesne ise
+    if (input && typeof input === 'object') {
+      // Eğer bu zaten bir ödül objesi ise
+      if (input.type && (input.amount !== undefined || input.count !== undefined || input.value !== undefined)) {
+        return [input];
+      }
+
+      // Değilse, alt anahtarları dolaş
+      const rewardsKey = input.items || input.rewards_config || input.rewards || input.prizes;
+      if (rewardsKey) return flattenItems(rewardsKey);
+
+      // Klasik { "gold": 1000 } yapısı. Ama metadata anahtarlarını FİLTRELE!
+      const metadataKeys = ['rank', 'rank_min', 'rank_max', 'min_rank', 'max_rank', 'id', 'event_id', 'created_at', 'updated_at', 'prizes', 'items', 'rewards', 'rewards_config'];
+      return Object.entries(input)
+        .filter(([key]) => !metadataKeys.includes(key))
+        .map(([type, amount]) => ({ type, amount }));
+    }
+
+    return [];
+  };
+
+  const getIcon = (type) => {
+    const lowerType = String(type || '').toLowerCase();
+    if (lowerType.includes('gold') || lowerType.includes('coin')) return <span className="text-amber-400">🪙</span>;
+    if (lowerType.includes('energy')) return <span className="text-rose-400">⚡</span>;
+    if (lowerType.includes('bomb')) return <span className="text-orange-500">💣</span>;
+    if (lowerType.includes('swap')) return <span className="text-blue-400">🔄</span>;
+    if (lowerType.includes('row')) return <span className="text-emerald-400">↔️</span>;
+    if (lowerType.includes('col')) return <span className="text-emerald-400">↕️</span>;
+    if (lowerType.includes('cell')) return <span className="text-sky-400">🎯</span>;
+    return <span className="text-slate-400">🎁</span>;
+  };
+
+  const getRankText = (reward) => {
+    const min = reward.rank_min || reward.min_rank || reward.rank;
+    const max = reward.rank_max || reward.max_rank;
+
+    if (min && max && String(min) !== String(max)) return `${min}-${max}. ${t('rank')}`;
+    if (min) return `${min}. ${t('rank')}`;
+    return t('rewards') || 'REWARDS';
+  };
+
+  if (loading) return (
+    <div className="flex flex-col gap-2">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="h-20 bg-white/5 rounded-xl animate-pulse" />
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto no-scrollbar">
+      {rewards.map((reward, i) => {
+        const itemList = flattenItems(reward.items || reward.rewards_config || reward.rewards || reward);
+
+        // Eğer rank bilgisi objenin kendisindeyse ama items boşsa, sonsuz döngüyü engellemek için filtrele
+        const finalItems = itemList.filter(item => item && typeof item === 'object' && item.type !== 'rank_min' && item.type !== 'rank_max');
+
+        return (
+          <div key={i} className="p-4 rounded-xl border bg-slate-950/40 border-white/5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-[10px] font-black text-amber-500 uppercase tracking-widest leading-none">
+                {getRankText(reward)}
+              </div>
+              <div className="px-2 py-0.5 rounded-full bg-slate-950 border border-white/10 text-[8px] font-black text-slate-500 uppercase leading-none">
+                {t('rewards') || (language === 'tr' ? 'ÖDÜLLER' : 'REWARDS')}
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {finalItems.map((item, idx) => {
+                // Eğer item hala bir objeyse (hata koruması)
+                if (!item || typeof item !== 'object') return null;
+
+                const val = item.amount !== undefined ? item.amount : (item.count !== undefined ? item.count : item.value);
+                const displayValue = val !== undefined ? (typeof val === 'number' ? val.toLocaleString() : (typeof val === 'object' ? '' : String(val))) : '';
+                const displayType = item.type ? (t(item.type) || item.type) : '';
+
+                // Eğer hem değer hem tip boşsa (temizlik sonrası) gösterme
+                if (!displayValue && !displayType) return null;
+
+                return (
+                  <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/5">
+                    <span className="text-sm">{getIcon(item.type)}</span>
+                    <span className="text-xs font-black text-white tabular-nums leading-none">{displayValue}</span>
+                    <span className="text-[9px] font-bold text-slate-500 uppercase leading-none">{displayType}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+      {rewards.length === 0 && (
+        <div className="text-center py-8 text-slate-600 text-[10px] font-black uppercase tracking-widest italic">
+          {t('no_rewards') || (language === 'tr' ? 'ÖDÜL TANIMLANMAMIŞ' : 'NO REWARDS DEFINED')}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const LeaderboardView = ({ t = (s) => s, profile }) => {
   const [loading, setLoading] = React.useState(true);
   const [data, setData] = React.useState([]);
+  const [mode, setMode] = React.useState('global');
 
   React.useEffect(() => {
     const fetchLeaderboard = async () => {
       setLoading(true);
-      const rankings = await SupabaseService.getLeaderboard();
+      const rankings = await SupabaseService.getLeaderboard(mode);
       if (rankings) setData(rankings);
+      else setData([]);
       setLoading(false);
     };
     fetchLeaderboard();
-  }, []);
+  }, [mode]);
 
   return (
-    <div className="flex-1 overflow-y-auto pr-1 no-scrollbar space-y-2 h-full max-h-[60vh] landscape:max-h-[55vh] lg:max-h-[70vh]">
-      {loading ? (
-        <div className="py-20 flex flex-col items-center justify-center text-slate-500 animate-pulse">
-          <RefreshCw size={48} className="animate-spin mb-4 opacity-20" />
-        </div>
-      ) : (
-        data.map((item, index) => {
-          const isMe = item.id === profile?.id;
-          const rank = index + 1;
-          return (
-            <div
-              key={item.id}
-              className={`
-                flex items-center gap-3 md:gap-4 p-2 md:p-3 rounded-2xl transition-all border 
-                ${isMe ? 'bg-amber-500/10 border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.15)]' : 'bg-slate-900/40 border-white/5'}
-                ${rank <= 3 ? 'scale-100' : 'scale-[0.98] opacity-80'}
-              `}
-            >
-              <div className={`
-                w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center font-black italic text-sm md:text-base
-                ${rank === 1 ? 'bg-amber-400 text-slate-950 shadow-lg shadow-amber-400/20' :
-                  rank === 2 ? 'bg-slate-300 text-slate-950 shadow-lg shadow-slate-300/20' :
-                    rank === 3 ? 'bg-amber-700 text-white shadow-lg shadow-amber-700/20' : 'text-slate-500 bg-slate-800'}
-              `}>
-                {rank}
-              </div>
+    <div className="flex flex-col h-full">
+      {/* Mode Tabs */}
+      <div className="flex gap-1 bg-slate-900/40 p-1 rounded-xl border border-white/5 mb-4 shrink-0 overflow-x-auto no-scrollbar">
+        {[
+          { id: 'global', label: t('rank_global') || 'Global', icon: <Trophy size={14} /> },
+          { id: 'adventure', label: t('adventure') || 'Macera', icon: <LayoutGrid size={14} /> },
+          { id: 'time_arena', label: t('time_arena') || 'Arena', icon: <Clock size={14} /> }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setMode(tab.id)}
+            className={`
+              flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-black uppercase transition-all whitespace-nowrap
+              ${mode === tab.id ? 'bg-amber-500 text-slate-950 shadow-lg' : 'text-slate-500 hover:text-white hover:bg-white/5'}
+            `}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-black text-white italic truncate uppercase text-xs md:text-base">{item.username}</span>
-                  {isMe && <span className="text-[7px] md:text-[9px] font-black bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded-lg uppercase tracking-tighter">{t('you')}</span>}
+      <div className="flex-1 overflow-y-auto pr-1 no-scrollbar space-y-2 pb-20">
+        {loading ? (
+          <div className="py-20 flex flex-col items-center justify-center text-slate-500 animate-pulse">
+            <RefreshCw size={48} className="animate-spin mb-4 opacity-20" />
+            <span className="text-[10px] font-black uppercase tracking-widest">{t('loading')}</span>
+          </div>
+        ) : data.length === 0 ? (
+          <div className="py-20 flex flex-col items-center justify-center text-slate-600">
+            <Trophy size={48} className="mb-4 opacity-10" />
+            <span className="text-xs font-black uppercase tracking-widest">{t('no_rankings') || 'Henüz sıralama yok'}</span>
+          </div>
+        ) : (
+          data.map((item, index) => {
+            const isMe = item.id === profile?.id;
+            const rank = index + 1;
+            return (
+              <div
+                key={item.id}
+                className={`
+                  flex items-center gap-3 md:gap-4 p-2 md:p-3 rounded-2xl transition-all border 
+                  ${isMe ? 'bg-amber-500/10 border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.15)]' : 'bg-slate-900/40 border-white/5'}
+                  ${rank <= 3 ? 'scale-100' : 'scale-[0.98] opacity-80'}
+                `}
+              >
+                <div className={`
+                  w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center font-black italic text-sm md:text-base shrink-0
+                  ${rank === 1 ? 'bg-amber-400 text-slate-950 shadow-lg shadow-amber-400/20' :
+                    rank === 2 ? 'bg-slate-300 text-slate-950 shadow-lg shadow-slate-300/20' :
+                      rank === 3 ? 'bg-amber-700 text-white shadow-lg shadow-amber-700/20' : 'text-slate-500 bg-slate-800'}
+                `}>
+                  {rank}
                 </div>
-                <div className="flex items-center gap-3 md:gap-4 mt-0.5">
-                  <div className="flex items-center gap-1 text-slate-400">
-                    <Coins size={9} className="text-amber-500 md:w-3 md:h-3" />
-                    <span className="text-[9px] md:text-xs font-bold font-inter tracking-wider text-slate-500">{item.coins}</span>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-white italic truncate uppercase text-xs md:text-base">{item.username}</span>
+                    {isMe && <span className="text-[7px] md:text-[9px] font-black bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded-lg uppercase tracking-tighter">{t('you')}</span>}
                   </div>
-                  <div className="flex items-center gap-1 text-slate-400">
-                    <Trophy size={9} className="text-sky-500 md:w-3 md:h-3" />
-                    <span className="text-[9px] md:text-xs font-bold font-inter tracking-wider text-slate-500">{t('level_abbr')}{item.current_level_index + 1}</span>
+                  <div className="flex items-center gap-3 md:gap-4 mt-0.5">
+                    <div className="flex items-center gap-1 text-slate-400">
+                      {mode === 'global' ? <Coins size={9} className="text-amber-500 md:w-3 md:h-3" /> : <Star size={9} className="text-amber-500 md:w-3 md:h-3" />}
+                      <span className="text-[9px] md:text-xs font-bold font-inter tracking-wider text-slate-500">
+                        {mode === 'global' ? item.coins : (item.score || 0)}
+                      </span>
+                    </div>
+                    {mode === 'global' && (
+                      <div className="flex items-center gap-1 text-slate-400">
+                        <Trophy size={9} className="text-sky-500 md:w-3 md:h-3" />
+                        <span className="text-[9px] md:text-xs font-bold font-inter tracking-wider text-slate-500">{t('level_abbr')}{item.current_level_index + 1}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            </div>
-          );
-        })
-      )}
+            );
+          })
+        )}
+      </div>
     </div>
   );
 };
@@ -1468,9 +2054,11 @@ const MissionTracker = ({ goals = [], t = (s) => s, language = 'tr', isCompact =
   </div>
 );
 
-const ShopView = ({ t = (s) => s, coins, tools, buyTool }) => {
+const ShopView = ({ t = (s) => s, coins, tools, buyTool, language }) => {
   const items = [
     { id: 'bomb', name: t('bomb'), desc: t('bomb_desc') || 'Seçili hücre ve etrafını patlatır', cost: 250, icon: <Zap size={20} className="text-amber-400 md:w-6 md:h-6" />, color: 'from-amber-500 to-orange-600' },
+    { id: 'xbomb', name: language === 'tr' ? 'X Bombası' : 'X Bomb', desc: language === 'tr' ? 'Hücreyi çaprazlama patlatır' : 'Blasts cells diagonally', cost: 500, icon: <Bomb size={20} className="text-orange-400 md:w-6 md:h-6" />, color: 'from-orange-500 to-red-600' },
+    { id: 'nuclear', name: language === 'tr' ? 'Nükleer Bomba' : 'Nuclear Bomb', desc: language === 'tr' ? 'Tüm ekranı temizler' : 'Clears the entire grid', cost: 1000, icon: <Radiation size={20} className="text-lime-400 md:w-6 md:h-6" />, color: 'from-lime-500 to-green-600' },
     { id: 'row', name: t('row'), desc: t('row_desc') || 'Tüm yatay satırı temizler', cost: 300, icon: <MoveHorizontal size={20} className="text-rose-400 md:w-6 md:h-6" />, color: 'from-rose-500 to-pink-600' },
     { id: 'col', name: t('col'), desc: t('col_desc') || 'Tüm dikey sütunu temizler', cost: 300, icon: <MoveVertical size={20} className="text-emerald-400 md:w-6 md:h-6" />, color: 'from-emerald-500 to-teal-600' },
     { id: 'swap', name: t('swap'), desc: t('swap_desc') || 'İki harfin yerini değiştirir', cost: 400, icon: <RefreshCw size={20} className="text-sky-400 md:w-6 md:h-6" />, color: 'from-sky-500 to-blue-600' },
@@ -1653,7 +2241,7 @@ function App() {
     gameMode, currentLevelIndex, levelGoals, startTimeBattle,
     coins, buyTool, addCoins, addTool, createdSpecial,
     cloudLevels, isLoadingLevels,
-    user, profile, completedLevels,
+    user, profile, isLoadingProfile, fetchProfile, completedLevels,
     language, setLanguage, t,
     isDictionaryLoaded,
     energy, nextEnergyIn, setEnergy, setLastEnergyRefill,
@@ -1662,7 +2250,8 @@ function App() {
     gardenState, setGameState,
     celebration,
     timeBattleElapsed, timeBattleToolRewards, pendingToolReward,
-    timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt
+    timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt,
+    activeEvents, isLoadingEvents,
   } = useGame();
 
   const [isMuted, setIsMuted] = useState(false);
@@ -1670,6 +2259,14 @@ function App() {
   const [currentWord, setCurrentWord] = useState('');
   const [showDashboard, setShowDashboard] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
+  const [view, setView] = useState('dashboard'); // 'dashboard', 'settings', 'profile', 'event'
+  const [selectedEventId, setSelectedEventId] = useState(null);
+  const [eventTab, setEventTab] = useState('leaderboard'); // 'leaderboard' or 'rewards'
+
+  const actuallyActiveEvents = (activeEvents || []).filter(e => e.isActive);
+  const activeEvent = actuallyActiveEvents.length > 0
+    ? (actuallyActiveEvents.find(e => e.id === selectedEventId) || actuallyActiveEvents[0])
+    : (activeEvents && activeEvents.length > 0 ? activeEvents[0] : null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1788,6 +2385,85 @@ function App() {
     }
   };
 
+  const renderAppView = () => {
+    switch (view) {
+      case 'event':
+        return (
+          <div className="fixed inset-0 z-[500] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
+            <div className="w-full max-w-md bg-slate-900 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
+              <div className="p-8 text-center">
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border bg-amber-500/20 border-amber-400 text-amber-400">
+                  <Trophy size={40} />
+                </div>
+                <h2 className="text-xl font-black text-white italic tracking-tighter mb-2 uppercase leading-tight">
+                  {activeEvent?.title?.[language] || activeEvent?.title}
+                </h2>
+                <p className="text-slate-400 text-[11px] font-medium mb-4 leading-relaxed px-4">
+                  {activeEvent?.description?.[language] || activeEvent?.description}
+                </p>
+                {/* Tabs Header */}
+                <div className="flex items-center justify-center p-1 bg-white/5 rounded-2xl mb-4 mt-6 mx-4">
+                  <button
+                    onClick={() => setEventTab('leaderboard')}
+                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${eventTab === 'leaderboard' ? 'bg-amber-500 text-slate-950 shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                  >
+                    {t('leaderboard')}
+                  </button>
+                  <button
+                    onClick={() => setEventTab('rewards')}
+                    className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${eventTab === 'rewards' ? 'bg-amber-500 text-slate-950 shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                  >
+                    {t('rewards') || (language === 'tr' ? 'ÖDÜLLER' : 'REWARDS')}
+                  </button>
+                </div>
+
+                {/* Tab Content */}
+                <div className="px-1 min-h-[300px]">
+                  {eventTab === 'leaderboard' ? (
+                    <EventLeaderboard eventId={selectedEventId} t={t} profile={profile} />
+                  ) : (
+                    <EventRewards eventId={selectedEventId} t={t} language={language} />
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3 mt-8">
+                  <button
+                    onClick={() => {
+                      setView('dashboard');
+                      setShowDashboard(false);
+                      // Etkinlikteki ilk modu ve dinamik değerleri kullan
+                      const eventMode = activeEvent.allowed_modes?.[0] || 'arcade';
+                      const isTimeBased = eventMode === 'timeBattle' ||
+                        (eventMode === 'arcade' && (activeEvent.target_time > 0 || !activeEvent.target_score));
+
+                      const subMode = isTimeBased ? 'time' : 'moves';
+                      // Süre bazlı ise target_time, hamle bazlı ise sabit 30 hamle (etkinlik standardı)
+                      const subValue = isTimeBased
+                        ? (activeEvent.target_time || 60)
+                        : 30;
+
+                      resetGame({}, eventMode, subMode, subValue, 'normal', activeEvent.id);
+                    }}
+                    className="w-full py-5 bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 font-black rounded-2xl transition-all active:scale-95 shadow-xl shadow-amber-500/20 uppercase text-xs tracking-widest"
+                  >
+                    {t('join_event')}
+                  </button>
+                  <button
+                    onClick={() => setView('dashboard')}
+                    className="w-full py-4 text-slate-500 font-bold hover:text-white transition-colors text-[10px] uppercase tracking-widest"
+                  >
+                    {t('back')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="relative h-screen w-screen bg-[#020617] text-slate-100 font-outfit select-none overflow-hidden flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       {/* Splash Screen Animation */}
@@ -1825,60 +2501,68 @@ function App() {
 
       {console.log('--- APP MAIN RENDER ---', { showDashboard })}
       {showDashboard ? (
-        <Dashboard
-          levels={cloudLevels}
-          isLoading={isLoadingLevels}
-          currentLevel={completedLevels}
-          completedLevels={completedLevels}
-          coins={coins}
-          tools={tools}
-          buyTool={buyTool}
-          streakCount={streakCount}
-          user={user}
-          profile={profile}
-          language={language}
-          setLanguage={setLanguage}
-          t={t}
-          isMuted={isMuted}
-          toggleMute={toggleMute}
-          difficulty={difficulty}
-          changeDifficulty={changeDifficulty}
-          dailyReward={dailyReward}
-          claimGift={claimGift}
-          showDailyGift={showDailyGift}
-          STREAK_REWARDS={STREAK_REWARDS}
-          onOpenAuth={() => setIsAuthModalOpen(true)}
-          energy={energy}
-          nextEnergyIn={nextEnergyIn}
-          onSelectArcade={(boosters, subMode, subValue) => {
-            if (energy > 0) {
-              setEnergy(prev => prev - 1);
-              if (energy === 5) setLastEnergyRefill(Date.now());
-              setShowDashboard(false);
-              resetGame(boosters, 'arcade', subMode, subValue, 'normal');
-            }
-          }}
-          onSelectTimeBattle={(duration, boosters) => {
-            if (energy > 0) {
-              setEnergy(prev => prev - 1);
-              if (energy === 5) setLastEnergyRefill(Date.now());
-              startTimeBattle(duration, boosters);
-              setShowDashboard(false);
-            }
-          }}
-          onSelectZen={() => {
-            if (energy > 0) {
-              setEnergy(prev => prev - 1);
-              if (energy === 5) setLastEnergyRefill(Date.now());
-              setShowDashboard(false);
-              resetGame({}, 'zen', 'moves', 999, 'normal');
-            }
-          }}
-          totalScore={totalScore}
-          wordsFoundCount={wordsFoundCount}
-          gamesPlayed={gamesPlayed}
-          highScore={highScore}
-        />
+        <>
+          <Dashboard
+            levels={cloudLevels}
+            isLoading={isLoadingLevels}
+            currentLevel={completedLevels}
+            completedLevels={completedLevels}
+            coins={coins}
+            tools={tools}
+            buyTool={buyTool}
+            streakCount={streakCount}
+            user={user}
+            profile={profile}
+            fetchProfile={fetchProfile}
+            language={language}
+            setLanguage={setLanguage}
+            t={t}
+            isMuted={isMuted}
+            toggleMute={toggleMute}
+            difficulty={difficulty}
+            changeDifficulty={changeDifficulty}
+            dailyReward={dailyReward}
+            claimGift={claimGift}
+            showDailyGift={showDailyGift}
+            STREAK_REWARDS={STREAK_REWARDS}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
+            energy={energy}
+            nextEnergyIn={nextEnergyIn}
+            onSelectArcade={(boosters, subMode, subValue) => {
+              if (energy > 0) {
+                setEnergy(prev => prev - 1);
+                if (energy === 5) setLastEnergyRefill(Date.now());
+                setShowDashboard(false);
+                resetGame(boosters, 'arcade', subMode, subValue, 'normal');
+              }
+            }}
+            onSelectTimeBattle={(duration, boosters) => {
+              if (energy > 0) {
+                setEnergy(prev => prev - 1);
+                if (energy === 5) setLastEnergyRefill(Date.now());
+                startTimeBattle(duration, boosters);
+                setShowDashboard(false);
+              }
+            }}
+            onSelectZen={() => {
+              if (energy > 0) {
+                setEnergy(prev => prev - 1);
+                if (energy === 5) setLastEnergyRefill(Date.now());
+                setShowDashboard(false);
+                resetGame({}, 'zen', 'moves', 999, 'normal');
+              }
+            }}
+            totalScore={totalScore}
+            wordsFoundCount={wordsFoundCount}
+            gamesPlayed={gamesPlayed}
+            highScore={highScore}
+            activeEvents={activeEvents}
+            activeEvent={activeEvent}
+            setSelectedEventId={setSelectedEventId}
+            setView={setView}
+          />
+          {renderAppView()}
+        </>
       ) : (
         <>
           {/* Header */}
