@@ -13,14 +13,15 @@ export const PaymentService = {
      * @param {string} productType - 'coins' | 'energy' | 'bundle'
      * @returns {Promise<{url: string|null, error: string|null}>}
      */
-    async createCheckoutSession(userId, productId, productType = 'coins') {
+    async createCheckoutSession(userId, productId, productType = 'coins', language = 'tr') {
         try {
             const { data, error } = await supabase.functions.invoke('create-checkout-session', {
                 body: {
                     userId,
                     productId,
                     productType,
-                    mode: 'payment', // one-time payment
+                    language,
+                    mode: 'payment',
                 }
             });
 
@@ -38,13 +39,14 @@ export const PaymentService = {
      * @param {string} planId - Plan ID (pro_monthly, pro_yearly)
      * @returns {Promise<{url: string|null, error: string|null}>}
      */
-    async createSubscriptionSession(userId, planId) {
+    async createSubscriptionSession(userId, planId, language = 'tr') {
         try {
             const { data, error } = await supabase.functions.invoke('create-checkout-session', {
                 body: {
                     userId,
                     productId: planId,
                     productType: 'pro',
+                    language,
                     mode: 'subscription',
                 }
             });

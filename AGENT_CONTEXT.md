@@ -5,13 +5,14 @@
 - **Feature (v9.0.0)**: Monetizasyon altyapısı oluşturuldu — Stripe-only (USD bazlı):
     - Mevcut araç marketi korunarak sekmeli mağaza yapısı kuruldu (Araçlar / Altın Paketleri / PRO).
     - **Altın Paketleri:** 5 kademe ($0.99-$19.99, ₺39.99-₺749.99). İlk alım 2x bonus.
-    - **WORDLENGE PRO:** Aylık $2.99 (₺109.99), Yıllık $19.99 (₺749.99, %44 indirim).
-    - **PaymentService.js:** Stripe Checkout Session oluşturma, abonelik yönetimi, satın alma geçmişi.
-    - **Dile göre fiyat gösterimi:** Türkçe'de ₺, İngilizce'de $ gösterilir.
-    - `Constants.js`: GOLD_PACKAGES, PRO_PLANS, ENERGY_PACKAGES sabitleri eklendi.
-    - `Translations.js`: TR/EN mağaza çeviri metinleri eklendi.
-    - `proje_schema.sql`: `purchases`, `subscriptions` tabloları ve `profiles`'a `stripe_customer_id`, `is_pro`, `first_purchase_used` sütunları eklendi.
-    - **Bekleyen:** SQL uygulaması (Supabase), Stripe ürün oluşturma, Edge Functions (create-checkout-session, stripe-webhook).
+    - **WORDLENGE PRO AVANTAJLARI (v9.1.0):**
+        - **Sınırsız Enerji:** PRO kullanıcıları için enerji tüketimi devre dışı bırakıldı. Enerji göstergesinde "∞" simgesi aktif edildi.
+        - **2x Günlük Ödül:** Şans çarkından kazanılan tüm ödüller (Altın ve Araçlar) PRO kullanıcıları için otomatik olarak 2 katı verilir. Ödül ekranında "PRO 2x BONUS" ibaresi eklendi.
+        - **PRO Rozeti:** Liderlik tablosunda ve Profil sayfasında PRO üyeleri için özel "Mavi Yıldız" rozeti eklendi.
+    - [Fix] `create-checkout-session/index.ts`: `try` reserved keyword hatası, eksik tırnak ve Price ID düzeltildi. Stripe Price ID'leri güncellendi. (04.03.2026)
+    - [Feature] `energy_24h` (Sınırsız Enerji) ürünü Mağaza > Araçlar sekmesine "Premium" etiketiyle eklendi. Stripe entegrasyonu tamamlandı. (04.03.2026)
+    - **Durum:** Stripe Secret'lar (Secret Key & Webhook Secret) kullanıcı tarafından Supabase'e girildi. Özellik kodları yayına hazır.
+    - **Bekleyen:** SQL uygulaması (Supabase), Edge Functions Deploy, Stripe Webhook Endpoint kurulumu.
 - **Feature (v6.0.0)**: Oyun modları için YENİ isimler belirlendi:
 - **Feature (v7.0.0)**: **Ultra Esnek Etkinlik Sistemi (v7.0.0):**
     - Periyodik (Haftalık vb.) ve Manuel (2 saatlik vb.) etkinlik desteği.

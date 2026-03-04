@@ -214,7 +214,8 @@ const Dashboard = ({
   showDailyGift, energy, nextEnergyIn, buyTool, addCoins, addTool, soundManager,
   totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId, completedLevels,
   activeEvents = [], activeEvent, setSelectedEventId, setView,
-  xp, level, masteryPoints, sessionXP, getNextLevelXp
+  xp, level, masteryPoints, sessionXP, getNextLevelXp,
+  isPro, isMobile
 }) => {
   const [dashboardView, setDashboardView] = React.useState('modes');
   const [selectedEventIdLocal, setSelectedEventIdLocal] = React.useState(null);
@@ -855,6 +856,11 @@ const Dashboard = ({
                     <span className="text-[9px] font-black bg-white/5 px-2 py-1 rounded-lg text-slate-400 uppercase tracking-widest border border-white/5">
                       {t('level_abbr')}{profile?.current_level_index + 1}
                     </span>
+                    {profile?.is_pro && (
+                      <span className="text-[9px] font-black bg-sky-500 text-white px-2 py-1 rounded-lg uppercase tracking-widest shadow-lg flex items-center gap-1 animate-pulse">
+                        <Star size={10} fill="currentColor" /> PRO
+                      </span>
+                    )}
                     {profile?.location && (
                       <span className="text-[9px] font-black text-sky-400 uppercase tracking-widest flex items-center gap-1">
                         <MapPin size={10} /> {profile.location}
@@ -1569,12 +1575,12 @@ const Dashboard = ({
             {user && (
               <>
                 <div className="bg-slate-900/60 border border-white/5 px-2 md:px-4 py-1 md:py-1.5 rounded-lg md:rounded-2xl flex items-center gap-1.5 md:gap-3 group transition-all hover:border-sky-500/50 relative overflow-hidden">
-                  <div className={`w-5 h-5 md:w-8 md:h-8 rounded-md md:rounded-lg flex items-center justify-center ${energy > 0 ? 'bg-sky-500/20 text-sky-400' : 'bg-rose-500/20 text-rose-400'} shrink-0`}>
-                    <Zap className="w-3 h-3 md:w-4 md:h-4" fill={energy > 0 ? "currentColor" : "none"} />
+                  <div className={`w-5 h-5 md:w-8 md:h-8 rounded-md md:rounded-lg flex items-center justify-center ${isPro || energy > 0 ? 'bg-sky-500/20 text-sky-400' : 'bg-rose-500/20 text-rose-400'} shrink-0`}>
+                    <Zap className="w-3 h-3 md:w-4 md:h-4" fill={isPro || energy > 0 ? "currentColor" : "none"} />
                   </div>
                   <div className="flex flex-col font-outfit min-w-[25px] md:min-w-[40px]">
-                    <span className="text-[9px] md:text-xs font-black text-white leading-none whitespace-nowrap">{energy}/5</span>
-                    {energy < 5 && (
+                    <span className="text-[9px] md:text-xs font-black text-white leading-none whitespace-nowrap">{isPro ? '∞' : `${energy}/5`}</span>
+                    {!isPro && energy < 5 && (
                       <span className="text-[7px] md:text-[8px] font-bold text-sky-400/80 mt-0.5 whitespace-nowrap animate-pulse">
                         {Math.floor(nextEnergyIn / 60)}:{(nextEnergyIn % 60).toString().padStart(2, '0')}
                       </span>
@@ -1608,6 +1614,11 @@ const Dashboard = ({
                 <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-amber-400 to-orange-600 text-white text-[7px] md:text-[9px] font-black leading-none px-1.5 md:px-2 py-0.5 rounded-md border-2 border-slate-950 shadow-lg z-20">
                   Lvl {level}
                 </div>
+                {isPro && (
+                  <div className="absolute -top-1 -right-1 bg-sky-500 text-white p-0.5 md:p-1 rounded-full border-2 border-slate-950 shadow-lg z-20 animate-pulse">
+                    <Star size={isMobile ? 8 : 10} fill="currentColor" />
+                  </div>
+                )}
               </div>
               <div className="hidden sm:flex flex-col ml-1">
                 <span className="text-[10px] md:text-xs font-black text-white leading-none truncate max-w-[100px]" title={profile?.username || user?.email?.split('@')[0]}>
@@ -1642,11 +1653,11 @@ const Dashboard = ({
         {user ? (
           <>
             <div className="flex items-center gap-2 bg-slate-900/60 rounded-full px-4 py-1.5 border border-white/5">
-              <div className={`w-5 h-5 flex items-center justify-center ${energy > 0 ? 'text-sky-400' : 'text-rose-400'}`}>
-                <Zap size={14} fill={energy > 0 ? "currentColor" : "none"} />
+              <div className={`w-5 h-5 flex items-center justify-center ${isPro || energy > 0 ? 'text-sky-400' : 'text-rose-400'}`}>
+                <Zap size={14} fill={isPro || energy > 0 ? "currentColor" : "none"} />
               </div>
-              <span className="text-[11px] font-black text-white tracking-widest leading-none">{energy}/5</span>
-              {energy < 5 && (
+              <span className="text-[11px] font-black text-white tracking-widest leading-none">{isPro ? '∞' : `${energy}/5`}</span>
+              {!isPro && energy < 5 && (
                 <span className="text-[8px] font-bold text-slate-500 ml-1">
                   {Math.floor(nextEnergyIn / 60)}:{(nextEnergyIn % 60).toString().padStart(2, '0')}
                 </span>
@@ -2014,6 +2025,11 @@ const LeaderboardView = ({ t = (s) => s, profile }) => {
                   <div className="flex items-center gap-2">
                     <span className="font-black text-white italic truncate uppercase text-xs md:text-base">{item.username}</span>
                     {isMe && <span className="text-[7px] md:text-[9px] font-black bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded-lg uppercase tracking-tighter">{t('you')}</span>}
+                    {item.is_pro && (
+                      <div className="bg-sky-500/20 p-1 rounded-full border border-sky-500/50">
+                        <Star size={10} className="text-sky-400" fill="currentColor" />
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 md:gap-4 mt-0.5">
                     <div className="flex items-center gap-1 text-slate-400">
@@ -2094,8 +2110,8 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool, language, user, profile
     try {
       const { PaymentService } = await import('./logic/PaymentService');
       const fn = productType === 'pro'
-        ? PaymentService.createSubscriptionSession(user.id, productId)
-        : PaymentService.createCheckoutSession(user.id, productId, productType);
+        ? PaymentService.createSubscriptionSession(user.id, productId, language)
+        : PaymentService.createCheckoutSession(user.id, productId, productType, language);
       const { url, error } = await fn;
       if (error) { setPurchaseError(error); return; }
       PaymentService.openCheckoutUrl(url);
@@ -2114,7 +2130,8 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool, language, user, profile
     { id: 'row', name: t('row'), desc: t('row_desc') || 'Tüm yatay satırı temizler', cost: 300, icon: <MoveHorizontal size={20} className="text-rose-400 md:w-6 md:h-6" />, color: 'from-rose-500 to-pink-600' },
     { id: 'col', name: t('col'), desc: t('col_desc') || 'Tüm dikey sütunu temizler', cost: 300, icon: <MoveVertical size={20} className="text-emerald-400 md:w-6 md:h-6" />, color: 'from-emerald-500 to-teal-600' },
     { id: 'swap', name: t('swap'), desc: t('swap_desc') || 'İki harfin yerini değiştirir', cost: 400, icon: <RefreshCw size={20} className="text-sky-400 md:w-6 md:h-6" />, color: 'from-sky-500 to-blue-600' },
-    { id: 'cell', name: t('cell'), desc: t('cell_desc') || 'Tek bir harfi siler', cost: 100, icon: <Target size={20} className="text-purple-400 md:w-6 md:h-6" />, color: 'from-purple-500 to-violet-600' }
+    { id: 'cell', name: t('cell'), desc: t('cell_desc') || 'Tek bir harfi siler', cost: 100, icon: <Target size={20} className="text-purple-400 md:w-6 md:h-6" />, color: 'from-purple-500 to-violet-600' },
+    { id: 'energy_24h', name: t('energy_unlimited_24h'), desc: t('energy_unlimited_24h_desc'), price: 0.99, priceTRY: 34.99, icon: <Zap size={20} className="text-rose-400 md:w-6 md:h-6" />, color: 'from-rose-500 to-pink-600', isStripe: true }
   ];
 
   const tabs = [
@@ -2181,17 +2198,27 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool, language, user, profile
       {activeTab === 'tools' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-5 lg:grid-cols-3 gap-2 md:gap-4 pb-6 animate-in fade-in duration-300">
           {toolItems.map(item => {
-            const canAfford = coins >= item.cost;
+            const isStripeProd = item.isStripe;
+            const canAfford = isStripeProd ? true : coins >= item.cost;
+            const isLoading = purchaseLoading === item.id;
+
             return (
-              <div key={item.id} className="relative overflow-hidden bg-slate-900/40 border border-white/5 rounded-2xl md:rounded-3xl p-2 landscape:p-2.5 md:p-4 flex items-center landscape:flex-col lg:flex-row gap-2 md:gap-4 transition-all group hover:border-white/10 shadow-lg">
+              <div key={item.id} className={`relative overflow-hidden ${isStripeProd ? 'bg-rose-500/5 border-rose-500/20' : 'bg-slate-900/40 border-white/5'} border rounded-2xl md:rounded-3xl p-2 landscape:p-2.5 md:p-4 flex items-center landscape:flex-col lg:flex-row gap-2 md:gap-4 transition-all group hover:border-white/10 shadow-lg`}>
+                {isStripeProd && (
+                  <div className="absolute top-0 right-0 bg-rose-500 text-white text-[6px] md:text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg z-10">
+                    PREMIUM
+                  </div>
+                )}
                 <div className="flex items-center gap-3 landscape:flex-col landscape:w-full">
                   <div className="relative shrink-0">
                     <div className={`w-8 h-8 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center bg-slate-950/60 shadow-inner group-hover:scale-110 transition-transform border border-white/5`}>
                       {React.cloneElement(item.icon, { size: 16, className: item.icon.props.className.replace('size={20}', '') })}
                     </div>
-                    <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] md:min-w-[20px] md:h-[20px] bg-amber-500 rounded-full flex items-center justify-center border-2 border-slate-900 shadow-lg">
-                      <span className="text-[8px] md:text-[10px] font-black text-slate-950 leading-none">{tools?.[item.id] || 0}</span>
-                    </div>
+                    {!isStripeProd && (
+                      <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] md:min-w-[20px] md:h-[20px] bg-amber-500 rounded-full flex items-center justify-center border-2 border-slate-900 shadow-lg">
+                        <span className="text-[8px] md:text-[10px] font-black text-slate-950 leading-none">{tools?.[item.id] || 0}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0 landscape:w-full landscape:text-center">
                     <h4 className="text-white font-black italic uppercase text-[10px] md:text-sm mb-0.5 truncate">{item.name}</h4>
@@ -2201,15 +2228,29 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool, language, user, profile
 
                 <div className="shrink-0 landscape:w-full landscape:mt-1">
                   <button
-                    onClick={() => buyTool(item.id, item.cost)}
-                    disabled={!canAfford}
-                    className={`flex flex-col items-center justify-center w-full min-w-[60px] md:min-w-[80px] py-1 md:py-1.5 px-2 md:px-3 rounded-lg md:rounded-xl transition-all active:scale-95 border-2 ${canAfford ? 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 text-amber-500 shadow-lg' : 'bg-slate-800/50 border-transparent text-slate-500 cursor-not-allowed opacity-50'}`}
+                    onClick={() => isStripeProd ? handlePurchase(item.id, 'energy') : buyTool(item.id, item.cost)}
+                    disabled={!canAfford || isLoading}
+                    className={`flex flex-col items-center justify-center w-full min-w-[60px] md:min-w-[80px] py-1 md:py-1.5 px-2 md:px-3 rounded-lg md:rounded-xl transition-all active:scale-95 border-2 ${isLoading
+                      ? 'bg-slate-800 border-transparent text-slate-500'
+                      : canAfford
+                        ? isStripeProd
+                          ? 'bg-rose-500/10 border-rose-500/30 hover:bg-rose-500/20 text-rose-500 shadow-lg'
+                          : 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 text-amber-500 shadow-lg'
+                        : 'bg-slate-800/50 border-transparent text-slate-500 cursor-not-allowed opacity-50'}`}
                   >
                     <div className="flex items-center gap-1">
-                      <span className="font-black text-[9px] md:text-xs italic">{item.cost}</span>
-                      <Coins size={8} className="text-amber-500" />
+                      {isLoading ? (
+                        <span className="font-black text-[9px] md:text-xs tracking-widest">...</span>
+                      ) : isStripeProd ? (
+                        <span className="font-black text-[9px] md:text-xs italic">{language === 'tr' ? `₺${item.priceTRY}` : `$${item.price}`}</span>
+                      ) : (
+                        <>
+                          <span className="font-black text-[9px] md:text-xs italic">{item.cost}</span>
+                          <Coins size={8} className="text-amber-500" />
+                        </>
+                      )}
                     </div>
-                    <span className="text-[5px] md:text-[7px] uppercase font-black tracking-tighter opacity-70 group-hover:opacity-100">{t('buy')}</span>
+                    <span className="text-[5px] md:text-[7px] uppercase font-black tracking-tighter opacity-70 group-hover:opacity-100">{isLoading ? t('processing') : t('buy')}</span>
                   </button>
                 </div>
               </div>
@@ -2507,8 +2548,11 @@ function App() {
     timeBattleElapsed, timeBattleToolRewards, pendingToolReward,
     timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt,
     xp, level, masteryPoints, sessionXP, getNextLevelXp,
-    activeEvents, isLoadingEvents, currentEventId
+    activeEvents, isLoadingEvents, currentEventId,
+    isMobile
   } = useGame();
+
+  const isPro = profile?.is_pro || false;
 
   const [isMuted, setIsMuted] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -2642,11 +2686,13 @@ function App() {
                         : (parseInt(activeEvent.moves_limit) || 30);
 
                       // Etkinliğe katılım sağlandığı an listesi yenilenmesi için 0 skorla kayıt at
-                      if (user && energy > 0) {
+                      if (user && (isPro || energy > 0)) {
                         SupabaseService.updateEventScore(activeEvent.id, user.id, 0);
-                        // Enerji tüketimi
-                        setEnergy(e => e - 1);
-                        if (energy === 5) setLastEnergyRefill(Date.now());
+                        // Enerji tüketimi (Sadece PRO değilse)
+                        if (!isPro) {
+                          setEnergy(e => e - 1);
+                          if (energy === 5) setLastEnergyRefill(Date.now());
+                        }
                       }
 
                       resetGame({}, eventMode, subMode, subValue, 'normal', activeEvent.id);
@@ -2736,25 +2782,31 @@ function App() {
             energy={energy}
             nextEnergyIn={nextEnergyIn}
             onSelectArcade={(boosters, subMode, subValue) => {
-              if (energy > 0) {
-                setEnergy(prev => prev - 1);
-                if (energy === 5) setLastEnergyRefill(Date.now());
+              if (isPro || energy > 0) {
+                if (!isPro) {
+                  setEnergy(prev => prev - 1);
+                  if (energy === 5) setLastEnergyRefill(Date.now());
+                }
                 setShowDashboard(false);
                 resetGame(boosters, 'arcade', subMode, subValue, 'normal');
               }
             }}
             onSelectTimeBattle={(duration, boosters) => {
-              if (energy > 0) {
-                setEnergy(prev => prev - 1);
-                if (energy === 5) setLastEnergyRefill(Date.now());
+              if (isPro || energy > 0) {
+                if (!isPro) {
+                  setEnergy(prev => prev - 1);
+                  if (energy === 5) setLastEnergyRefill(Date.now());
+                }
                 startTimeBattle(duration, boosters);
                 setShowDashboard(false);
               }
             }}
             onSelectZen={() => {
-              if (energy > 0) {
-                setEnergy(prev => prev - 1);
-                if (energy === 5) setLastEnergyRefill(Date.now());
+              if (isPro || energy > 0) {
+                if (!isPro) {
+                  setEnergy(prev => prev - 1);
+                  if (energy === 5) setLastEnergyRefill(Date.now());
+                }
                 setShowDashboard(false);
                 resetGame({}, 'zen', 'moves', 999, 'normal');
               }
@@ -2772,6 +2824,8 @@ function App() {
             sessionXP={sessionXP}
             getNextLevelXp={getNextLevelXp}
             setView={setView}
+            isPro={isPro}
+            isMobile={isMobile}
           />
           {renderAppView()}
         </>

@@ -117,15 +117,19 @@ export default function DailySpin({ onClose, user, profile, updateProfile, addCo
     const handleClaimReward = () => {
         if (!reward) return;
 
+        const isPro = profile?.is_pro || false;
+        const multiplier = isPro ? 2 : 1;
+        const finalAmount = reward.amount * multiplier;
+
         // Apply rewards to user account
         if (reward.type === 'coins') {
-            addCoins(reward.amount);
+            addCoins(finalAmount);
         } else if (reward.type === 'tool') {
-            addTool(reward.toolId, reward.amount);
+            addTool(reward.toolId, finalAmount);
         }
 
-        // Trigger flying animation
-        setFlyingReward(reward);
+        // Trigger flying animation with final amount
+        setFlyingReward({ ...reward, amount: finalAmount });
         setReward(null);
 
         // Clear animation after it finishes
@@ -289,16 +293,21 @@ export default function DailySpin({ onClose, user, profile, updateProfile, addCo
                                 {t('you_won') || 'KAZANDIN!'}
                             </h3>
 
-                            <div className="bg-slate-800/80 rounded-2xl p-6 border border-white/5 inline-flex flex-col items-center justify-center my-4 min-w-[160px] shadow-inner">
+                            <div className="bg-slate-800/80 rounded-2xl p-6 border border-white/5 inline-flex flex-col items-center justify-center my-4 min-w-[160px] shadow-inner relative group">
+                                {profile?.is_pro && (
+                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg brightness-110">
+                                        PRO 2x BONUS
+                                    </div>
+                                )}
                                 <reward.icon size={48} className="mb-3" style={{ color: reward.color }} />
                                 <span className="text-2xl font-black" style={{ color: reward.color }}>
-                                    {reward.amount} {reward.type === 'coins' ? (t('gold') || 'Altın') : (t(reward.toolId) || reward.label)}
+                                    {reward.amount * (profile?.is_pro ? 2 : 1)} {reward.type === 'coins' ? (t('gold') || 'Altın') : (t(reward.toolId) || reward.label)}
                                 </span>
                             </div>
 
                             <button
                                 onClick={handleClaimReward}
-                                className="w-full mt-6 py-4 rounded-xl text-white font-black uppercase tracking-widest transition-opacity hover:opacity-90"
+                                className="w-full mt-4 py-4 rounded-xl text-white font-black uppercase tracking-widest transition-opacity hover:opacity-90 shadow-xl"
                                 style={{ backgroundColor: reward.color }}
                             >
                                 {t('claim_reward') || 'ÖDÜLÜ AL'}

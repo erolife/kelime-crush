@@ -188,6 +188,8 @@ export const TRANSLATIONS = {
         payment_processing: "ÖDEME İŞLENİYOR...",
         payment_error: "Ödeme sırasında bir hata oluştu.",
         already_pro: "PRO ÜYESİSİN ✨",
+        energy_unlimited_24h: "24 Saat Sınırsız Enerji",
+        energy_unlimited_24h_desc: "24 saat boyunca beklemeden oyna!",
     },
     en: {
         arcade: "ARCADE",
@@ -377,5 +379,7 @@ export const TRANSLATIONS = {
         payment_processing: "PROCESSING PAYMENT...",
         payment_error: "An error occurred during payment.",
         already_pro: "YOU'RE PRO ✨",
+        energy_unlimited_24h: "24 Hours Unlimited Energy",
+        energy_unlimited_24h_desc: "Play without waiting for 24 hours!",
     }
 };

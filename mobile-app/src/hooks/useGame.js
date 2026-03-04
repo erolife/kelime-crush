@@ -917,6 +917,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         timeBattleElapsed, timeBattleToolRewards, pendingToolReward,
         timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt,
         // Event exports
-        activeEvents, isLoadingEvents, fetchActiveEvents, currentEventId
+        activeEvents, isLoadingEvents, fetchActiveEvents, currentEventId,
+        isMobile, orientation
     };
 };
