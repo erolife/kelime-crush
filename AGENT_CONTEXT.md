@@ -13,6 +13,14 @@
     - [Feature] `energy_24h` (Sınırsız Enerji) ürünü Mağaza > Araçlar sekmesine "Premium" etiketiyle eklendi. Stripe entegrasyonu tamamlandı. (04.03.2026)
     - **Durum:** Stripe Secret'lar (Secret Key & Webhook Secret) kullanıcı tarafından Supabase'e girildi. Özellik kodları yayına hazır.
     - **Bekleyen:** SQL uygulaması (Supabase), Edge Functions Deploy, Stripe Webhook Endpoint kurulumu.
+- **Visual (v10.0.0)**: **Game Juice & Görsel İyileştirmeler (04.03.2026):**
+    - **Electric Selection Trail:** Harf birleştirme hattı artık statik değil, titreşimli ve parlayan bir elektrik akımı şeklinde.
+    - **Spring Physics & Snap:** Harfler yere düştüğünde "Yaylı Fizik" ile organik bir şekilde yaylanıyor. Düşüş hızı (gravity) %80 artırıldı (2.5 -> 4.5), daha "snappy" ve akıcı bir his sağlandı.
+    - **Squash & Stretch:** Hızlı düşüşlerde harfler uzuyor, yere çarptıklarında ise hafifçe ezilip eski hallerine dönüyor.
+    - **Bomba Görünürlüğü:** Satır/Sütun bombaları üzerine animasyonlu "Lazer Tarama" çizgileri ve breathing glow efekti eklendi (Mobil görünürlük artırıldı).
+    - **Hiper-Gerçekçi Jelibon (Candy) Efekti:** Harflere kavisli üst ışıklar (highlights) ve alt kenar yansımaları (rim light) eklenerek 3D şeker görünümü kazandırıldı.
+    - **Performans Optimizasyonu:** `shadowBlur` ve `clip()` gibi ağır operasyonlar optimize edildi. Standart karolar için gölgeler devre dışı bırakılarak 60 FPS akıcılık sağlandı.
+    - **Performans Kontrolü:** `PremiumCanvas.jsx` içerisine `VISUAL_CONFIG` eklendi; istenen özellikler buradan kapatılabilir.
 - **Feature (v6.0.0)**: Oyun modları için YENİ isimler belirlendi:
 - **Feature (v7.0.0)**: **Ultra Esnek Etkinlik Sistemi (v7.0.0):**
     - Periyodik (Haftalık vb.) ve Manuel (2 saatlik vb.) etkinlik desteği.
