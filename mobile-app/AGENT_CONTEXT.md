@@ -1,6 +1,8 @@
-# AGENT_CONTEXT
-
 ## Proje: Kelime Crush (Mobile App)
+
+### 04.03.2026 - UI ve Güvenlik İyileştirmeleri
+- **UI & Balancing:** Header'daki profil badge'inden "Lvl" ön eki kaldırıldı. XP kazanımı ve seviye atlama hızı (getNextLevelXp) makul seviyelere çekilerek oyun dengelendi.
+- **Güvenlik:** Sistem analizi raporu doğrultusunda "Try Again" enerji sızıntısı giderildi ve misafir kullanıcı enerji tüketimi düzeltildi.
 
 ### 03.03.2026 - Etkinlik Sistemi ve Oyun Döngüsü İyileştirmeleri
 - **Yapılan İşlem:** Etkinlik sistemindeki kritik hatalar giderildi ve yeni özellikler eklendi.

@@ -78,21 +78,18 @@ export default function DailySpin({ onClose, user, profile, updateProfile, addCo
 
         soundManager?.play('pop'); // Or some spin tick sound
         setIsSpinning(true);
+        setCanSpin(false); // Hemen kapat
         setReward(null);
+
+        const nowStr = Date.now().toString();
+        // Hemen kilitle (race condition önlemek için)
+        localStorage.setItem(`crush_last_spin_${user.id}`, nowStr);
 
         const selectedSlice = getWeightedRandomSlice();
         const sliceAngle = 360 / SPIN_WHEEL_SLICES.length; // 45 derecelik dilim açıları
 
-        // Conic gradient indexe göre 0 dereceden saat yönünde diziliyor.
-        // Slice 0 (0 deg), Slice 1 (45 deg) vb. 
-        // Okumuz üstte olduğundan hedeflenen dilimi tepeye (0'a) getirmeliyiz.
-        // O yüzden çevrilmesi gereken açı: 360 - (index * 45)
         const targetRotation = 360 - (selectedSlice.id * sliceAngle);
-
-        // Rastgele bir ofset ekleyerek (okun dilimin tam ortasında veya kenarında durması için +- 15 derece esneklik)
         const randomOffset = Math.floor(Math.random() * 30) - 15;
-
-        // Çoklu tam dönüşler (8 tur dönme efekti)
         const totalRotation = rotation + (360 * 8) + targetRotation + randomOffset - (rotation % 360);
 
         setRotation(totalRotation);
@@ -101,15 +98,10 @@ export default function DailySpin({ onClose, user, profile, updateProfile, addCo
             soundManager?.play('powerup');
             setReward(selectedSlice);
             setIsSpinning(false);
-            setCanSpin(false);
 
-            const nowStr = Date.now().toString();
-            // Yedek olarak local'e kaydet
-            localStorage.setItem(`crush_last_spin_${user.id}`, nowStr);
-
-            // Eğer updateProfile prop'u geçildiyse veritabanına kaydet
+            // Veritabanına senkronize et (await etmeye gerek yok, UI'yı bloklamasın)
             if (updateProfile) {
-                await updateProfile({ crush_last_spin: nowStr });
+                updateProfile({ crush_last_spin: nowStr });
             }
         }, 5000); // 5 seconds transition duration
     };
@@ -132,9 +124,10 @@ export default function DailySpin({ onClose, user, profile, updateProfile, addCo
         setFlyingReward({ ...reward, amount: finalAmount });
         setReward(null);
 
-        // Clear animation after it finishes
+        // Clear animation after it finishes AND CLOSE
         setTimeout(() => {
             setFlyingReward(null);
+            if (onClose) onClose();
         }, 1200);
     };
 

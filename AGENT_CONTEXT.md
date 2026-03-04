@@ -15,6 +15,16 @@
     - [x] Veritabanı şeması güncellendi (`unlimited_energy_until` sütunu eklendi).
     - [x] Deep Link Entegrasyonu: Ödeme sonrası `wordlenge://` şeması ile uygulamaya otomatik dönüş. `@capacitor/browser` In-App Browser ve `@capacitor/app` Deep Link dinleyicisi eklendi. (04.03.2026)
     - [x] Footer linkleri (Kullanım Şartları / Gizlilik Politikası) landing page'e yönlendiriliyor.
+- **Şans Çarkı Güvenliği** (05.03.2026):
+    - [x] **Race Condition Fix:** Çark çevrildiği anda kilitlenerek üst üste çevrilmesi engellendi.
+    - [x] **UX:** Ödül talep edildikten sonra modalın otomatik kapanması sağlandı.
+- **Zorluk ve Kullanıcı Deneyimi** (04.03.2026):
+    - [x] **Kolay Mod İyileştirmesi:** Hamle sayısı 40 -> 50, Sesli Harf Bonusu 1.8 -> 2.5 yapıldı.
+    - [x] **Kalıcı Zorluk Seçimi:** Seçilen zorluk `localStorage`'a kaydedilerek kalıcı hale getirildi.
+    - [x] **Mantık Düzeltmesi:** `App.jsx` içerisindeki hardcoded `'normal'` zorluklar temizlendi, kullanıcı seçimi tüm modlarda aktif edildi.
+- **UI & Balancing** (04.03.2026):
+    - [x] Header'daki profil badge'inden "Lvl" ön eki kaldırıldı.
+    - [x] **XP/Level Re-balancing:** Seviye atlama barajı 1000'den 2500 XP'ye çıkarıldı, artış katsayısı %20 yapıldı. Kelime ödülleri %50 azaltıldı.
 - **SafeArea & Header Düzeltmesi (v10.2.1)** (04.03.2026):
     - [x] Header'ın çentik/status bar altında kalma sorunu çözüldü.
     - [x] `capacitor.config.json`'da `overlaysWebView: true` yapıldı.

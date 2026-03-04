@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     mastery_points INTEGER DEFAULT 0,
     perks_json JSONB DEFAULT '{}'::jsonb,
     unlimited_energy_until TIMESTAMPTZ, -- v9.1.5 (24s Sınırsız Enerji Desteği)
+    daily_missions JSONB DEFAULT '{"date": "", "tasks": []}'::jsonb, -- v11.0.0 (Günlük Görev Sistemi)
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 

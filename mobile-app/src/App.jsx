@@ -16,6 +16,7 @@ import { LETTER_POINTS, TIME_BATTLE_OPTIONS } from './logic/Constants';
 import { AuthService } from './logic/AuthService';
 import { SupabaseService } from './logic/SupabaseService';
 import DailySpin from './components/DailySpin';
+import DailyMissions from './components/DailyMissions';
 
 
 const DictionaryLoader = ({ language, t }) => (
@@ -208,6 +209,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess, t = (s) => s }) => {
 
 
 const Dashboard = ({
+  dailyMissions, claimMissionReward, updateMissionProgress,
   onSelectTimeBattle, onSelectArcade, onSelectZen, currentLevel, coins, tools, streakCount,
   levels = [], isLoading, user, profile, fetchProfile, onOpenAuth, language, setLanguage, t = (s) => s,
   isMuted, toggleMute, difficulty, changeDifficulty, dailyReward, claimGift, STREAK_REWARDS = [],
@@ -763,6 +765,20 @@ const Dashboard = ({
             addCoins={addCoins}
             addTool={addTool}
             t={t}
+            soundManager={soundManager}
+          />
+        );
+      }
+
+      case 'missions': {
+        return (
+          <DailyMissions
+            onClose={() => setDashboardView('modes')}
+            dailyMissions={dailyMissions}
+            claimMissionReward={claimMissionReward}
+            language={language}
+            t={t}
+            profile={profile}
             soundManager={soundManager}
           />
         );
@@ -1377,6 +1393,27 @@ const Dashboard = ({
                   <ChevronRight size={16} className="text-slate-700 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all shrink-0" />
                 </button>
 
+                {/* GÖREVLER Kartı (full width) */}
+                <button
+                  onClick={() => { if (!user) { setLockReason('auth'); setShowMissionLock(true); } else setDashboardView('missions'); }}
+                  className="group relative overflow-hidden rounded-[1.5rem] border border-white/8 p-5 flex items-center gap-4 text-left transition-all duration-300 hover:border-sky-500/30 active:scale-[0.98]"
+                  style={{ background: 'linear-gradient(135deg, #0a1820 0%, #041014 100%)' }}
+                >
+                  <div className="w-12 h-12 bg-sky-500/10 border border-sky-500/20 rounded-xl flex items-center justify-center group-hover:bg-sky-500/20 group-hover:border-sky-500/40 transition-all shrink-0">
+                    <ListTodo size={20} className="text-sky-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-0.5">GÜNLÜK</div>
+                    <div className="text-lg font-black text-white uppercase tracking-tight leading-none">{t('missions') || 'GÖREVLER'}</div>
+                  </div>
+                  {/* Progress Badge */}
+                  <div className="bg-sky-500/20 px-3 py-1 rounded-full border border-sky-500/30">
+                    <span className="text-[10px] font-black text-sky-400 tabular-nums">
+                      {dailyMissions?.tasks?.filter(t => t.claimed).length || 0}/{dailyMissions?.tasks?.length || 0}
+                    </span>
+                  </div>
+                </button>
+
                 {/* ENVANTER + DAILY (2 col grid) */}
                 <div className="grid grid-cols-2 gap-3">
                   <button
@@ -1415,15 +1452,6 @@ const Dashboard = ({
 
             {/* ── MOBİL: Alt İkon Barı (Premium Bottom Nav) ── */}
             <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-2xl border-t border-white/10 px-6 py-4 flex justify-between items-center shadow-[0_-15px_40px_rgba(0,0,0,0.5)]">
-              <button
-                onClick={() => setDashboardView('modes')}
-                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'modes' ? 'text-sky-400 scale-110' : 'text-slate-500'}`}
-              >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'modes' ? 'bg-sky-500/20 border-sky-500/40 shadow-[0_0_15px_rgba(14,165,233,0.3)]' : 'bg-white/5 border-transparent'}`}>
-                  <Gamepad2 size={20} />
-                </div>
-                <span className="text-[8px] font-black uppercase tracking-widest">{t('play') || 'Oyun'}</span>
-              </button>
 
               <button
                 onClick={() => { if (!user) setShowMissionLock(true); else setDashboardView('inventory'); }}
@@ -1454,6 +1482,16 @@ const Dashboard = ({
                   <ShoppingBag size={20} />
                 </div>
                 <span className="text-[8px] font-black uppercase tracking-widest">{t('market') || 'Shop'}</span>
+              </button>
+
+              <button
+                onClick={() => { if (!user) { setLockReason('auth'); setShowMissionLock(true); } else setDashboardView('missions'); }}
+                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'missions' ? 'text-sky-400 scale-110' : 'text-slate-500'}`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'missions' ? 'bg-sky-500/20 border-sky-500/40 shadow-[0_0_15px_rgba(14,165,233,0.3)]' : 'bg-white/5 border-transparent'}`}>
+                  <ListTodo size={20} />
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-widest">{t('missions') || 'Görev'}</span>
               </button>
 
               <button
@@ -1612,7 +1650,7 @@ const Dashboard = ({
                   )}
                 </div>
                 <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-amber-400 to-orange-600 text-white text-[7px] md:text-[9px] font-black leading-none px-1.5 md:px-2 py-0.5 rounded-md border-2 border-slate-950 shadow-lg z-20">
-                  Lvl {level}
+                  {level}
                 </div>
                 {isPro && (
                   <div className="absolute -top-1 -right-1 bg-sky-500 text-white p-0.5 md:p-1 rounded-full border-2 border-slate-950 shadow-lg z-20 animate-pulse">
@@ -2550,7 +2588,8 @@ function App() {
     xp, level, masteryPoints, sessionXP, getNextLevelXp,
     activeEvents, isLoadingEvents, currentEventId,
     unlimitedEnergyUntil,
-    isMobile
+    isMobile,
+    dailyMissions, claimMissionReward, updateMissionProgress
   } = useGame();
 
   const isEnergyUnlimited = unlimitedEnergyUntil ? new Date(unlimitedEnergyUntil) > new Date() : false;
@@ -2746,17 +2785,21 @@ function App() {
                         ? (parseInt(activeEvent.duration_limit) || 60)
                         : (parseInt(activeEvent.moves_limit) || 30);
 
-                      // Etkinliğe katılım sağlandığı an listesi yenilenmesi için 0 skorla kayıt at
-                      if (user && (isPro || energy > 0)) {
-                        SupabaseService.updateEventScore(activeEvent.id, user.id, 0);
-                        // Enerji tüketimi (Sadece PRO değilse)
-                        if (!isPro) {
+                      // Enerji tüketimi ve Etkinlik kaydı
+                      if (isPro || isEnergyUnlimited || energy > 0) {
+                        if (user) {
+                          SupabaseService.updateEventScore(activeEvent.id, user.id, 0);
+                        }
+
+                        if (!isPro && !isEnergyUnlimited) {
                           setEnergy(e => e - 1);
                           if (energy === 5) setLastEnergyRefill(Date.now());
                         }
+                      } else {
+                        return; // Enerji yoksa başlatma
                       }
 
-                      resetGame({}, eventMode, subMode, subValue, 'normal', activeEvent.id);
+                      resetGame({}, eventMode, subMode, subValue, difficulty, activeEvent.id);
                     }}
                     disabled={energy <= 0}
                     className={`w-full py-5 font-black rounded-2xl transition-all active:scale-95 shadow-xl uppercase text-xs tracking-widest ${energy > 0 ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 shadow-amber-500/20' : 'bg-slate-800 text-slate-500 shadow-none cursor-not-allowed'}`}
@@ -2836,6 +2879,9 @@ function App() {
             toggleMute={toggleMute}
             difficulty={difficulty}
             changeDifficulty={changeDifficulty}
+            dailyMissions={dailyMissions}
+            claimMissionReward={claimMissionReward}
+            updateMissionProgress={updateMissionProgress}
             addCoins={addCoins}
             addTool={addTool}
             soundManager={soundManager}
@@ -2850,7 +2896,7 @@ function App() {
                   if (energy === 5) setLastEnergyRefill(Date.now());
                 }
                 setShowDashboard(false);
-                resetGame(boosters, 'arcade', subMode, subValue, 'normal');
+                resetGame(boosters, 'arcade', subMode, subValue, difficulty);
               }
             }}
             onSelectTimeBattle={(duration, boosters) => {
@@ -2870,7 +2916,7 @@ function App() {
                   if (energy === 5) setLastEnergyRefill(Date.now());
                 }
                 setShowDashboard(false);
-                resetGame({}, 'zen', 'moves', 999, 'normal');
+                resetGame({}, 'zen', 'moves', 999, difficulty);
               }
             }}
             totalScore={totalScore}
@@ -3328,7 +3374,23 @@ function App() {
                         </div>
                       </div>
 
-                      <button onClick={() => resetGame({}, 'zen')} className="w-full py-3 landscape:py-2 md:py-5 bg-emerald-500 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl shadow-xl mb-2 landscape:mb-1 md:mb-3 uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-[0.98] text-sm landscape:text-xs md:text-base">{t('new_session')}</button>
+                      <button
+                        onClick={() => {
+                          if (isPro || isEnergyUnlimited || energy > 0) {
+                            if (!isPro && !isEnergyUnlimited) {
+                              setEnergy(prev => prev - 1);
+                              if (energy === 5) setLastEnergyRefill(Date.now());
+                            }
+                            resetGame({}, 'zen');
+                          } else {
+                            alert(language === 'tr' ? 'Yetersiz Enerji!' : 'Not Enough Energy!');
+                            setShowDashboard(true);
+                          }
+                        }}
+                        className="w-full py-3 landscape:py-2 md:py-5 bg-emerald-500 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl shadow-xl mb-2 landscape:mb-1 md:mb-3 uppercase tracking-widest hover:bg-emerald-400 transition-all active:scale-[0.98] text-sm landscape:text-xs md:text-base"
+                      >
+                        {t('new_session')}
+                      </button>
                       <button onClick={() => setShowDashboard(true)} className="w-full py-3 landscape:py-2 md:py-4 bg-white/5 text-slate-400 font-black rounded-xl landscape:rounded-lg md:rounded-2xl hover:bg-white/10 transition-all underline decoration-emerald-500/30 underline-offset-4 text-sm landscape:text-xs md:text-base">{t('back_to_menu')}</button>
                     </>
                   ) : gameMode === 'timeBattle' ? (
@@ -3415,7 +3477,24 @@ function App() {
                         </div>
                       </div>
 
-                      <button onClick={() => resetGame({}, null, arcadeSubMode, arcadeValue)} className="w-full py-3 landscape:py-2 md:py-5 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl shadow-xl mb-2 landscape:mb-1 md:mb-3 text-sm landscape:text-xs md:text-base bg-sky-500 hover:bg-sky-400 shadow-sky-500/20">{t('try_again')}</button>
+                      <button
+                        onClick={() => {
+                          if (isPro || isEnergyUnlimited || energy > 0) {
+                            if (!isPro && !isEnergyUnlimited) {
+                              setEnergy(prev => prev - 1);
+                              if (energy === 5) setLastEnergyRefill(Date.now());
+                            }
+                            resetGame({}, null, arcadeSubMode, arcadeValue);
+                          } else {
+                            // Enerji bittiyse Dashboard'a dön ve marketi aç veya uyarı ver
+                            alert(language === 'tr' ? 'Yetersiz Enerji!' : 'Not Enough Energy!');
+                            setShowDashboard(true);
+                          }
+                        }}
+                        className="w-full py-3 landscape:py-2 md:py-5 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl shadow-xl mb-2 landscape:mb-1 md:mb-3 text-sm landscape:text-xs md:text-base bg-sky-500 hover:bg-sky-400 shadow-sky-500/20"
+                      >
+                        {t('try_again')}
+                      </button>
                       <button onClick={() => setShowDashboard(true)} className="w-full py-3 landscape:py-2 md:py-4 bg-white/5 text-slate-400 font-black rounded-xl landscape:rounded-lg md:rounded-2xl hover:bg-white/10 transition-all underline underline-offset-4 decoration-white/10 text-sm landscape:text-xs md:text-base">{t('back_to_menu')}</button>
                     </>
                   )}

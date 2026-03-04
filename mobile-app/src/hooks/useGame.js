@@ -11,7 +11,9 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [language, setLanguageState] = useState(() => {
         return localStorage.getItem('crush_lang') || 'tr';
     });
-    const [difficulty, setDifficultyState] = useState(initialDifficulty);
+    const [difficulty, setDifficultyState] = useState(() => {
+        return localStorage.getItem('crush_difficulty') || initialDifficulty;
+    });
     const [gameMode, setGameMode] = useState('arcade'); // 'arcade', 'timeBattle', or 'zen'
 
     // Orientation & Mobile detection for responsive grid
@@ -72,9 +74,29 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [bestScoreAdventure, setBestScoreAdventure] = useState(0);
     const [bestScoreTimeArena, setBestScoreTimeArena] = useState(0);
 
+    // Günlük Görevler (v10.3.0)
+    const [dailyMissions, setDailyMissions] = useState(() => {
+        const saved = localStorage.getItem('crush_daily_missions');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                const today = new Date().toISOString().split('T')[0];
+                if (parsed.date === today) return parsed;
+            } catch (e) { console.error("Error parsing daily missions", e); }
+        }
+        return {
+            date: new Date().toISOString().split('T')[0],
+            tasks: [
+                { id: "use_tool", target: 5, current: 0, claimed: false, reward: 100, type: "coins", label_tr: "5 Yardımcı Araç Kullan", label_en: "Use 5 Tools" },
+                { id: "find_word", target: 30, current: 0, claimed: false, reward: 150, type: "coins", label_tr: "30 Kelime Bul", label_en: "Find 30 Words" },
+                { id: "play_game", target: 3, "current": 0, "claimed": false, "reward": 250, "type": "xp", "label_tr": "3 Oyun Seansı Tamamla", "label_en": "Complete 3 Game Sessions" }
+            ]
+        };
+    });
+
     // Seviye atlamak için gereken XP hesaplama
     const getNextLevelXp = useCallback((lvl) => {
-        return Math.floor(1000 * Math.pow(1.15, lvl - 1));
+        return Math.floor(2500 * Math.pow(1.20, lvl - 1));
     }, []);
 
     // XP Ekleme ve Seviye Kontrolü
@@ -116,11 +138,64 @@ export const useGame = (initialDifficulty = 'normal') => {
     // Kelime uzunluğuna göre XP hesaplama (GAME_LEVEL_STRATEGY tabanlı)
     const calculateWordXP = useCallback((wordLength) => {
         if (wordLength < 3) return 0;
-        if (wordLength === 3) return 10;
-        if (wordLength === 4) return 25;
-        // 5+ harf: 50 + (10 * ekstra her harf)
-        return 50 + (Math.max(0, wordLength - 5) * 10);
+        if (wordLength === 3) return 5;
+        if (wordLength === 4) return 10;
+        // 5+ harf: 25 + (5 * ekstra her harf)
+        return 25 + (Math.max(0, wordLength - 5) * 5);
     }, []);
+
+    const addCoins = useCallback((amount) => setCoins(c => c + amount), []);
+    const addTool = useCallback((toolId, amount = 1) => setTools(t => ({ ...t, [toolId]: (t[toolId] || 0) + amount })), []);
+
+    const updateMissionProgress = useCallback((taskId, amount = 1) => {
+        setDailyMissions(prev => {
+            const today = new Date().toISOString().split('T')[0];
+            // Tarih kontrolü, gün değiştiyse sıfırla
+            let base = prev;
+            if (prev.date !== today) {
+                base = {
+                    date: today,
+                    tasks: prev.tasks.map(t => ({ ...t, current: 0, claimed: false }))
+                };
+            }
+
+            const newMissions = {
+                ...base,
+                tasks: base.tasks.map(t =>
+                    t.id === taskId ? { ...t, current: Math.min(t.target, t.current + amount) } : t
+                )
+            };
+
+            localStorage.setItem('crush_daily_missions', JSON.stringify(newMissions));
+            return newMissions;
+        });
+    }, []);
+
+    const claimMissionReward = useCallback(async (taskId) => {
+        const mission = dailyMissions.tasks.find(t => t.id === taskId);
+        if (!mission || mission.claimed || mission.current < mission.target) return false;
+
+        const updatedMissions = {
+            ...dailyMissions,
+            tasks: dailyMissions.tasks.map(t =>
+                t.id === taskId ? { ...t, claimed: true } : t
+            )
+        };
+
+        setDailyMissions(updatedMissions);
+        localStorage.setItem('crush_daily_missions', JSON.stringify(updatedMissions));
+
+        if (mission.type === 'coins') {
+            addCoins(mission.reward);
+        } else if (mission.type === 'xp') {
+            addXP(mission.reward);
+        }
+
+        if (user) {
+            await SupabaseService.updateProfile(user.id, { daily_missions: updatedMissions });
+        }
+        return true;
+    }, [dailyMissions, user, addCoins, addXP]);
 
     // Dynamic Level Loader (disabled - levels replaced by Time Battle)
     // useEffect(() => { ... }, []);
@@ -188,6 +263,13 @@ export const useGame = (initialDifficulty = 'normal') => {
             if (data.unlimited_energy_until) setUnlimitedEnergyUntil(data.unlimited_energy_until);
             if (data.best_score_adventure) setBestScoreAdventure(data.best_score_adventure);
             if (data.best_score_time_arena) setBestScoreTimeArena(data.best_score_time_arena);
+            if (data.daily_missions) {
+                const today = new Date().toISOString().split('T')[0];
+                if (data.daily_missions.date === today) {
+                    setDailyMissions(data.daily_missions);
+                    localStorage.setItem('crush_daily_missions', JSON.stringify(data.daily_missions));
+                }
+            }
             localStorage.setItem('crush_completed_levels', (data.current_level_index || 0).toString());
         }
         setIsLoadingProfile(false);
@@ -540,6 +622,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         const newEngine = new GameEngine(rows, cols, settings.vowelBonus, language);
         setGameMode('arcade');
         setDifficultyState(newDiff);
+        localStorage.setItem('crush_difficulty', newDiff);
         newEngine.setLanguage(language);
         setEngine(newEngine);
         setGrid(newEngine.initGrid());
@@ -591,6 +674,7 @@ export const useGame = (initialDifficulty = 'normal') => {
             }
             setGrid([...result.grid]);
             setTools(prev => ({ ...prev, [activeTool]: prev[activeTool] - 1 }));
+            updateMissionProgress('use_tool', 1);
             setActiveTool(null);
             soundManager.play('powerup');
             // updateGoals removed - mission mode replaced by timeBattle
@@ -891,17 +975,23 @@ export const useGame = (initialDifficulty = 'normal') => {
             setCoins(c => c + goldReward);
         }
         if (gameState !== 'playing' && !hasAwardedXP) {
-            const completionXP = gameMode === 'arcade' ? 100 : gameMode === 'timeBattle' ? 200 : 50;
+            const completionXP = gameMode === 'arcade' ? 150 : gameMode === 'timeBattle' ? 300 : 75;
             const totalSessionXP = sessionXP + completionXP;
             addXP(totalSessionXP);
             setHasAwardedXP(true);
+
+            // Günlük Görevleri Güncelle
+            updateMissionProgress('play_game', 1);
+            if (wordsFoundCount > 0) {
+                updateMissionProgress('find_word', wordsFoundCount);
+            }
         }
 
         // Sync score to event if active
         if (currentEventId && user && (gameState === 'victory' || gameState === 'gameover')) {
             SupabaseService.updateEventScore(currentEventId, user.id, score);
         }
-    }, [moves, timeLeft, gameState, score, gameMode, arcadeSubMode, timeBattleElapsed, currentEventId, activeEvents, hasAwardedXP, addXP, sessionXP]);
+    }, [moves, timeLeft, gameState, score, gameMode, arcadeSubMode, timeBattleElapsed, currentEventId, activeEvents, hasAwardedXP, addXP, sessionXP, updateMissionProgress, wordsFoundCount]);
 
     const buyTool = useCallback((toolId, price) => {
         if (coins >= price) {
@@ -914,8 +1004,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         return false;
     }, [coins]);
 
-    const addCoins = useCallback((amount) => setCoins(c => c + amount), []);
-    const addTool = useCallback((toolId, amount = 1) => setTools(t => ({ ...t, [toolId]: (t[toolId] || 0) + amount })), []);
+
 
     return {
         grid, selectedPath, animatingCells, score, moves, level, difficulty, foundWords,
@@ -939,6 +1028,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt,
         // Event exports
         activeEvents, isLoadingEvents, fetchActiveEvents, currentEventId,
-        isMobile, orientation
+        isMobile, orientation,
+        dailyMissions, claimMissionReward, updateMissionProgress
     };
 };

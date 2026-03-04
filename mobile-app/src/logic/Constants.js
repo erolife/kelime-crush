@@ -2,9 +2,9 @@ const CHALLENGE_GRID_SIZE = 10;
 
 export const DIFFICULTY_SETTINGS = {
     easy: {
-        moves: 40,
+        moves: 50,
         scoreTarget: 200,
-        vowelBonus: 1.8,
+        vowelBonus: 2.5,
         rows: 9,
         cols: 11,
         label: 'Kolay'
