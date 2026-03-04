@@ -62,7 +62,7 @@ serve(async (req) => {
             })
         }
 
-        const { productId, productType, mode, language = 'tr' } = await req.json()
+        const { productId, productType, mode, language = 'tr', mobile_redirect = false } = await req.json()
 
         // Ürün doğrulama
         const product = PRICE_MAP[productId]
@@ -104,13 +104,22 @@ serve(async (req) => {
                 .eq('id', user.id)
         }
 
+        // success/cancel URL — mobil ise Deep Link kullan
+        const webBase = req.headers.get('origin') || 'https://play.wordlenge.com'
+        const successUrl = mobile_redirect
+            ? `wordlenge://payment?status=success&product=${productId}`
+            : `${webBase}/?payment=success&product=${productId}`
+        const cancelUrl = mobile_redirect
+            ? `wordlenge://payment?status=cancelled`
+            : `${webBase}/?payment=cancelled`
+
         // Checkout Session ayarları
         const sessionConfig = {
             customer: customerId,
             line_items: [{ price: priceId, quantity: 1 }],
             mode: mode === 'subscription' ? 'subscription' : 'payment',
-            success_url: `${req.headers.get('origin') || 'https://play.wordlenge.com'}/?payment=success&product=${productId}`,
-            cancel_url: `${req.headers.get('origin') || 'https://play.wordlenge.com'}/?payment=cancelled`,
+            success_url: successUrl,
+            cancel_url: cancelUrl,
             metadata: {
                 supabase_user_id: user.id,
                 product_id: productId,

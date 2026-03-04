@@ -11,9 +11,9 @@
       "androidScaleType": "CENTER_CROP"
     },
     "StatusBar": {
-      "overlaysWebView": false,
+      "overlaysWebView": true,
       "style": "DARK",
-      "backgroundColor": "#020617"
+      "backgroundColor": "#00000000"
     }
   }
 }

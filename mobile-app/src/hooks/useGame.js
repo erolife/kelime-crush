@@ -66,6 +66,11 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [masteryPoints, setMasteryPoints] = useState(0);
     const [perks, setPerks] = useState({});
     const [sessionXP, setSessionXP] = useState(0);
+    const [unlimitedEnergyUntil, setUnlimitedEnergyUntil] = useState(null); // ISO Date string
+
+    // Mod bazlı en iyi skorlar (Leaderboard için)
+    const [bestScoreAdventure, setBestScoreAdventure] = useState(0);
+    const [bestScoreTimeArena, setBestScoreTimeArena] = useState(0);
 
     // Seviye atlamak için gereken XP hesaplama
     const getNextLevelXp = useCallback((lvl) => {
@@ -180,6 +185,9 @@ export const useGame = (initialDifficulty = 'normal') => {
             if (data.level !== undefined) setLevel(data.level);
             if (data.mastery_points !== undefined) setMasteryPoints(data.mastery_points);
             if (data.perks_json) setPerks(data.perks_json);
+            if (data.unlimited_energy_until) setUnlimitedEnergyUntil(data.unlimited_energy_until);
+            if (data.best_score_adventure) setBestScoreAdventure(data.best_score_adventure);
+            if (data.best_score_time_arena) setBestScoreTimeArena(data.best_score_time_arena);
             localStorage.setItem('crush_completed_levels', (data.current_level_index || 0).toString());
         }
         setIsLoadingProfile(false);
@@ -271,12 +279,25 @@ export const useGame = (initialDifficulty = 'normal') => {
                     words_found_count: wordsFoundCount,
                     games_played: gamesPlayed,
                     high_score: highScore,
-                    avatar_id: avatarId
+                    avatar_id: avatarId,
+                    best_score_adventure: bestScoreAdventure,
+                    best_score_time_arena: bestScoreTimeArena
                 });
             }, 2000); // 2 saniye debounce
             return () => clearTimeout(timeoutId);
         }
-    }, [coins, tools, user, completedLevels, language, energy, lastEnergyRefill, totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId]);
+    }, [coins, tools, user, completedLevels, language, energy, lastEnergyRefill, totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, bestScoreAdventure, bestScoreTimeArena]);
+
+    // Oyun sonu: Mod bazlı en iyi skor güncelle
+    useEffect(() => {
+        if (gameState === 'gameover' || gameState === 'victory') {
+            if (gameMode === 'arcade' && score > bestScoreAdventure) {
+                setBestScoreAdventure(score);
+            } else if (gameMode === 'timeBattle' && score > bestScoreTimeArena) {
+                setBestScoreTimeArena(score);
+            }
+        }
+    }, [gameState]);
 
     // Energy Refill Logic (20 minutes = 1200 seconds)
     useEffect(() => {

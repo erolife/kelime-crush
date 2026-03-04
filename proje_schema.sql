@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     level INTEGER DEFAULT 1,
     mastery_points INTEGER DEFAULT 0,
     perks_json JSONB DEFAULT '{}'::jsonb,
+    unlimited_energy_until TIMESTAMPTZ, -- v9.1.5 (24s Sınırsız Enerji Desteği)
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 

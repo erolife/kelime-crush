@@ -215,7 +215,7 @@ const Dashboard = ({
   totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId, completedLevels,
   activeEvents = [], activeEvent, setSelectedEventId, setView,
   xp, level, masteryPoints, sessionXP, getNextLevelXp,
-  isPro, isMobile
+  isPro, isEnergyUnlimited, isMobile
 }) => {
   const [dashboardView, setDashboardView] = React.useState('modes');
   const [selectedEventIdLocal, setSelectedEventIdLocal] = React.useState(null);
@@ -1473,7 +1473,7 @@ const Dashboard = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[400] flex flex-col bg-slate-950/95 backdrop-blur-xl overflow-hidden">
+    <div className="fixed inset-0 z-[400] flex flex-col bg-slate-950/95 backdrop-blur-xl overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       {/* Falling Letters Background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-50 select-none">
         {fallingLetters.map(item => {
@@ -1653,11 +1653,11 @@ const Dashboard = ({
         {user ? (
           <>
             <div className="flex items-center gap-2 bg-slate-900/60 rounded-full px-4 py-1.5 border border-white/5">
-              <div className={`w-5 h-5 flex items-center justify-center ${isPro || energy > 0 ? 'text-sky-400' : 'text-rose-400'}`}>
-                <Zap size={14} fill={isPro || energy > 0 ? "currentColor" : "none"} />
+              <div className={`w-5 h-5 flex items-center justify-center ${isPro || isEnergyUnlimited || energy > 0 ? 'text-sky-400' : 'text-rose-400'}`}>
+                <Zap size={14} fill={isPro || isEnergyUnlimited || energy > 0 ? "currentColor" : "none"} />
               </div>
-              <span className="text-[11px] font-black text-white tracking-widest leading-none">{isPro ? '∞' : `${energy}/5`}</span>
-              {!isPro && energy < 5 && (
+              <span className="text-[11px] font-black text-white tracking-widest leading-none">{(isPro || isEnergyUnlimited) ? '∞' : `${energy}/5`}</span>
+              {!(isPro || isEnergyUnlimited) && energy < 5 && (
                 <span className="text-[8px] font-bold text-slate-500 ml-1">
                   {Math.floor(nextEnergyIn / 60)}:{(nextEnergyIn % 60).toString().padStart(2, '0')}
                 </span>
@@ -1684,9 +1684,9 @@ const Dashboard = ({
       {/* Footer */}
       <footer className="mt-auto py-4 md:py-8 hidden lg:flex flex-col items-center gap-2 md:gap-3 border-t border-white/5 opacity-40 shrink-0">
         <div className="flex items-center gap-4 md:gap-6">
-          <button className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-white transition-colors">{t('terms_of_service')}</button>
+          <a href="https://wordlenge.com/kullanim-kosullari" target="_blank" rel="noopener noreferrer" className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-white transition-colors">{t('terms_of_service')}</a>
           <div className="w-1 md:w-1.5 h-1 md:h-1.5 bg-slate-800 rounded-full" />
-          <button className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-white transition-colors">{t('privacy_policy')}</button>
+          <a href="https://wordlenge.com/gizlilik-politikasi" target="_blank" rel="noopener noreferrer" className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-white transition-colors">{t('privacy_policy')}</a>
         </div>
         <p className="text-[8px] md:text-[9px] font-bold text-slate-500 uppercase tracking-[0.3em]">
           {t('copyright')}
@@ -2549,9 +2549,11 @@ function App() {
     timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt,
     xp, level, masteryPoints, sessionXP, getNextLevelXp,
     activeEvents, isLoadingEvents, currentEventId,
+    unlimitedEnergyUntil,
     isMobile
   } = useGame();
 
+  const isEnergyUnlimited = unlimitedEnergyUntil ? new Date(unlimitedEnergyUntil) > new Date() : false;
   const isPro = profile?.is_pro || false;
 
   const [isMuted, setIsMuted] = useState(false);
@@ -2587,6 +2589,65 @@ function App() {
     return () => window.removeEventListener('pointerdown', startAudio);
   }, []);
 
+  // StatusBar yapılandırması — Çentik / SafeArea düzeltmesi
+  useEffect(() => {
+    const setupStatusBar = async () => {
+      try {
+        const { Capacitor } = await import('@capacitor/core');
+        if (!Capacitor.isNativePlatform()) return;
+        const { StatusBar, Style } = await import('@capacitor/status-bar');
+        await StatusBar.setOverlaysWebView({ overlay: true });
+        await StatusBar.setStyle({ style: Style.Dark });
+        await StatusBar.setBackgroundColor({ color: '#00000000' });
+      } catch (e) {
+        console.log('[StatusBar] Plugin not available:', e);
+      }
+    };
+    setupStatusBar();
+  }, []);
+
+  // Deep Link dinleyicisi — Ödeme sonrası uygulamaya geri dönüş
+  useEffect(() => {
+    let cleanup = null;
+    const setupDeepLinks = async () => {
+      try {
+        const { Capacitor } = await import('@capacitor/core');
+        if (!Capacitor.isNativePlatform()) return;
+
+        const { App: CapApp } = await import('@capacitor/app');
+        const { PaymentService } = await import('./logic/PaymentService');
+
+        const listener = await CapApp.addListener('appUrlOpen', async (event) => {
+          console.log('[DeepLink] URL:', event.url);
+          // In-App Browser'ı kapat
+          await PaymentService.closeCheckout();
+
+          const url = new URL(event.url);
+          const status = url.searchParams.get('status');
+          const product = url.searchParams.get('product');
+
+          if (status === 'success') {
+            console.log('[DeepLink] Ödeme başarılı, ürün:', product);
+            // Profili yenile (altın, enerji vb. güncellensin)
+            if (fetchProfile) await fetchProfile();
+            // Başarı bildirimi (opsiyonel bir toast veya alert)
+            setTimeout(() => {
+              alert(language === 'tr'
+                ? '✅ Ödemeniz başarıyla tamamlandı! Ödülleriniz hesabınıza yüklendi.'
+                : '✅ Payment successful! Your rewards have been added.');
+            }, 500);
+          } else if (status === 'cancelled') {
+            console.log('[DeepLink] Ödeme iptal edildi');
+          }
+        });
+        cleanup = () => listener.remove();
+      } catch (e) {
+        console.log('[DeepLink] Not on native platform, skipping');
+      }
+    };
+    setupDeepLinks();
+    return () => { if (cleanup) cleanup(); };
+  }, [fetchProfile, language]);
 
 
 
@@ -2780,10 +2841,11 @@ function App() {
             soundManager={soundManager}
             onOpenAuth={() => setIsAuthModalOpen(true)}
             energy={energy}
+            isEnergyUnlimited={isEnergyUnlimited}
             nextEnergyIn={nextEnergyIn}
             onSelectArcade={(boosters, subMode, subValue) => {
-              if (isPro || energy > 0) {
-                if (!isPro) {
+              if (isPro || isEnergyUnlimited || energy > 0) {
+                if (!isPro && !isEnergyUnlimited) {
                   setEnergy(prev => prev - 1);
                   if (energy === 5) setLastEnergyRefill(Date.now());
                 }
@@ -2792,8 +2854,8 @@ function App() {
               }
             }}
             onSelectTimeBattle={(duration, boosters) => {
-              if (isPro || energy > 0) {
-                if (!isPro) {
+              if (isPro || isEnergyUnlimited || energy > 0) {
+                if (!isPro && !isEnergyUnlimited) {
                   setEnergy(prev => prev - 1);
                   if (energy === 5) setLastEnergyRefill(Date.now());
                 }
@@ -2802,8 +2864,8 @@ function App() {
               }
             }}
             onSelectZen={() => {
-              if (isPro || energy > 0) {
-                if (!isPro) {
+              if (isPro || isEnergyUnlimited || energy > 0) {
+                if (!isPro && !isEnergyUnlimited) {
                   setEnergy(prev => prev - 1);
                   if (energy === 5) setLastEnergyRefill(Date.now());
                 }
@@ -3133,7 +3195,7 @@ function App() {
                     }
 
                     return (
-                      <div className="absolute inset-0 z-[300] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 landscape:p-3 md:p-8 text-center animate-in fade-in zoom-in duration-500">
+                      <div className="absolute inset-0 z-[300] bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-4 landscape:p-3 md:p-8 text-center animate-in fade-in slide-in-from-top-8 duration-700">
                         <div className="max-w-xs w-full">
                           <div className="w-14 h-14 landscape:w-12 landscape:h-12 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-3 landscape:mb-2 md:mb-6 border bg-green-500/20 border-green-400 text-green-400">
                             <Award size={28} className="landscape:w-6 landscape:h-6 md:w-10 md:h-10" />
@@ -3166,6 +3228,22 @@ function App() {
                               })}
                             </div>
                           )}
+
+                          {/* Oyun İstatistikleri */}
+                          <div className="grid grid-cols-3 gap-2 landscape:gap-1.5 mb-4 landscape:mb-2">
+                            <div className="bg-slate-800/50 p-2.5 landscape:p-1.5 rounded-xl landscape:rounded-lg border border-white/5">
+                              <div className="text-[8px] landscape:text-[7px] text-slate-500 font-black uppercase mb-0.5">{t('score')}</div>
+                              <div className="text-base landscape:text-sm font-black text-white tabular-nums">{score}</div>
+                            </div>
+                            <div className="bg-slate-800/50 p-2.5 landscape:p-1.5 rounded-xl landscape:rounded-lg border border-white/5">
+                              <div className="text-[8px] landscape:text-[7px] text-slate-500 font-black uppercase mb-0.5">{t('moves')}</div>
+                              <div className="text-base landscape:text-sm font-black text-white tabular-nums">{totalMovesMade}</div>
+                            </div>
+                            <div className="bg-slate-800/50 p-2.5 landscape:p-1.5 rounded-xl landscape:rounded-lg border border-white/5">
+                              <div className="text-[8px] landscape:text-[7px] text-slate-500 font-black uppercase mb-0.5">{t('words_found')}</div>
+                              <div className="text-base landscape:text-sm font-black text-emerald-400 tabular-nums">{wordsFoundCount}</div>
+                            </div>
+                          </div>
 
                           <button onClick={() => {
                             setShowDashboard(true);
@@ -3226,7 +3304,7 @@ function App() {
           {
             gameState === 'gameover' && (
               <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 landscape:p-3 md:p-6 bg-slate-950/90 backdrop-blur-xl">
-                <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] p-5 landscape:p-3 md:p-8 text-center animate-in fade-in zoom-in duration-500">
+                <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] p-5 landscape:p-3 md:p-8 text-center animate-in fade-in slide-in-from-top-8 duration-700">
                   {gameMode === 'zen' ? (
                     <>
                       <Sparkles className="w-12 h-12 landscape:w-10 landscape:h-10 md:w-16 md:h-16 text-emerald-400 mx-auto mb-3 landscape:mb-2 md:mb-4" />
@@ -3327,8 +3405,12 @@ function App() {
                           <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('moves')}</div>
                           <div className="text-xl landscape:text-lg md:text-2xl font-black text-white tabular-nums">{totalMovesMade}</div>
                         </div>
-                        <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-sky-500/20 col-span-2">
-                          <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-sky-400 font-black uppercase mb-0.5">Kazanılan Tecrübe</div>
+                        <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5">
+                          <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('words_found')}</div>
+                          <div className="text-xl landscape:text-lg md:text-2xl font-black text-emerald-400 italic tabular-nums">{wordsFoundCount}</div>
+                        </div>
+                        <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-sky-500/20">
+                          <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-sky-400 font-black uppercase mb-0.5">{language === 'tr' ? 'Tecrübe' : 'XP'}</div>
                           <div className="text-xl landscape:text-lg md:text-2xl font-black text-sky-400 italic tabular-nums">+{sessionXP + 100} XP</div>
                         </div>
                       </div>

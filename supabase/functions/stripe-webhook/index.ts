@@ -119,6 +119,23 @@ serve(async (req) => {
                     console.log(`PRO subscription activated for user ${userId}`)
                 }
 
+                // --- ENERJİ PAKETİ İŞLEME ---
+                if (productType === 'energy' && productId === 'energy_24h') {
+                    // Mevcut sürenin üzerine mi ekleyelim yoksa şimdiden itibaren mi başlatalım?
+                    // Şimdilik: Şimdiden itibaren 24 saat sınırsız enerji.
+                    const expiresAt = new Date()
+                    expiresAt.setHours(expiresAt.getHours() + 24)
+
+                    await supabaseAdmin
+                        .from('profiles')
+                        .update({
+                            unlimited_energy_until: expiresAt.toISOString()
+                        })
+                        .eq('id', userId)
+
+                    console.log(`24h Unlimited Energy activated for user ${userId}`)
+                }
+
                 break
             }
 

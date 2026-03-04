@@ -9,10 +9,17 @@
         - **Sınırsız Enerji:** PRO kullanıcıları için enerji tüketimi devre dışı bırakıldı. Enerji göstergesinde "∞" simgesi aktif edildi.
         - **2x Günlük Ödül:** Şans çarkından kazanılan tüm ödüller (Altın ve Araçlar) PRO kullanıcıları için otomatik olarak 2 katı verilir. Ödül ekranında "PRO 2x BONUS" ibaresi eklendi.
         - **PRO Rozeti:** Liderlik tablosunda ve Profil sayfasında PRO üyeleri için özel "Mavi Yıldız" rozeti eklendi.
-    - [Fix] `create-checkout-session/index.ts`: `try` reserved keyword hatası, eksik tırnak ve Price ID düzeltildi. Stripe Price ID'leri güncellendi. (04.03.2026)
-    - [Feature] `energy_24h` (Sınırsız Enerji) ürünü Mağaza > Araçlar sekmesine "Premium" etiketiyle eklendi. Stripe entegrasyonu tamamlandı. (04.03.2026)
-    - **Durum:** Stripe Secret'lar (Secret Key & Webhook Secret) kullanıcı tarafından Supabase'e girildi. Özellik kodları yayına hazır.
-    - **Bekleyen:** SQL uygulaması (Supabase), Edge Functions Deploy, Stripe Webhook Endpoint kurulumu.
+    - [x] `create-checkout-session/index.ts`: `try` reserved keyword hatası, eksik tırnak ve Price ID düzeltildi. Stripe Price ID'leri güncellendi. (04.03.2026)
+    - [x] [Feature] `energy_24h` (Sınırsız Enerji) ürünü Mağaza > Araçlar sekmesine "Premium" etiketiyle eklendi. Stripe entegrasyonu tamamlandı. (04.03.2026)
+    - [x] Stripe Secret'lar girildi. Edge Function'lar BULUTA DEPLOY EDİLDİ.
+    - [x] Veritabanı şeması güncellendi (`unlimited_energy_until` sütunu eklendi).
+    - [x] Deep Link Entegrasyonu: Ödeme sonrası `wordlenge://` şeması ile uygulamaya otomatik dönüş. `@capacitor/browser` In-App Browser ve `@capacitor/app` Deep Link dinleyicisi eklendi. (04.03.2026)
+    - [x] Footer linkleri (Kullanım Şartları / Gizlilik Politikası) landing page'e yönlendiriliyor.
+- **SafeArea & Header Düzeltmesi (v10.2.1)** (04.03.2026):
+    - [x] Header'ın çentik/status bar altında kalma sorunu çözüldü.
+    - [x] `capacitor.config.json`'da `overlaysWebView: true` yapıldı.
+    - [x] Android `styles.xml`'e edge-to-edge (translucent status bar) desteği eklendi.
+    - [x] `App.jsx` başlangıcında StatusBar plugin'i ile overlay yapılandırıldı. (04.03.2026)
 - **Visual (v10.0.0)**: **Game Juice & Görsel İyileştirmeler (04.03.2026):**
     - **Electric Selection Trail:** Harf birleştirme hattı artık statik değil, titreşimli ve parlayan bir elektrik akımı şeklinde.
     - **Spring Physics & Snap:** Harfler yere düştüğünde "Yaylı Fizik" ile organik bir şekilde yaylanıyor. Düşüş hızı (gravity) %80 artırıldı (2.5 -> 4.5), daha "snappy" ve akıcı bir his sağlandı.

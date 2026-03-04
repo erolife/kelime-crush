@@ -1,4 +1,15 @@
 import { supabase } from './supabaseClient';
+import { Capacitor } from '@capacitor/core';
+
+// Capacitor Browser — Lazy import (sadece native ortamda yüklenir)
+let BrowserPlugin = null;
+const getBrowser = async () => {
+    if (!BrowserPlugin && Capacitor.isNativePlatform()) {
+        const mod = await import('@capacitor/browser');
+        BrowserPlugin = mod.Browser;
+    }
+    return BrowserPlugin;
+};
 
 /**
  * PaymentService — Stripe Checkout oturum yönetimi
@@ -15,6 +26,7 @@ export const PaymentService = {
      */
     async createCheckoutSession(userId, productId, productType = 'coins', language = 'tr') {
         try {
+            const isMobile = Capacitor.isNativePlatform();
             const { data, error } = await supabase.functions.invoke('create-checkout-session', {
                 body: {
                     userId,
@@ -22,6 +34,7 @@ export const PaymentService = {
                     productType,
                     language,
                     mode: 'payment',
+                    mobile_redirect: isMobile,
                 }
             });
 
@@ -41,6 +54,7 @@ export const PaymentService = {
      */
     async createSubscriptionSession(userId, planId, language = 'tr') {
         try {
+            const isMobile = Capacitor.isNativePlatform();
             const { data, error } = await supabase.functions.invoke('create-checkout-session', {
                 body: {
                     userId,
@@ -48,6 +62,7 @@ export const PaymentService = {
                     productType: 'pro',
                     language,
                     mode: 'subscription',
+                    mobile_redirect: isMobile,
                 }
             });
 
@@ -112,13 +127,31 @@ export const PaymentService = {
     },
 
     /**
-     * Ödeme URL'sini aç (Capacitor/Browser)
+     * Ödeme URL'sini aç (Capacitor In-App Browser veya Web)
+     * Mobilde: In-App Browser açılır, ödeme sonrası Deep Link ile uygulamaya dönülür
+     * Web'de: Yeni sekmede açılır
      * @param {string} url - Stripe Checkout URL
      */
-    openCheckoutUrl(url) {
+    async openCheckoutUrl(url) {
         if (!url) return;
-        // Capacitor ortamında InAppBrowser kullanılabilir
-        // Şimdilik standart window.open
-        window.open(url, '_blank');
+
+        const browser = await getBrowser();
+        if (browser) {
+            // Mobil: In-App Browser aç
+            await browser.open({ url, windowName: '_blank' });
+        } else {
+            // Web: Yeni sekmede aç
+            window.open(url, '_blank');
+        }
+    },
+
+    /**
+     * In-App Browser'ı kapat (Ödeme sonrası)
+     */
+    async closeCheckout() {
+        const browser = await getBrowser();
+        if (browser) {
+            await browser.close();
+        }
     }
 };
