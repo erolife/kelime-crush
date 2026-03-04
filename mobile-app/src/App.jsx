@@ -2720,7 +2720,7 @@ function App() {
   };
 
   return (
-    <div className="relative h-screen w-screen bg-[#020617] text-slate-100 font-outfit select-none overflow-hidden flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+    <div className="relative h-screen w-screen bg-[#020617] text-slate-100 font-outfit select-none overflow-hidden flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]">
       {/* Splash Screen Animation */}
       {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
 
@@ -2832,7 +2832,8 @@ function App() {
       ) : (
         <>
           {/* Header */}
-          <header className="px-4 landscape:px-3 md:px-6 py-2 landscape:py-1.5 md:py-4 flex items-center justify-between border-b border-white/5 bg-slate-950/50 backdrop-blur-md shrink-0 gap-4 landscape:gap-3 md:gap-8">
+          {/* Premium Dashboard Header (Sleek & Visual) */}
+          <header className="px-6 py-4 flex items-center justify-between border-b border-white/5 bg-slate-950/20 backdrop-blur-md shrink-0 gap-4 landscape:gap-3 md:gap-8 pt-[env(safe-area-inset-top)]">
             <div className="flex items-center gap-4 shrink-0">
               <div className="p-1.5 landscape:p-1 md:p-2 bg-gradient-to-br from-sky-500 to-purple-600 rounded-lg landscape:rounded-md md:rounded-xl shadow-lg shadow-sky-500/20">
                 <LayoutGrid size={18} className="landscape:w-4 landscape:h-4 md:w-6 md:h-6 text-white" />
