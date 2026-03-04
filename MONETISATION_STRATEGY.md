@@ -1,15 +1,12 @@
 # 💰 WORDLENGE — Monetizasyon Stratejisi
 
 > **Hedef Pazar:** Türkiye (öncelikli), sonrasında global
-> **Ödeme Altyapısı:** İkili sistem — Türkiye: **iyzico** (TL) | Yurtdışı: **Stripe** (USD)
-> **Fiyatlandırma:** Bölgeye göre TL veya USD
+> **Ödeme Altyapısı:** **Stripe** (USD bazlı — checkout'ta TL karşılığı otomatik gösterilir)
 > **Reklam:** ❌ Uygulama içinde reklam gösterimi/ödüllü reklam **olmayacak**
 
 ---
 
 ## 1. Mevcut Ekonomi Analizi
-
-Oyunda halihazırda var olan para birimleri ve kaynaklar:
 
 | Kaynak | Kazanım Yolu | Harcama Yeri |
 |--------|-------------|--------------|
@@ -17,7 +14,7 @@ Oyunda halihazırda var olan para birimleri ve kaynaklar:
 | **Araçlar (Tools)** | Market, günlük ödül, başlangıç seti | Oyun içi kullanım |
 | **Enerji (Energy)** | Zamanla yenileme (5/5, 20dk aralık) | Oyun başlatma |
 
-### Araç Fiyatları (Altınla) — Güncellenmiş
+### Araç Fiyatları (Altınla)
 | Araç | Fiyat |
 |------|-------|
 | Cell Remove | 100 🪙 |
@@ -29,8 +26,7 @@ Oyunda halihazırda var olan para birimleri ve kaynaklar:
 
 ### Altın Kazanım Formülü (Dengelenmiş)
 ```
-Eski: max(0, kelime_uzunluğu - 2) × 2  →  3 harf=2, 4=4, 5=6
-Yeni: max(0, kelime_uzunluğu - 3) × 2  →  3 harf=0, 4=2, 5=4
+max(0, kelime_uzunluğu - 3) × 2  →  3 harf=0, 4=2, 5=4
 ```
 > Bir Bomba almak için ~10-12 oyun gerekiyor. Bu, ödeme motivasyonunu tetikler.
 
@@ -40,21 +36,19 @@ Yeni: max(0, kelime_uzunluğu - 3) × 2  →  3 harf=0, 4=2, 5=4
 
 ### 📦 A) Altın Paketleri (Ana Gelir Kaynağı)
 
-Oyuncular gerçek parayla altın satın alır. **USD bazlı fiyatlandırma** (Stripe checkout TL karşılığını gösterir):
-
-| Paket | Altın | USD Fiyat | Bonus |
-|-------|-------|-----------|-------|
-| **Başlangıç** | 500 🪙 | $4.99 | — |
-| **Popüler** ⭐ | 1,200 🪙 | $9.99 | +20% değer |
-| **Süper** | 3,000 🪙 | $19.99 | +50% değer |
-| **Mega** | 7,500 🪙 | $49.99 | +87% değer |
-| **Efsanevi** | 20,000 🪙 | $99.99 | +140% değer |
+| Paket | Altın | USD Fiyat | ~TRY | Bonus | İlk Alım (2x) |
+|-------|-------|-----------|------|-------|----------------|
+| **Başlangıç** | 500 🪙 | $0.99 | ~₺38 | — | 1,000 🪙 |
+| **Popüler** ⭐ | 1,200 🪙 | $2.99 | ~₺114 | +20% değer | 2,400 🪙 |
+| **Süper** | 3,000 🪙 | $4.99 | ~₺190 | +50% değer | 6,000 🪙 |
+| **Mega** | 7,500 🪙 | $9.99 | ~₺380 | +87% değer | 15,000 🪙 |
+| **Efsanevi** | 20,000 🪙 | $19.99 | ~₺760 | +140% değer | 40,000 🪙 |
 
 > **İlk Satın Alma Bonusu:** İlk altın paketi alımında **2x altın** (bir kerelik).
 
 ---
 
-### ⚡ B) Enerji Sistemi (Oyun Sürekliliği)
+### ⚡ B) Enerji Sistemi
 
 Mevcut: 5 enerji, 20 dakikada 1 yenileme (toplam ~1.5 saat bekleme).
 
@@ -63,24 +57,25 @@ Mevcut: 5 enerji, 20 dakikada 1 yenileme (toplam ~1.5 saat bekleme).
 | **+1 Enerji** | 50 🪙 | Tek seferlik |
 | **Tam Doldurma (5/5)** | 200 🪙 | Anlık |
 | **Sınırsız Enerji (2 saat)** | 400 🪙 | Zamanlı boost |
-| **Sınırsız Enerji (24 saat)** | $2.99 | Direkt USD (Stripe) |
+| **Sınırsız Enerji (24 saat)** | $0.99 | Direkt USD (Stripe) |
 
 ---
 
 ### 👑 C) Premium Abonelik — "WORDLENGE PRO"
 
-Aylık abonelik modeli (recurring revenue):
+| Plan | Fiyat | ~TRY | İndirim |
+|------|-------|------|---------|
+| **Aylık** | $2.99/ay | ~₺114 | — |
+| **Yıllık** | $19.99/yıl | ~₺760 | %44 ($1.67/ay) |
 
-| Özellik | Ücretsiz | PRO ($9.99/ay) |
-|---------|----------|-----------------|
+| Özellik | Ücretsiz | PRO |
+|---------|----------|-----|
 | Enerji | 5, 20dk yenileme | **Sınırsız** |
 | Günlük Altın | — | **100 🪙/gün** |
-| Özel Araçlar | — | **Dinamit & Nükleer** marketten satın alınabilir |
+| Özel Araçlar | — | **Dinamit & Nükleer** marketten alınabilir |
 | Profil Rozeti | — | ✨ PRO rozeti |
 | İstatistikler | Temel | **Detaylı istatistikler** |
 | Günlük Ödül | Normal | **2x günlük ödül** |
-
-> **Yıllık Plan:** $79.99/yıl ($6.66/ay — %33 indirim)
 
 ---
 
@@ -88,10 +83,10 @@ Aylık abonelik modeli (recurring revenue):
 
 | Paket | İçerik | Fiyat | Ne Zaman |
 |-------|--------|-------|----------|
-| **Yeni Başlayan Paketi** | 1000🪙 + 5 Bomba + 3 Swap + Sınırsız Enerji (24s) | $4.99 | İlk 3 gün |
-| **Hafta Sonu Paketi** | 2000🪙 + 10 Karışık Araç | $9.99 | Cuma-Pazar |
-| **Zaman Savaşçısı** | 3 Nükleer + 5 Dinamit + 1500🪙 | $6.99 | Zaman Arenası etkinliği |
-| **Sezon Paketi** | 5000🪙 + PRO (1 hafta) + 20 Araç | $19.99 | Sezon başı |
+| **Yeni Başlayan Paketi** | 1000🪙 + 5 Bomba + 3 Swap + Sınırsız Enerji (24s) | $1.99 | İlk 3 gün |
+| **Hafta Sonu Paketi** | 2000🪙 + 10 Karışık Araç | $3.99 | Cuma-Pazar |
+| **Zaman Savaşçısı** | 3 Nükleer + 5 Dinamit + 1500🪙 | $2.99 | Zaman Arenası etkinliği |
+| **Sezon Paketi** | 5000🪙 + PRO (1 hafta) + 20 Araç | $7.99 | Sezon başı |
 
 ---
 
@@ -102,24 +97,20 @@ Aylık abonelik modeli (recurring revenue):
 - **Settlement:** USD → ABD banka hesabı (Wise/Mercury)
 - **Komisyon:** 2.9% + $0.30 sabit ücret
 
-> ⚠️ **Neden USD bazlı fiyatlandırma?**
-> TL bazlı fiyat koysak bile Stripe USD'ye çevirecek ve +1% kur ücreti kesecek.
-> Direkt USD fiyatlandırma ile bu ekstra %1'den kurtuluyoruz.
-> Stripe checkout müşteriye otomatik TL karşılığını gösterir.
-
 ### Paket Bazlı Maliyet Tablosu
 
 | Paket | Fiyat | Stripe Kesinti | Net Gelir | Marj |
 |---|---|---|---|---|
-| Başlangıç | $4.99 | $0.30 + $0.14 = $0.44 | **$4.55** | %91 |
-| Popüler | $9.99 | $0.30 + $0.29 = $0.59 | **$9.40** | %94 |
-| Süper | $19.99 | $0.30 + $0.58 = $0.88 | **$19.11** | %96 |
-| Mega | $49.99 | $0.30 + $1.45 = $1.75 | **$48.24** | %97 |
-| PRO Aylık | $9.99 | $0.30 + $0.29 = $0.59 | **$9.40** | %94 |
+| Başlangıç | $0.99 | $0.30 + $0.03 = $0.33 | **$0.66** | %67 |
+| Popüler | $2.99 | $0.30 + $0.09 = $0.39 | **$2.60** | %87 |
+| Süper | $4.99 | $0.30 + $0.14 = $0.44 | **$4.55** | %91 |
+| Mega | $9.99 | $0.30 + $0.29 = $0.59 | **$9.40** | %94 |
+| Efsanevi | $19.99 | $0.30 + $0.58 = $0.88 | **$19.11** | %96 |
+| PRO Aylık | $2.99 | $0.30 + $0.09 = $0.39 | **$2.60** | %87 |
 
-> **Not:** KDV konusu — ABD LLC olarak Türk müşteriye dijital hizmet satışında
-> Türkiye KDV'si (%20) toplama yükümlülüğü araştırılmalı. Stripe Tax bu konuda
-> otomatik çözüm sunuyor (ek %0.5 komisyon).
+> ⚠️ $0.99 pakette Stripe sabit ücreti ($0.30) marjı %67'ye düşürür ama giriş bariyerini kırmak açısından kabul edilebilir.
+
+> **KDV:** ABD LLC olarak Türk müşteriye dijital hizmet satışında Türkiye KDV'si (%20) araştırılmalı. Stripe Tax otomatik çözüm sunuyor (ek %0.5 komisyon).
 
 ---
 
@@ -128,7 +119,7 @@ Aylık abonelik modeli (recurring revenue):
 ### Akış
 ```
 Oyuncu → "Satın Al" butonuna basar
-        → Stripe Checkout Session açılır (embedded veya redirect)
+        → Stripe Checkout Session açılır (hosted)
         → Ödeme tamamlanır
         → Stripe Webhook → Supabase Edge Function
         → Supabase DB'de altın/PRO durumu güncellenir
@@ -146,45 +137,22 @@ Oyuncu → "Satın Al" butonuna basar
 | **Müşteri Portalı** | Stripe Customer Portal | Abonelik iptal/değiştirme |
 | **Vergi Yönetimi** | Stripe Tax (opsiyonel) | KDV otomatik hesaplama |
 
-### Supabase Tabloları (Yeni)
+### Supabase Tabloları
+> Detaylı SQL: `sql/monetization_tables.sql`
 
-```sql
--- Satın alma geçmişi
-CREATE TABLE purchases (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id),
-  stripe_session_id TEXT,
-  product_type TEXT, -- 'coins', 'energy', 'pro', 'bundle'
-  amount_coins INT DEFAULT 0,
-  amount_paid DECIMAL(10,2),
-  currency TEXT DEFAULT 'USD',
-  status TEXT DEFAULT 'pending',
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- PRO abonelik durumu
-CREATE TABLE subscriptions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) UNIQUE,
-  stripe_subscription_id TEXT,
-  stripe_customer_id TEXT,
-  plan TEXT DEFAULT 'free', -- 'free', 'pro_monthly', 'pro_yearly'
-  status TEXT DEFAULT 'active',
-  current_period_end TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-```
+- `purchases` — Satın alma geçmişi
+- `subscriptions` — PRO abonelik durumu
+- `profiles` tablosuna eklenen sütunlar: `stripe_customer_id`, `is_pro`, `first_purchase_used`
 
 ---
 
 ## 5. Fiyatlandırma Psikolojisi
 
-- **$4.99** eşiği: İlk ödeme bariyerini kırmak için düşük giriş noktası
+- **$0.99** eşiği: En düşük psikolojik bariyer, ilk ödemeyi tetikler
 - **"İlk Alım 2x" kampanyası**: Conversion rate'i en çok artıran yöntem
-- **Altın gösterimi**: Araç fiyatlarını "uygun" göstermek için altın enflasyonu kontrol altında tutulmalı
-- **Kıtlık hissi**: "Yeni Başlayan Paketi" sadece ilk 3 gün gösterilmeli (FOMO)
-- **Anchoring**: Paket listesinde en büyük paket üstte, "en popüler" ortada işaretli
+- **Altın gösterimi**: Araç fiyatlarını "uygun" göstermek için altın enflasyonu kontrol altında
+- **Kıtlık hissi**: "Yeni Başlayan Paketi" sadece ilk 3 gün (FOMO)
+- **Anchoring**: Paket listesinde "Popüler" ortada ⭐ işaretli
 - **Günlük login ödülü**: Oyuncuyu her gün getirip mağazayı göstermek için önemli
 
 ---
@@ -206,69 +174,13 @@ CREATE TABLE subscriptions (
 | **D1 Retention** | %40+ |
 | **D7 Retention** | %20+ |
 | **Conversion Rate** (ücretsiz → ödeme yapan) | %3-5 |
-| **ARPPU** (Ödeme yapan kullanıcı başına gelir) | $3-5/ay |
-| **LTV** (Kullanıcı ömür boyu değeri) | $15-30 |
+| **ARPPU** (Ödeme yapan kullanıcı başına gelir) | $1-3/ay |
+| **LTV** (Kullanıcı ömür boyu değeri) | $5-15 |
 
 ---
 
-## 8. İkili Ödeme Altyapısı (iyzico + Stripe)
+## 8. Açık Sorular / Araştırılacaklar
 
-### Neden İkili Sistem?
-
-| | 🇹🇷 Türkiye (iyzico) | 🌍 Yurtdışı (Stripe) |
-|---|---|---|
-| **Para birimi** | TL | USD |
-| **Settlement** | Direkt TL → Türk bankası | USD → ABD banka hesabı |
-| **Komisyon** | ~2.49% + ₺0.25 | 2.9% + $0.30 |
-| **Kur riski** | ❌ Yok | ❌ Yok (zaten USD) |
-| **KDV** | iyzico otomatik hesaplar | Stripe Tax ile |
-| **Ödeme yöntemleri** | TR kartları, BKM Express, Papara | Visa/MC global, Apple Pay |
-
-### Teknik Akış
-
-```
-Oyuncu "Satın Al"a basar
-    → Kullanıcının locale/IP kontrol edilir
-    → Türkiye ise → iyzico checkout (TL fiyat)
-    → Yurtdışı ise → Stripe checkout (USD fiyat)
-    → Her iki platform da webhook gönderir
-    → Supabase Edge Function → DB güncellenir
-    → Oyuncuya altın/PRO yansır
-```
-
-### TL Fiyat Tablosu (iyzico — Türkiye)
-
-| Paket | Altın | TL Fiyat | iyzico Kesinti | Net Gelir |
-|---|---|---|---|---|
-| Başlangıç | 500 🪙 | ₺29.99 | ~₺1.00 | **₺28.99** |
-| Popüler | 1,200 🪙 | ₺59.99 | ~₺1.74 | **₺58.25** |
-| Süper | 3,000 🪙 | ₺119.99 | ~₺3.24 | **₺116.75** |
-| Mega | 7,500 🪙 | ₺249.99 | ~₺6.47 | **₺243.52** |
-| PRO Aylık | — | ₺79.99 | ~₺2.24 | **₺77.75** |
-
-> ₺0.25 sabit ücret + %2.49 = çok daha verimli (özellikle küçük işlemlerde)
-
-### Avantajlar
-
-1. **TR müşteriden TL alıp TL kazanç** — kur dönüşüm derdi yok
-2. **₺0.25 sabit ücret** vs $0.30 — küçük işlemlerde büyük fark
-3. **Yurtdışı müşteriler USD ödüyor** — Stripe ideal
-4. **İki ayrı gelir kanalı** — vergisel olarak daha temiz
-
-### Dikkat Edilecekler
-
-- Webhook handler'da her iki platformu da dinlemek gerekecek (2 ayrı endpoint)
-- Ürün kataloğu **her iki platformda da** oluşturulmalı
-- Fiyatlar senkron tutulmalı (₺ ve $ ayrı olsa da altın miktarları aynı)
-- `PaymentService.js` modülü ile platform seçimi soyutlanacak
-
----
-
-## 9. Açık Sorular / Araştırılacaklar
-
-- [ ] **iyzico hesap açılışı:** Şirket bilgileri ve onay süreci
-- [ ] **iyzico abonelik desteği:** PRO aylık/yıllık recurring ödeme destekliyor mu?
-- [ ] **KDV yükümlülüğü:** ABD LLC → TR müşteri dijital satışta TR KDV'si — iyzico bunu otomatik hallediyor mu?
-- [ ] **App Store/Play Store:** Mağazadan dağıtılırsa Apple %30 / Google %15-30 komisyon keser — Stripe/iyzico yerine IAP zorunlu olabilir
+- [ ] **KDV yükümlülüğü:** ABD LLC → TR müşteri dijital satışta TR KDV'si — Stripe Tax ile otomatik mi?
+- [ ] **App Store/Play Store:** Mağazadan dağıtılırsa Apple %30 / Google %15-30 komisyon → Stripe yerine IAP zorunlu olabilir
 - [ ] **Dinamit/Nükleer markete eklenmesi:** PRO-only mı, yoksa herkese pahalıya mı?
-- [ ] **IP bazlı ülke tespiti:** Locale mi, IP geolocation mı, yoksa kullanıcıya sorulacak mı?

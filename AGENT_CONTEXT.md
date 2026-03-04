@@ -1,7 +1,17 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
-**Son Güncelleme:** 2026-03-02
-## Proje Durumu: v6.0.0 (Zaman Savaşı Modu & Yeni İsimler)
+**Son Güncelleme:** 2026-03-04
+## Proje Durumu: v9.0.0 (Monetizasyon & Stripe Entegrasyonu)
+- **Feature (v9.0.0)**: Monetizasyon altyapısı oluşturuldu — Stripe-only (USD bazlı):
+    - Mevcut araç marketi korunarak sekmeli mağaza yapısı kuruldu (Araçlar / Altın Paketleri / PRO).
+    - **Altın Paketleri:** 5 kademe ($0.99-$19.99, ₺39.99-₺749.99). İlk alım 2x bonus.
+    - **WORDLENGE PRO:** Aylık $2.99 (₺109.99), Yıllık $19.99 (₺749.99, %44 indirim).
+    - **PaymentService.js:** Stripe Checkout Session oluşturma, abonelik yönetimi, satın alma geçmişi.
+    - **Dile göre fiyat gösterimi:** Türkçe'de ₺, İngilizce'de $ gösterilir.
+    - `Constants.js`: GOLD_PACKAGES, PRO_PLANS, ENERGY_PACKAGES sabitleri eklendi.
+    - `Translations.js`: TR/EN mağaza çeviri metinleri eklendi.
+    - `proje_schema.sql`: `purchases`, `subscriptions` tabloları ve `profiles`'a `stripe_customer_id`, `is_pro`, `first_purchase_used` sütunları eklendi.
+    - **Bekleyen:** SQL uygulaması (Supabase), Stripe ürün oluşturma, Edge Functions (create-checkout-session, stripe-webhook).
 - **Feature (v6.0.0)**: Oyun modları için YENİ isimler belirlendi:
 - **Feature (v7.0.0)**: **Ultra Esnek Etkinlik Sistemi (v7.0.0):**
     - Periyodik (Haftalık vb.) ve Manuel (2 saatlik vb.) etkinlik desteği.
@@ -146,7 +156,11 @@
 - **Seviye Editörü:** Kullanıcıların kendi seviyelerini tasarlayabileceği bir modül.
 - **Topluluk:** Arkadaş ekleme, düello modu ve klan sistemleri.
 - **Günlük Çark (Daily Spin):** Kullanıcıların günde 1 kez çevirerek sürpriz ödüller kazanabileceği, "sadece üyelere özel" 8 dilimli ağırlıklı çark mekanizması mevcut `Seri Ödül` yapısının iptali üzerine başarıyla entegre edildi. Eski `streak` mantığı temizlendi ve yerine daha etkileşimli olan bu çark sistemi konuldu.
-- **Rank & Mastery Sistemi (Gelecek - v8.0.0):** XP tabanlı sonsuz ilerleme, seviye unvanları ve pasif yetenekler (Perks) sistemi planlandı. (`GAME_LEVEL_STRATEGY.md`)
+- **Rank & Mastery Sistemi (v8.0.0):**
+    - **Faz 1 & 2:** XP mantığı, Seviye formülü ve UI entegrasyonu (Mobil + Landing Page) başarıyla tamamlandı. (03.03.2026)
+- **Monetizasyon & Stripe Entegrasyonu (Gelecek - v9.0.0):**
+    - Stripe üzerinden PRO abonelik ve Altın paketi satışlarının altyapısı kurulacak.
+    - Webhook yönetimi ve veritabanı senkronizasyonu planlandı.
 - **Hedef Puan ve Kısıtlamalar (v7.0.1):** Etkinlik şemasına (`target_score`, `duration_limit`, `moves_limit`) parametreleri eklendi. Kelime-crush App.jsx içerisindeki sabit (hardcoded) 60sn/30 hamle sınırları dinamik hale getirildi. İlgili kısıtlamalar "0" olarak girildiğinde o sınır kaldırılacak şekilde esnek (hibrit sayaç) mimarisine kavuşturuldu.
 - **Katılım Anında Liderlik Listelenmesi:** Etkinlik başlatılırken (join_event) `updateEventScore` ile asenkron olarak "0" puan gönderilerek kullanıcıların etkinlik tablosunda anında görünmesi sağlandı.
 - **Günlük Çark Güvenlik Entegrasyonu (v7.0.2):**

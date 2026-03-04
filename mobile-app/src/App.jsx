@@ -741,7 +741,7 @@ const Dashboard = ({
             </div>
 
             <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 backdrop-blur-md flex-1 overflow-y-auto no-scrollbar flex flex-col landscape:pb-20">
-              <ShopView t={t} coins={coins} tools={tools} buyTool={buyTool} language={language} />
+              <ShopView t={t} coins={coins} tools={tools} buyTool={buyTool} language={language} user={user} profile={profile} onOpenAuth={onOpenAuth} />
             </div>
           </div>
         );
@@ -2070,8 +2070,44 @@ const MissionTracker = ({ goals = [], t = (s) => s, language = 'tr', isCompact =
   </div>
 );
 
-const ShopView = ({ t = (s) => s, coins, tools, buyTool, language }) => {
-  const items = [
+const ShopView = ({ t = (s) => s, coins, tools, buyTool, language, user, profile, onOpenAuth }) => {
+  const [activeTab, setActiveTab] = React.useState('tools');
+  const [purchaseLoading, setPurchaseLoading] = React.useState(null);
+  const [purchaseError, setPurchaseError] = React.useState(null);
+
+  const isFirstPurchase = !profile?.first_purchase_used;
+  const isPro = profile?.is_pro || false;
+
+  // Altın paketleri
+  const goldPackages = [
+    { id: 'gold_starter', coins: 500, price: 0.99, priceTRY: 39.99, bonus: null, popular: false },
+    { id: 'gold_popular', coins: 1200, price: 2.99, priceTRY: 109.99, bonus: '+20%', popular: true },
+    { id: 'gold_super', coins: 3000, price: 4.99, priceTRY: 189.99, bonus: '+50%', popular: false },
+    { id: 'gold_mega', coins: 7500, price: 9.99, priceTRY: 379.99, bonus: '+87%', popular: false },
+    { id: 'gold_legendary', coins: 20000, price: 19.99, priceTRY: 749.99, bonus: '+140%', popular: false },
+  ];
+
+  const handlePurchase = async (productId, productType = 'coins') => {
+    if (!user) { onOpenAuth?.(); return; }
+    setPurchaseLoading(productId);
+    setPurchaseError(null);
+    try {
+      const { PaymentService } = await import('./logic/PaymentService');
+      const fn = productType === 'pro'
+        ? PaymentService.createSubscriptionSession(user.id, productId)
+        : PaymentService.createCheckoutSession(user.id, productId, productType);
+      const { url, error } = await fn;
+      if (error) { setPurchaseError(error); return; }
+      PaymentService.openCheckoutUrl(url);
+    } catch (err) {
+      setPurchaseError(err.message);
+    } finally {
+      setPurchaseLoading(null);
+    }
+  };
+
+  // Araç listesi (mevcut yapı aynen korundu)
+  const toolItems = [
     { id: 'bomb', name: t('bomb'), desc: t('bomb_desc') || 'Seçili hücre ve etrafını patlatır', cost: 250, icon: <Zap size={20} className="text-amber-400 md:w-6 md:h-6" />, color: 'from-amber-500 to-orange-600' },
     { id: 'xbomb', name: language === 'tr' ? 'X Bombası' : 'X Bomb', desc: language === 'tr' ? 'Hücreyi çaprazlama patlatır' : 'Blasts cells diagonally', cost: 500, icon: <Bomb size={20} className="text-orange-400 md:w-6 md:h-6" />, color: 'from-orange-500 to-red-600' },
     { id: 'nuclear', name: language === 'tr' ? 'Nükleer Bomba' : 'Nuclear Bomb', desc: language === 'tr' ? 'Tüm ekranı temizler' : 'Clears the entire grid', cost: 1000, icon: <Radiation size={20} className="text-lime-400 md:w-6 md:h-6" />, color: 'from-lime-500 to-green-600' },
@@ -2081,45 +2117,248 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool, language }) => {
     { id: 'cell', name: t('cell'), desc: t('cell_desc') || 'Tek bir harfi siler', cost: 100, icon: <Target size={20} className="text-purple-400 md:w-6 md:h-6" />, color: 'from-purple-500 to-violet-600' }
   ];
 
-  return (
-    <div className="flex-1">
-      <div className="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-5 lg:grid-cols-3 gap-2 md:gap-4 pb-6">
-        {items.map(item => {
-          const canAfford = coins >= item.cost;
-          return (
-            <div key={item.id} className="relative overflow-hidden bg-slate-900/40 border border-white/5 rounded-2xl md:rounded-3xl p-2 landscape:p-2.5 md:p-4 flex items-center landscape:flex-col lg:flex-row gap-2 md:gap-4 transition-all group hover:border-white/10 shadow-lg">
-              <div className="flex items-center gap-3 landscape:flex-col landscape:w-full">
-                <div className="relative shrink-0">
-                  <div className={`w-8 h-8 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center bg-slate-950/60 shadow-inner group-hover:scale-110 transition-transform border border-white/5`}>
-                    {React.cloneElement(item.icon, { size: 16, className: item.icon.props.className.replace('size={20}', '') })}
-                  </div>
-                  <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] md:min-w-[20px] md:h-[20px] bg-amber-500 rounded-full flex items-center justify-center border-2 border-slate-900 shadow-lg">
-                    <span className="text-[8px] md:text-[10px] font-black text-slate-950 leading-none">{tools?.[item.id] || 0}</span>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0 landscape:w-full landscape:text-center">
-                  <h4 className="text-white font-black italic uppercase text-[10px] md:text-sm mb-0.5 truncate">{item.name}</h4>
-                  <p className="text-[8px] md:text-[10px] text-slate-400 leading-tight pr-1 font-medium line-clamp-1 md:line-clamp-none landscape:block lg:block">{item.desc}</p>
-                </div>
-              </div>
+  const tabs = [
+    { id: 'tools', label: t('shop_tab_tools') || 'ARAÇLAR', icon: <Zap size={14} /> },
+    { id: 'gold', label: t('shop_tab_gold') || 'ALTIN', icon: <Coins size={14} /> },
+    { id: 'pro', label: t('shop_tab_pro') || 'PRO', icon: <Star size={14} /> },
+  ];
 
-              <div className="shrink-0 landscape:w-full landscape:mt-1">
-                <button
-                  onClick={() => buyTool(item.id, item.cost)}
-                  disabled={!canAfford}
-                  className={`flex flex-col items-center justify-center w-full min-w-[60px] md:min-w-[80px] py-1 md:py-1.5 px-2 md:px-3 rounded-lg md:rounded-xl transition-all active:scale-95 border-2 ${canAfford ? 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 text-amber-500 shadow-lg' : 'bg-slate-800/50 border-transparent text-slate-500 cursor-not-allowed opacity-50'}`}
-                >
-                  <div className="flex items-center gap-1">
-                    <span className="font-black text-[9px] md:text-xs italic">{item.cost}</span>
-                    <Coins size={8} className="text-amber-500" />
-                  </div>
-                  <span className="text-[5px] md:text-[7px] uppercase font-black tracking-tighter opacity-70 group-hover:opacity-100">{t('buy')}</span>
-                </button>
-              </div>
-            </div>
-          );
-        })}
+  const proFeatures = [
+    { icon: <Zap size={16} className="text-amber-400" />, text: t('pro_unlimited_energy') },
+    { icon: <Coins size={16} className="text-amber-400" />, text: t('pro_daily_gold') },
+    { icon: <Bomb size={16} className="text-purple-400" />, text: t('pro_exclusive_tools') },
+    { icon: <Star size={16} className="text-sky-400" />, text: t('pro_badge') },
+    { icon: <BarChart3 size={16} className="text-emerald-400" />, text: t('pro_detailed_stats') },
+    { icon: <Gift size={16} className="text-rose-400" />, text: t('pro_2x_daily') },
+  ];
+
+  return (
+    <div className="flex-1 flex flex-col gap-3">
+      {/* Hata mesajı */}
+      {purchaseError && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-2 text-center animate-in fade-in duration-300">
+          <span className="text-red-400 text-[9px] md:text-[10px] font-black uppercase tracking-wider">{purchaseError}</span>
+          <button onClick={() => setPurchaseError(null)} className="ml-2 text-red-500 hover:text-white"><X size={12} /></button>
+        </div>
+      )}
+
+      {/* Sekme Başlıkları */}
+      <div className="flex bg-slate-950/50 rounded-xl p-1 border border-white/5 shrink-0">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-wider transition-all ${activeTab === tab.id
+              ? tab.id === 'pro'
+                ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30 shadow-lg shadow-amber-500/10'
+                : 'bg-white/10 text-white border border-white/10 shadow-lg'
+              : 'text-slate-500 hover:text-slate-300'
+              }`}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
       </div>
+
+      {/* İlk alım bonusu banner */}
+      {activeTab === 'gold' && isFirstPurchase && (
+        <div className="relative overflow-hidden bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-xl p-2.5 animate-in slide-in-from-top fade-in duration-500">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-amber-400/10 rounded-full blur-2xl" />
+          <div className="flex items-center gap-2 relative z-10">
+            <div className="w-8 h-8 bg-amber-500/30 rounded-lg flex items-center justify-center shrink-0">
+              <Gift size={16} className="text-amber-400" />
+            </div>
+            <div>
+              <div className="text-amber-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest">{t('first_purchase_bonus')}</div>
+              <div className="text-amber-300/60 text-[7px] md:text-[8px] font-bold">{language === 'tr' ? 'İlk altın paketinde 2 katı altın kazan!' : 'Earn double gold on your first pack!'}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* === ARAÇLAR SEKMESİ (Mevcut market aynen korundu) === */}
+      {activeTab === 'tools' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-5 lg:grid-cols-3 gap-2 md:gap-4 pb-6 animate-in fade-in duration-300">
+          {toolItems.map(item => {
+            const canAfford = coins >= item.cost;
+            return (
+              <div key={item.id} className="relative overflow-hidden bg-slate-900/40 border border-white/5 rounded-2xl md:rounded-3xl p-2 landscape:p-2.5 md:p-4 flex items-center landscape:flex-col lg:flex-row gap-2 md:gap-4 transition-all group hover:border-white/10 shadow-lg">
+                <div className="flex items-center gap-3 landscape:flex-col landscape:w-full">
+                  <div className="relative shrink-0">
+                    <div className={`w-8 h-8 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center bg-slate-950/60 shadow-inner group-hover:scale-110 transition-transform border border-white/5`}>
+                      {React.cloneElement(item.icon, { size: 16, className: item.icon.props.className.replace('size={20}', '') })}
+                    </div>
+                    <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] md:min-w-[20px] md:h-[20px] bg-amber-500 rounded-full flex items-center justify-center border-2 border-slate-900 shadow-lg">
+                      <span className="text-[8px] md:text-[10px] font-black text-slate-950 leading-none">{tools?.[item.id] || 0}</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0 landscape:w-full landscape:text-center">
+                    <h4 className="text-white font-black italic uppercase text-[10px] md:text-sm mb-0.5 truncate">{item.name}</h4>
+                    <p className="text-[8px] md:text-[10px] text-slate-400 leading-tight pr-1 font-medium line-clamp-1 md:line-clamp-none landscape:block lg:block">{item.desc}</p>
+                  </div>
+                </div>
+
+                <div className="shrink-0 landscape:w-full landscape:mt-1">
+                  <button
+                    onClick={() => buyTool(item.id, item.cost)}
+                    disabled={!canAfford}
+                    className={`flex flex-col items-center justify-center w-full min-w-[60px] md:min-w-[80px] py-1 md:py-1.5 px-2 md:px-3 rounded-lg md:rounded-xl transition-all active:scale-95 border-2 ${canAfford ? 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 text-amber-500 shadow-lg' : 'bg-slate-800/50 border-transparent text-slate-500 cursor-not-allowed opacity-50'}`}
+                  >
+                    <div className="flex items-center gap-1">
+                      <span className="font-black text-[9px] md:text-xs italic">{item.cost}</span>
+                      <Coins size={8} className="text-amber-500" />
+                    </div>
+                    <span className="text-[5px] md:text-[7px] uppercase font-black tracking-tighter opacity-70 group-hover:opacity-100">{t('buy')}</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* === ALTIN PAKETLERİ SEKMESİ === */}
+      {activeTab === 'gold' && (
+        <div className="grid grid-cols-1 gap-2.5 md:gap-3 pb-6 animate-in fade-in duration-300">
+          {goldPackages.map(pkg => {
+            const displayCoins = isFirstPurchase ? pkg.coins * 2 : pkg.coins;
+            const isLoading = purchaseLoading === pkg.id;
+            return (
+              <button
+                key={pkg.id}
+                onClick={() => handlePurchase(pkg.id, 'coins')}
+                disabled={isLoading}
+                className={`relative overflow-hidden rounded-2xl md:rounded-3xl border p-3 md:p-4 flex items-center gap-3 md:gap-4 transition-all active:scale-[0.98] group ${pkg.popular
+                  ? 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/30 hover:border-amber-400/50 shadow-lg shadow-amber-500/5'
+                  : 'bg-slate-900/40 border-white/5 hover:border-white/15'
+                  }`}
+              >
+                {/* Popüler badge */}
+                {pkg.popular && (
+                  <div className="absolute top-0 right-0 bg-amber-500 text-slate-950 text-[6px] md:text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">
+                    {t('most_popular')}
+                  </div>
+                )}
+
+                {/* Altın ikonu */}
+                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 ${pkg.popular ? 'bg-amber-500/20 border border-amber-500/30' : 'bg-slate-800/60 border border-white/5'
+                  } group-hover:scale-110 transition-transform`}>
+                  <Coins size={24} className={`md:w-7 md:h-7 ${pkg.popular ? 'text-amber-400' : 'text-amber-500/70'}`} />
+                </div>
+
+                {/* Paket bilgileri */}
+                <div className="flex-1 text-left min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-white font-black italic text-sm md:text-base tracking-tight">{displayCoins.toLocaleString()} 🪙</span>
+                    {isFirstPurchase && (
+                      <span className="text-[7px] md:text-[8px] font-black text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded-md uppercase">{t('first_purchase_label')}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[9px] md:text-[10px] font-bold text-slate-500">{t(pkg.id)}</span>
+                    {pkg.bonus && (
+                      <span className="text-[8px] md:text-[9px] font-black text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">{pkg.bonus}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Fiyat butonu */}
+                <div className={`shrink-0 px-3 md:px-4 py-2 md:py-2.5 rounded-xl font-black text-xs md:text-sm tracking-tight transition-all border-2 ${isLoading
+                  ? 'bg-slate-800 border-slate-700 text-slate-500'
+                  : pkg.popular
+                    ? 'bg-amber-500 border-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 group-hover:bg-amber-400'
+                    : 'bg-white/5 border-white/10 text-white group-hover:bg-white/10'
+                  }`}>
+                  {isLoading ? '...' : language === 'tr' ? `₺${pkg.priceTRY}` : `$${pkg.price}`}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* === PRO ABONELIK SEKMESİ === */}
+      {activeTab === 'pro' && (
+        <div className="pb-6 space-y-3 md:space-y-4 animate-in fade-in duration-300">
+          {/* PRO Başlık */}
+          <div className="text-center space-y-1">
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+                <Star size={16} className="text-white" fill="white" />
+              </div>
+              <h3 className="text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 italic tracking-tighter uppercase">{t('pro_title')}</h3>
+            </div>
+            <p className="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest">{t('pro_subtitle')}</p>
+          </div>
+
+          {/* Zaten PRO ise */}
+          {isPro && (
+            <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-2xl p-4 text-center">
+              <span className="text-amber-400 text-sm font-black italic uppercase tracking-wider">{t('already_pro')}</span>
+            </div>
+          )}
+
+          {/* Avantajlar */}
+          <div className="bg-slate-900/60 border border-white/5 rounded-2xl p-3 md:p-4 space-y-2">
+            {proFeatures.map((feat, i) => (
+              <div key={i} className="flex items-center gap-3 py-1">
+                <div className="w-7 h-7 bg-white/5 rounded-lg flex items-center justify-center border border-white/5 shrink-0">
+                  {feat.icon}
+                </div>
+                <span className="text-[10px] md:text-xs font-bold text-slate-300">{feat.text}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Plan seçimi */}
+          {!isPro && (
+            <div className="grid grid-cols-2 gap-2 md:gap-3">
+              {/* Aylık */}
+              <button
+                onClick={() => handlePurchase('pro_monthly', 'pro')}
+                disabled={purchaseLoading === 'pro_monthly'}
+                className="relative overflow-hidden bg-slate-900/60 border border-white/10 hover:border-amber-500/30 rounded-2xl p-3 md:p-4 flex flex-col items-center gap-2 transition-all active:scale-[0.98] group"
+              >
+                <div className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest">{t('pro_monthly')}</div>
+                <div className="flex items-baseline gap-0.5">
+                  <span className="text-2xl md:text-3xl font-black text-white italic tracking-tighter">{language === 'tr' ? '₺109.99' : '$2.99'}</span>
+                  <span className="text-[9px] md:text-[10px] font-bold text-slate-500">{t('per_month')}</span>
+                </div>
+                <div className={`w-full py-2 rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-wider text-center transition-all border ${purchaseLoading === 'pro_monthly'
+                  ? 'bg-slate-800 border-slate-700 text-slate-500'
+                  : 'bg-white/5 border-white/10 text-white group-hover:bg-white/10'
+                  }`}>
+                  {purchaseLoading === 'pro_monthly' ? t('payment_processing') : t('subscribe')}
+                </div>
+              </button>
+
+              {/* Yıllık */}
+              <button
+                onClick={() => handlePurchase('pro_yearly', 'pro')}
+                disabled={purchaseLoading === 'pro_yearly'}
+                className="relative overflow-hidden bg-gradient-to-b from-amber-500/10 to-orange-500/5 border border-amber-500/30 hover:border-amber-400/50 rounded-2xl p-3 md:p-4 flex flex-col items-center gap-2 transition-all active:scale-[0.98] group shadow-lg shadow-amber-500/5"
+              >
+                <div className="absolute top-0 right-0 bg-emerald-500 text-slate-950 text-[6px] md:text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">
+                  {t('pro_save')} 44%
+                </div>
+                <div className="text-[8px] md:text-[9px] font-black text-amber-500 uppercase tracking-widest">{t('pro_yearly')}</div>
+                <div className="flex items-baseline gap-0.5">
+                  <span className="text-2xl md:text-3xl font-black text-white italic tracking-tighter">{language === 'tr' ? '₺749.99' : '$19.99'}</span>
+                  <span className="text-[9px] md:text-[10px] font-bold text-slate-500">{t('per_year')}</span>
+                </div>
+                <div className="text-[7px] md:text-[8px] font-bold text-emerald-400">≈ {language === 'tr' ? '₺62.50' : '$1.67'}{t('per_month')}</div>
+                <div className={`w-full py-2 rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-wider text-center transition-all border ${purchaseLoading === 'pro_yearly'
+                  ? 'bg-slate-800 border-slate-700 text-slate-500'
+                  : 'bg-amber-500 border-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 group-hover:bg-amber-400'
+                  }`}>
+                  {purchaseLoading === 'pro_yearly' ? t('payment_processing') : `${t('subscribe')} ⭐`}
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

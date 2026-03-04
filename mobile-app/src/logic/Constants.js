@@ -115,3 +115,25 @@ export const TIME_BATTLE_TOOL_REWARDS = {
 
 // Kazanılabilecek araç havuzu (rastgele)
 export const TIME_BATTLE_REWARD_POOL = ['bomb', 'swap', 'row', 'col', 'cell', 'xbomb', 'nuclear'];
+
+// ===== MONETIZATION =====
+
+export const GOLD_PACKAGES = [
+    { id: 'gold_starter', coins: 500, price: 0.99, bonus: null, popular: false },
+    { id: 'gold_popular', coins: 1200, price: 2.99, bonus: '+20%', popular: true },
+    { id: 'gold_super', coins: 3000, price: 4.99, bonus: '+50%', popular: false },
+    { id: 'gold_mega', coins: 7500, price: 9.99, bonus: '+87%', popular: false },
+    { id: 'gold_legendary', coins: 20000, price: 19.99, bonus: '+140%', popular: false },
+];
+
+export const PRO_PLANS = [
+    { id: 'pro_monthly', price: 2.99, interval: 'month' },
+    { id: 'pro_yearly', price: 19.99, interval: 'year', discount: '44%' },
+];
+
+export const ENERGY_PACKAGES = [
+    { id: 'energy_1', type: 'coins', cost: 50, amount: 1, label_key: 'energy_plus_1' },
+    { id: 'energy_full', type: 'coins', cost: 200, amount: 5, label_key: 'energy_full_refill' },
+    { id: 'energy_2h', type: 'coins', cost: 400, duration: 2, label_key: 'energy_unlimited_2h' },
+    { id: 'energy_24h', type: 'stripe', price: 0.99, duration: 24, label_key: 'energy_unlimited_24h' },
+];
