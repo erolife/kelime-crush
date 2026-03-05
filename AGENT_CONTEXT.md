@@ -21,6 +21,11 @@
     - [x] **Supabase Sync:** Görev ilerlemeleri `profiles` tablosundaki `daily_missions` JSONB sütunu ile senkronize edildi.
     - [x] **Fix:** `App.jsx` içerisindeki `ReferenceError: dailyMissions is not defined` hatası giderildi (Prop passing & deconstruction).
     - [x] **UI:** Mobil alt navigasyondaki (footer) işlevsiz "OYNA" butonu kullanıcı talebiyle kaldırıldı.
+- **Eğitici Modu (Onboarding) (v11.3.0)** (05.03.2026):
+    - [x] **Sabit Tahta:** Yeni oyuncular için "KELİME" (TR) veya "WORDS" (EN) harflerini içeren sabit bir başlangıç tahtası oluşturuldu. Ekran yönü değişiminde (resize) tahtanın bozulmaması sağlandı.
+    - [x] **Görsel Rehber (👇):** Kullanıcıyı ilk hamlesine yönlendiren, harfler üzerinde gezinen hareketli bir el simgesi animasyonu `PremiumCanvas`'a eklendi.
+    - [x] **Otomatik Tamamlama:** İlk kelime bulunduğunda eğitici mod otomatik olarak sona erer ve `localStorage` üzerinden kalıcı olarak kaydedilir.
+    - [x] **Fix:** `useGame.js` içerisindeki hook sıralaması ve eksik return değerleri düzeltilerek eğitici modun stabil çalışması sağlandı.
 - **Şans Çarkı Güvenliği** (05.03.2026):
     - [x] **Race Condition Fix:** Çark çevrildiği anda kilitlenerek üst üste çevrilmesi engellendi.
     - [x] **UX:** Ödül talep edildikten sonra modalın otomatik kapanması sağlandı.

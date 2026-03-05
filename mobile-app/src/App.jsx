@@ -2589,6 +2589,7 @@ function App() {
     activeEvents, isLoadingEvents, currentEventId,
     unlimitedEnergyUntil,
     isMobile,
+    isTutorial, tutorialHint,
     dailyMissions, claimMissionReward, updateMissionProgress
   } = useGame();
 
@@ -3209,6 +3210,8 @@ function App() {
                     onSelectCell={selectCell}
                     onFinishTurn={finishTurn}
                     gameMode={gameMode}
+                    isTutorial={isTutorial}
+                    tutorialHint={tutorialHint}
                   />
 
                   {/* Victory Overlay (Only for Victory) */}

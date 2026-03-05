@@ -137,3 +137,33 @@ export const ENERGY_PACKAGES = [
     { id: 'energy_2h', type: 'coins', cost: 400, duration: 2, label_key: 'energy_unlimited_2h' },
     { id: 'energy_24h', type: 'stripe', price: 0.99, duration: 24, label_key: 'energy_unlimited_24h' },
 ];
+
+export const TUTORIAL_BOARD_TR = [
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+    ['M', 'N', 'O', 'P', 'R', 'S', 'T', 'U', 'V', 'Y', 'Z', 'A'],
+    ['S', 'P', 'O', 'R', 'K', 'A', 'R', 'T', 'A', 'L', 'B', 'C'],
+    ['G', 'E', 'C', 'E', 'B', 'E', 'B', 'E', 'K', 'M', 'N', 'O'],
+    ['K', 'E', 'L', 'İ', 'M', 'E', 'A', 'B', 'C', 'D', 'E', 'F'],
+    ['F', 'U', 'T', 'B', 'O', 'L', 'P', 'A', 'Z', 'A', 'R', 'S'],
+    ['M', 'A', 'K', 'A', 'R', 'N', 'A', 'L', 'İ', 'M', 'O', 'N'],
+    ['R', 'A', 'D', 'Y', 'O', 'D', 'E', 'N', 'İ', 'Z', 'G', 'Ö'],
+    ['T', 'Ü', 'R', 'K', 'İ', 'Y', 'E', 'G', 'Ü', 'N', 'E', 'Ş'],
+    ['K', 'A', 'L', 'E', 'M', 'B', 'A', 'R', 'D', 'A', 'K', 'S'],
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+    ['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X']
+];
+
+export const TUTORIAL_BOARD_EN = [
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+    ['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X'],
+    ['A', 'P', 'P', 'L', 'E', 'B', 'A', 'N', 'A', 'N', 'A', 'S'],
+    ['G', 'L', 'A', 'S', 'S', 'D', 'R', 'I', 'N', 'K', 'M', 'N'],
+    ['W', 'O', 'R', 'D', 'S', 'P', 'L', 'A', 'Y', 'G', 'A', 'M'],
+    ['F', 'O', 'O', 'T', 'B', 'A', 'L', 'L', 'P', 'L', 'A', 'Y'],
+    ['M', 'O', 'R', 'N', 'I', 'N', 'G', 'L', 'E', 'M', 'O', 'N'],
+    ['R', 'A', 'D', 'I', 'O', 'O', 'C', 'E', 'A', 'N', 'G', 'O'],
+    ['W', 'E', 'A', 'T', 'H', 'E', 'R', 'S', 'U', 'N', 'N', 'Y'],
+    ['P', 'E', 'N', 'C', 'I', 'L', 'B', 'O', 'T', 'T', 'L', 'E'],
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+    ['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X']
+];

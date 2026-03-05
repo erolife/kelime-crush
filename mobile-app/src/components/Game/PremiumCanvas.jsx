@@ -3,7 +3,7 @@ import confetti from 'canvas-confetti';
 import { soundManager } from '../../logic/SoundManager';
 import { LETTER_POINTS } from '../../logic/Constants';
 
-const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, createdSpecial, onSelectCell, onFinishTurn, gameMode }) => {
+const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, createdSpecial, onSelectCell, onFinishTurn, gameMode, isTutorial, tutorialHint }) => {
     const canvasRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const particlesRef = useRef([]);
@@ -491,7 +491,42 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
             ctx.stroke();
             ctx.restore();
         });
-    }, [dimensions, grid, selectedPath, animatingCells]);
+        // Tutorial Hints (Moving hand/pointer)
+        if (isTutorial && tutorialHint && tutorialHint.length > 0 && selectedPath.length === 0) {
+            const cycleTime = 2000; // time for one full path sweep
+            const progress = (time % cycleTime) / cycleTime;
+            const pathIndex = Math.floor(progress * (tutorialHint.length - 1));
+            const pathProgress = (progress * (tutorialHint.length - 1)) % 1;
+
+            const current = tutorialHint[pathIndex];
+            const next = tutorialHint[pathIndex + 1] || current;
+
+            const hX = (current.c + (next.c - current.c) * pathProgress) * cellSize + cellSize / 2;
+            const hY = (current.r + (next.r - current.r) * pathProgress) * cellSize + cellSize / 2;
+
+            ctx.save();
+            const pulse = 1 + Math.sin(time / 150) * 0.1;
+
+            // Draw Glow
+            ctx.beginPath();
+            ctx.arc(hX, hY, cellSize * 0.4 * pulse, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#38bdf8';
+            ctx.fill();
+
+            // Draw Hand Emoji
+            ctx.font = `${cellSize * 0.8}px serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            // Slight tilt and offset to look like it's pointing
+            ctx.translate(hX + cellSize * 0.1, hY + cellSize * 0.1);
+            ctx.rotate(-Math.PI / 8);
+            ctx.fillText('👇', 0, 0);
+
+            ctx.restore();
+        }
+    }, [dimensions, grid, selectedPath, animatingCells, isTutorial, tutorialHint]);
 
     useEffect(() => {
         let frameId;

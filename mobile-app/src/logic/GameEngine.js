@@ -27,9 +27,12 @@ export class GameEngine {
         };
     }
 
-    initGrid() {
-        this.grid = Array.from({ length: this.rows }, () =>
-            Array.from({ length: this.cols }, () => this.createCell(0, 0))
+    initGrid(staticBoard = null) {
+        this.grid = Array.from({ length: this.rows }, (v, r) =>
+            Array.from({ length: this.cols }, (v, c) => {
+                const fixedLetter = (staticBoard && staticBoard[r] && staticBoard[r][c]) ? staticBoard[r][c] : null;
+                return this.createCell(r, c, fixedLetter);
+            })
         );
         this.updateCoords();
         return this.grid;

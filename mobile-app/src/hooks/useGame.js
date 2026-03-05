@@ -7,6 +7,37 @@ import { SupabaseService } from '../logic/SupabaseService';
 import { supabase } from '../logic/supabaseClient';
 import { TRANSLATIONS } from '../logic/Translations';
 
+// --- Onboarding / Tutorial Boards (v10.4.2) ---
+const LOCAL_LOCAL_TUTORIAL_BOARD_TR = [
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+    ['M', 'N', 'O', 'P', 'R', 'S', 'T', 'U', 'V', 'Y', 'Z', 'A'],
+    ['S', 'P', 'O', 'R', 'K', 'A', 'R', 'T', 'A', 'L', 'B', 'C'],
+    ['G', 'E', 'C', 'E', 'B', 'E', 'B', 'E', 'K', 'M', 'N', 'O'],
+    ['K', 'E', 'L', 'İ', 'M', 'E', 'A', 'B', 'C', 'D', 'E', 'F'],
+    ['F', 'U', 'T', 'B', 'O', 'L', 'P', 'A', 'Z', 'A', 'R', 'S'],
+    ['M', 'A', 'K', 'A', 'R', 'N', 'A', 'L', 'İ', 'M', 'O', 'N'],
+    ['R', 'A', 'D', 'Y', 'O', 'D', 'E', 'N', 'İ', 'Z', 'G', 'Ö'],
+    ['T', 'Ü', 'R', 'K', 'İ', 'Y', 'E', 'G', 'Ü', 'N', 'E', 'Ş'],
+    ['K', 'A', 'L', 'E', 'M', 'B', 'A', 'R', 'D', 'A', 'K', 'S'],
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+    ['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X']
+];
+
+const LOCAL_LOCAL_TUTORIAL_BOARD_EN = [
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+    ['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X'],
+    ['A', 'P', 'P', 'L', 'E', 'B', 'A', 'N', 'A', 'B', 'C', 'D'],
+    ['G', 'L', 'A', 'S', 'S', 'D', 'R', 'I', 'N', 'K', 'M', 'N'],
+    ['W', 'O', 'R', 'D', 'S', 'P', 'L', 'A', 'Y', 'G', 'A', 'M'],
+    ['F', 'O', 'O', 'T', 'B', 'A', 'L', 'L', 'P', 'L', 'A', 'Y'],
+    ['M', 'O', 'R', 'N', 'I', 'N', 'G', 'L', 'E', 'M', 'O', 'N'],
+    ['R', 'A', 'D', 'I', 'O', 'O', 'C', 'E', 'A', 'N', 'G', 'O'],
+    ['W', 'E', 'A', 'T', 'H', 'E', 'R', 'S', 'U', 'N', 'N', 'Y'],
+    ['P', 'E', 'N', 'C', 'I', 'L', 'B', 'O', 'T', 'T', 'L', 'E'],
+    ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+    ['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X']
+];
+
 export const useGame = (initialDifficulty = 'normal') => {
     const [language, setLanguageState] = useState(() => {
         return localStorage.getItem('crush_lang') || 'tr';
@@ -316,13 +347,25 @@ export const useGame = (initialDifficulty = 'normal') => {
         };
     }, []);
 
+    // --- Onboarding / Tutorial Logic (v10.4.1) ---
+    const [isTutorial, setIsTutorial] = useState(() => {
+        // First priority: user has never completed tutorial
+        const tutorialCompleted = localStorage.getItem('crush_tutorial_completed') === 'true';
+        // Second priority: combined with levels check (initial game state)
+        return !tutorialCompleted && completedLevels === 0;
+    });
+
     const [engine, setEngine] = useState(() => {
         const { rows, cols } = getGridSize(initialDifficulty, window.innerWidth < 768, window.innerWidth > window.innerHeight ? 'landscape' : 'portrait');
         const settings = DIFFICULTY_SETTINGS[initialDifficulty];
         return new GameEngine(rows, cols, settings.vowelBonus, language);
     });
 
-    const [grid, setGrid] = useState(() => engine.initGrid());
+    const [grid, setGrid] = useState(() => {
+        const board = isTutorial ? (language === 'tr' ? LOCAL_LOCAL_TUTORIAL_BOARD_TR : LOCAL_LOCAL_TUTORIAL_BOARD_EN) : null;
+        return engine.initGrid(board);
+    });
+
     const [selectedPath, setSelectedPath] = useState([]);
     const [animatingCells, setAnimatingCells] = useState([]);
     const [score, setScore] = useState(0);
@@ -333,6 +376,29 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [gameState, setGameState] = useState('playing'); // 'playing', 'gameover', 'victory'
 
     const [activeTool, setActiveTool] = useState(null);
+
+    const [tutorialStep, setTutorialStep] = useState(0);
+    const [tutorialHint, setTutorialHint] = useState([]);
+
+    // Sync isTutorial with completedLevels initially
+    useEffect(() => {
+        if (completedLevels > 0 && isTutorial) {
+            setIsTutorial(false);
+            localStorage.setItem('crush_tutorial_completed', 'true');
+        }
+    }, [completedLevels]);
+
+    // Tutorial Hint Logic - Must be after gameState
+    useEffect(() => {
+        if (isTutorial && gameState === 'playing') {
+            const hint = language === 'tr'
+                ? [{ r: 4, c: 0 }, { r: 4, c: 1 }, { r: 4, c: 2 }, { r: 4, c: 3 }, { r: 4, c: 4 }, { r: 4, c: 5 }] // KELİME
+                : [{ r: 4, c: 0 }, { r: 4, c: 1 }, { r: 4, c: 2 }, { r: 4, c: 3 }, { r: 4, c: 4 }]; // WORDS
+            setTutorialHint(hint);
+        } else {
+            setTutorialHint([]);
+        }
+    }, [isTutorial, gameState, language]);
     const [swapSelection, setSwapSelection] = useState(null);
     const [coins, setCoins] = useState(() => {
         return parseInt(localStorage.getItem('crush_coins') || "500");
@@ -529,10 +595,19 @@ export const useGame = (initialDifficulty = 'normal') => {
         const newEngine = new GameEngine(rows, cols, settings.vowelBonus, language);
         newEngine.setLanguage(language);
         setEngine(newEngine);
-        setGrid(newEngine.initGrid());
+
+        let newGrid;
+        if (isTutorial) {
+            const board = language === 'tr' ? LOCAL_LOCAL_TUTORIAL_BOARD_TR : LOCAL_LOCAL_TUTORIAL_BOARD_EN;
+            newGrid = newEngine.initGrid(board);
+        } else {
+            newGrid = newEngine.initGrid();
+        }
+
+        setGrid(newGrid);
         setSelectedPath([]);
         setAnimatingCells([]);
-    }, [orientation, isMobile]);
+    }, [orientation, isMobile, isTutorial, language]);
 
     useEffect(() => {
         const dictFile = language === 'tr' ? './sozluk.json' : './sozluk_en.json';
@@ -562,7 +637,10 @@ export const useGame = (initialDifficulty = 'normal') => {
         setCurrentEventId(eventId);
         newEngine.setLanguage(language);
         setEngine(newEngine);
-        const newGrid = newEngine.initGrid();
+
+        const board = (isTutorial) ? (language === 'tr' ? LOCAL_TUTORIAL_BOARD_TR : LOCAL_TUTORIAL_BOARD_EN) : null;
+        const newGrid = newEngine.initGrid(board);
+
         setGrid(newGrid);
         setMoves(999); // Unlimited moves
         setScore(0);
@@ -625,7 +703,11 @@ export const useGame = (initialDifficulty = 'normal') => {
         localStorage.setItem('crush_difficulty', newDiff);
         newEngine.setLanguage(language);
         setEngine(newEngine);
-        setGrid(newEngine.initGrid());
+
+        const board = (isTutorial) ? (language === 'tr' ? LOCAL_TUTORIAL_BOARD_TR : LOCAL_TUTORIAL_BOARD_EN) : null;
+        const newGrid = newEngine.initGrid(board);
+
+        setGrid(newGrid);
         setMoves(settings.moves);
         setScore(0);
         setLevel(1);
@@ -799,6 +881,14 @@ export const useGame = (initialDifficulty = 'normal') => {
                 setTimeout(() => setCreatedSpecial(null), 100);
             }
             setFoundWords(prev => [word, ...prev].slice(0, 50));
+
+            // Tutorial Completion
+            if (isTutorial) {
+                setIsTutorial(false);
+                setTutorialHint([]);
+                localStorage.setItem('crush_tutorial_completed', 'true');
+            }
+
             setSelectedPath([]);
 
             // Trigger celebration for 5+ letter words
@@ -897,7 +987,9 @@ export const useGame = (initialDifficulty = 'normal') => {
         const newEngine = new GameEngine(rows, cols, settings.vowelBonus, language);
         newEngine.setLanguage(language);
         setEngine(newEngine);
-        const initialGrid = newEngine.initGrid();
+
+        const board = (isTutorial) ? (language === 'tr' ? LOCAL_LOCAL_TUTORIAL_BOARD_TR : LOCAL_LOCAL_TUTORIAL_BOARD_EN) : null;
+        const initialGrid = newEngine.initGrid(board);
         setGrid(initialGrid);
 
         setScore(0);
@@ -1029,6 +1121,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         // Event exports
         activeEvents, isLoadingEvents, fetchActiveEvents, currentEventId,
         isMobile, orientation,
+        isTutorial, tutorialHint,
         dailyMissions, claimMissionReward, updateMissionProgress
     };
 };
