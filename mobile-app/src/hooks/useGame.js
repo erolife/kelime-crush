@@ -1088,7 +1088,11 @@ export const useGame = (initialDifficulty = 'normal') => {
     const buyTool = useCallback((toolId, price) => {
         if (coins >= price) {
             setCoins(c => c - price);
-            setTools(t => ({ ...t, [toolId]: (t[toolId] || 0) + 1 }));
+            if (toolId === 'energy') {
+                setEnergy(e => Math.min(5, e + 1));
+            } else {
+                setTools(t => ({ ...t, [toolId]: (t[toolId] || 0) + 1 }));
+            }
             soundManager.play('powerup');
             return true;
         }

@@ -1,7 +1,10 @@
 import { supabase } from './supabaseClient';
+import { Capacitor } from '@capacitor/core';
 
 const getRedirectUrl = () => {
-    // In production, use the actual domain; in dev, use localhost
+    if (Capacitor.isNativePlatform()) {
+        return 'wordlenge://auth-callback';
+    }
     return window.location.origin;
 };
 

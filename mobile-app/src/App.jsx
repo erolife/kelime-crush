@@ -395,9 +395,11 @@ const Dashboard = ({
               <div className="pt-1 landscape:pt-0 md:pt-4 shrink-0 mt-auto pb-2 landscape:pb-1 md:pb-0">
                 <button
                   onClick={() => {
-                    if (energy > 0) {
+                    if (energy > 0 || isPro || isEnergyUnlimited) {
                       onSelectTimeBattle(tbDuration, selectedBoosters);
                       setSelectedBoosters({ bomb: false, row: false, col: false });
+                    } else {
+                      setDashboardView('shop');
                     }
                   }}
                   disabled={energy <= 0}
@@ -575,11 +577,13 @@ const Dashboard = ({
               <div className="pt-1 landscape:pt-0 md:pt-4 shrink-0 mt-auto pb-2 landscape:pb-1 md:pb-0">
                 <button
                   onClick={() => {
-                    if (energy > 0) {
+                    if (energy > 0 || isPro || isEnergyUnlimited) {
                       onSelectArcade(selectedBoosters, arcadeSubMode, arcadeValue);
                       // Reset local states for next time
                       setSelectedLevelIdx(null);
                       setSelectedBoosters({ bomb: false, row: false, col: false });
+                    } else {
+                      setDashboardView('shop');
                     }
                   }}
                   disabled={energy <= 0}
@@ -2169,6 +2173,7 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool, language, user, profile
     { id: 'col', name: t('col'), desc: t('col_desc') || 'Tüm dikey sütunu temizler', cost: 300, icon: <MoveVertical size={20} className="text-emerald-400 md:w-6 md:h-6" />, color: 'from-emerald-500 to-teal-600' },
     { id: 'swap', name: t('swap'), desc: t('swap_desc') || 'İki harfin yerini değiştirir', cost: 400, icon: <RefreshCw size={20} className="text-sky-400 md:w-6 md:h-6" />, color: 'from-sky-500 to-blue-600' },
     { id: 'cell', name: t('cell'), desc: t('cell_desc') || 'Tek bir harfi siler', cost: 100, icon: <Target size={20} className="text-purple-400 md:w-6 md:h-6" />, color: 'from-purple-500 to-violet-600' },
+    { id: 'energy', name: language === 'tr' ? '1 Enerji' : '1 Energy', desc: language === 'tr' ? 'Hemen 1 enerji kazan' : 'Gain 1 energy instanly', cost: 500, icon: <Zap size={20} className="text-rose-400 md:w-6 md:h-6" />, color: 'from-rose-500 to-red-600' },
     { id: 'energy_24h', name: t('energy_unlimited_24h'), desc: t('energy_unlimited_24h_desc'), price: 0.99, priceTRY: 34.99, icon: <Zap size={20} className="text-rose-400 md:w-6 md:h-6" />, color: 'from-rose-500 to-pink-600', isStripe: true }
   ];
 
@@ -2658,13 +2663,63 @@ function App() {
         const { PaymentService } = await import('./logic/PaymentService');
 
         const listener = await CapApp.addListener('appUrlOpen', async (event) => {
-          console.log('[DeepLink] URL:', event.url);
+          console.log('[DeepLink] Raw URL:', event.url);
+
           // In-App Browser'ı kapat
           await PaymentService.closeCheckout();
 
-          const url = new URL(event.url);
-          const status = url.searchParams.get('status');
-          const product = url.searchParams.get('product');
+          try {
+            const url = new URL(event.url);
+
+            // 1. Google OAuth Callback İşleme
+            if (event.url.includes('auth-callback')) {
+              let accessToken = null;
+              let refreshToken = null;
+              let code = null;
+
+              if (url.hash) {
+                const hashParams = new URLSearchParams(url.hash.substring(1));
+                accessToken = hashParams.get('access_token');
+                refreshToken = hashParams.get('refresh_token');
+              }
+
+              const searchParams = url.searchParams;
+              if (!accessToken) accessToken = searchParams.get('access_token');
+              if (!refreshToken) refreshToken = searchParams.get('refresh_token');
+              code = searchParams.get('code');
+
+              if (accessToken && refreshToken) {
+                const { data, error } = await supabase.auth.setSession({
+                  access_token: accessToken,
+                  refresh_token: refreshToken
+                });
+
+                if (!error && data.session) {
+                  setIsAuthModalOpen(false);
+                  if (fetchProfile) await fetchProfile();
+                }
+              } else if (code) {
+                const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+                if (!error && data.session) {
+                  setIsAuthModalOpen(false);
+                  if (fetchProfile) await fetchProfile();
+                }
+              }
+
+              setTimeout(() => setIsAuthModalOpen(false), 1500);
+            }
+          } catch (urlError) {
+            console.error('[DeepLink] URL parse error:', urlError);
+            if (event.url.includes('access_token=') || event.url.includes('code=')) {
+              setIsAuthModalOpen(false);
+            }
+          }
+
+          // 2. Ödeme Sonucu İşleme
+          const urlObj = new URL(event.url);
+          const status = urlObj.searchParams.get('status');
+          const product = urlObj.searchParams.get('product');
 
           if (status === 'success') {
             console.log('[DeepLink] Ödeme başarılı, ürün:', product);
@@ -2734,9 +2789,30 @@ function App() {
                 <h2 className="text-xl font-black text-white italic tracking-tighter mb-2 uppercase leading-tight">
                   {activeEvent?.title?.[language] || activeEvent?.title}
                 </h2>
-                <p className="text-slate-400 text-[11px] font-medium mb-4 leading-relaxed px-4">
+                <p className="text-slate-400 text-[11px] font-medium mb-2 leading-relaxed px-4">
                   {activeEvent?.description?.[language] || activeEvent?.description}
                 </p>
+
+                {/* Etkinlik Bitiş Sayacı */}
+                {activeEvent?.isActive && activeEvent?.end_at && (
+                  <div className="flex items-center justify-center gap-2 mb-4 bg-rose-500/10 border border-rose-500/20 py-2 px-4 rounded-xl mx-8 animate-pulse">
+                    <Clock size={14} className="text-rose-400" />
+                    <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">
+                      {(() => {
+                        const end = new Date(activeEvent.end_at);
+                        const now = new Date();
+                        const diff = end - now;
+                        if (diff <= 0) return language === 'tr' ? 'BİTTİ' : 'ENDED';
+                        const hours = Math.floor(diff / (1000 * 60 * 60));
+                        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        const days = Math.floor(hours / 24);
+                        if (days > 0) return `${days}${language === 'tr' ? ' gün ' : 'd '} ${hours % 24}${language === 'tr' ? ' sa' : 'h'}`;
+                        if (hours > 0) return `${hours}${language === 'tr' ? ' sa ' : 'h '} ${mins}${language === 'tr' ? ' dk' : 'm'}`;
+                        return `${mins}${language === 'tr' ? ' dk' : 'm'}`;
+                      })()}
+                    </span>
+                  </div>
+                )}
                 {/* Tabs Header */}
                 <div className="flex items-center justify-center p-1 bg-white/5 rounded-2xl mb-4 mt-6 mx-4">
                   <button
@@ -2765,47 +2841,34 @@ function App() {
                 <div className="flex flex-col gap-3 mt-8">
                   <button
                     onClick={() => {
-                      if (energy <= 0) return;
-                      setView('dashboard');
-                      setShowDashboard(false);
-                      // Etkinlikteki modları ve limitleri kontrol et
-                      const allowedModes = activeEvent.allowed_modes || ['arcade'];
-                      const hasMovesLimit = (parseInt(activeEvent.moves_limit) || 0) > 0;
-                      const hasTimeLimit = (parseInt(activeEvent.duration_limit) || 0) > 0;
+                      if (energy > 0 || isPro || isEnergyUnlimited) {
+                        setView('dashboard');
+                        setShowDashboard(false);
+                        const allowedModes = activeEvent.allowed_modes || ['arcade'];
+                        const hasMovesLimit = (parseInt(activeEvent.moves_limit) || 0) > 0;
+                        const hasTimeLimit = (parseInt(activeEvent.duration_limit) || 0) > 0;
+                        const eventMode = (hasMovesLimit && !hasTimeLimit)
+                          ? (allowedModes.find(m => m === 'arcade') || allowedModes[0])
+                          : (allowedModes[0] || 'arcade');
+                        const isTimeBased = eventMode === 'timeBattle' || (eventMode === 'arcade' && hasTimeLimit);
+                        const subMode = isTimeBased ? 'time' : 'moves';
+                        const subValue = isTimeBased ? (parseInt(activeEvent.duration_limit) || 60) : (parseInt(activeEvent.moves_limit) || 30);
 
-                      // Mod seçimi: Eğer sadece moves_limit varsa arcade tercih et, yoksa duration_limit varsa timeBattle/arcade-time tercih et
-                      const eventMode = (hasMovesLimit && !hasTimeLimit)
-                        ? (allowedModes.find(m => m === 'arcade') || allowedModes[0])
-                        : (allowedModes[0] || 'arcade');
-
-                      const isTimeBased = eventMode === 'timeBattle' ||
-                        (eventMode === 'arcade' && hasTimeLimit);
-
-                      const subMode = isTimeBased ? 'time' : 'moves';
-                      const subValue = isTimeBased
-                        ? (parseInt(activeEvent.duration_limit) || 60)
-                        : (parseInt(activeEvent.moves_limit) || 30);
-
-                      // Enerji tüketimi ve Etkinlik kaydı
-                      if (isPro || isEnergyUnlimited || energy > 0) {
-                        if (user) {
-                          SupabaseService.updateEventScore(activeEvent.id, user.id, 0);
-                        }
-
+                        if (user) SupabaseService.updateEventScore(activeEvent.id, user.id, 0);
                         if (!isPro && !isEnergyUnlimited) {
                           setEnergy(e => e - 1);
                           if (energy === 5) setLastEnergyRefill(Date.now());
                         }
+                        resetGame({}, eventMode, subMode, subValue, difficulty, activeEvent.id);
                       } else {
-                        return; // Enerji yoksa başlatma
+                        setDashboardView('shop');
+                        setShowDashboard(true);
+                        setView('dashboard');
                       }
-
-                      resetGame({}, eventMode, subMode, subValue, difficulty, activeEvent.id);
                     }}
-                    disabled={energy <= 0}
-                    className={`w-full py-5 font-black rounded-2xl transition-all active:scale-95 shadow-xl uppercase text-xs tracking-widest ${energy > 0 ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 shadow-amber-500/20' : 'bg-slate-800 text-slate-500 shadow-none cursor-not-allowed'}`}
+                    className={`w-full py-5 font-black rounded-2xl transition-all active:scale-95 shadow-xl uppercase text-xs tracking-widest ${(energy > 0 || isPro || isEnergyUnlimited) ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 shadow-amber-500/20' : 'bg-slate-800 text-slate-500 shadow-none'}`}
                   >
-                    {energy > 0 ? t('join_event') : (language === 'tr' ? 'ENERJİ YETERSİZ' : 'NOT ENOUGH ENERGY')}
+                    {(energy > 0 || isPro || isEnergyUnlimited) ? t('join_event') : (language === 'tr' ? 'MARKETE GİT (0 ⚡)' : 'GO TO SHOP (0 ⚡)')}
                   </button>
 
                   <button
