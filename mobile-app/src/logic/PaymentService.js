@@ -26,8 +26,20 @@ export const PaymentService = {
      */
     async createCheckoutSession(userId, productId, productType = 'coins', language = 'tr') {
         try {
+            const { data: { session } } = await supabase.auth.getSession();
+            console.log('PaymentService: Creating session...', {
+                userId,
+                productId,
+                hasSession: !!session,
+                userEmail: session?.user?.email,
+                expiresAt: session?.expires_at
+            });
+
             const isMobile = Capacitor.isNativePlatform();
             const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+                headers: {
+                    Authorization: `Bearer ${session?.access_token}`
+                },
                 body: {
                     userId,
                     productId,
@@ -38,7 +50,22 @@ export const PaymentService = {
                 }
             });
 
-            if (error) throw error;
+            if (error) {
+                // Edge Function hata döndürdüyse detayları yakala
+                let errorMsg = error.message;
+                try {
+                    // FunctionsHttpError ise body'yi oku
+                    if (error.context && typeof error.context.json === 'function') {
+                        const body = await error.context.json();
+                        if (body && body.error) errorMsg = body.error;
+                        if (body && body.details) console.error('Edge Function Details:', body.details);
+                    }
+                } catch (e) {
+                    console.error('Error parsing function error body:', e);
+                }
+                throw new Error(errorMsg);
+            }
+
             return { url: data?.url, error: null };
         } catch (err) {
             console.error('Checkout session error:', err);
@@ -54,8 +81,12 @@ export const PaymentService = {
      */
     async createSubscriptionSession(userId, planId, language = 'tr') {
         try {
+            const { data: { session } } = await supabase.auth.getSession();
             const isMobile = Capacitor.isNativePlatform();
             const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+                headers: {
+                    Authorization: `Bearer ${session?.access_token}`
+                },
                 body: {
                     userId,
                     productId: planId,
@@ -66,7 +97,21 @@ export const PaymentService = {
                 }
             });
 
-            if (error) throw error;
+            if (error) {
+                // Edge Function hata döndürdüyse detayları yakala
+                let errorMsg = error.message;
+                try {
+                    if (error.context && typeof error.context.json === 'function') {
+                        const body = await error.context.json();
+                        if (body && body.error) errorMsg = body.error;
+                        if (body && body.details) console.error('Edge Function Details:', body.details);
+                    }
+                } catch (e) {
+                    console.error('Error parsing function error body:', e);
+                }
+                throw new Error(errorMsg);
+            }
+
             return { url: data?.url, error: null };
         } catch (err) {
             console.error('Subscription session error:', err);

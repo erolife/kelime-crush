@@ -43,37 +43,57 @@ serve(async (req) => {
         return new Response('ok', { headers: corsHeaders })
     }
 
+    console.log(`Request received: ${req.method} ${req.url}`)
+
     try {
         const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
-        if (!stripeKey) throw new Error('STRIPE_SECRET_KEY not configured')
+        if (!stripeKey) {
+            console.error('STRIPE_SECRET_KEY is missing in env')
+            throw new Error('STRIPE_SECRET_KEY not configured')
+        }
 
         const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' })
 
         // Auth kontrolü
         const authHeader = req.headers.get('Authorization')
+        console.log('Authorization header present:', !!authHeader)
+
         if (!authHeader) {
+            console.error('Authorization header missing')
             return new Response(JSON.stringify({ error: 'Missing Authorization header' }), {
                 status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             })
         }
 
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+        const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+
         const supabaseClient = createClient(
-            Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+            supabaseUrl,
+            supabaseAnonKey,
             { global: { headers: { Authorization: authHeader } } }
         )
         const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+
         if (authError || !user) {
-            console.error('Auth error:', authError)
-            return new Response(JSON.stringify({ error: 'Unauthorized', details: authError?.message }), {
+            console.error('Auth.getUser() failed:', authError?.message || 'No user found')
+            return new Response(JSON.stringify({
+                error: 'Unauthorized',
+                message: authError?.message || 'User session invalid',
+                details: authError
+            }), {
                 status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             })
         }
 
+        console.log(`User authenticated: ${user.id} (${user.email})`)
+
         let body;
         try {
             body = await req.json()
+            console.log('Request body:', JSON.stringify(body))
         } catch (e) {
+            console.error('JSON parse error:', e.message)
             return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
                 status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             })
@@ -139,7 +159,7 @@ serve(async (req) => {
                     .from('profiles')
                     .update({ stripe_customer_id: customerId })
                     .eq('id', user.id)
-                    
+
                 if (updateError) {
                     console.error('Error updating profile with customerId:', updateError)
                 }

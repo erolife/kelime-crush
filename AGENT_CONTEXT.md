@@ -9,7 +9,7 @@
         - **Sınırsız Enerji:** PRO kullanıcıları için enerji tüketimi devre dışı bırakıldı. Enerji göstergesinde "∞" simgesi aktif edildi.
         - **2x Günlük Ödül:** Şans çarkından kazanılan tüm ödüller (Altın ve Araçlar) PRO kullanıcıları için otomatik olarak 2 katı verilir. Ödül ekranında "PRO 2x BONUS" ibaresi eklendi.
         - **PRO Rozeti:** Liderlik tablosunda ve Profil sayfasında PRO üyeleri için özel "Mavi Yıldız" rozeti eklendi.
-    - [x] `create-checkout-session/index.ts`: Hata yönetimi, yetkilendirme (Auth) başlığı kontrolü ve Stripe müşteri oluşturma süreçleri iyileştirildi. (05.03.2026)
+    - [x] `create-checkout-session/index.ts`: Hata yönetimi, yetkilendirme (Auth) başlığı kontrolü ve Stripe müşteri oluşturma süreçleri iyileştirildi. 401 hatası için manuel header ve `--no-verify-jwt` bayrağı kullanıldı. (05.03.2026)
     - [x] [Feature] `energy_24h` (Sınırsız Enerji) ürünü Mağaza > Araçlar sekmesine "Premium" etiketiyle eklendi. Stripe entegrasyonu tamamlandı. (04.03.2026)
     - [x] Stripe Secret'lar girildi. Edge Function'lar BULUTA DEPLOY EDİLDİ.
     - [x] Veritabanı şeması güncellendi (`unlimited_energy_until` sütunu eklendi).
