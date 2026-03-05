@@ -50,23 +50,47 @@ serve(async (req) => {
         const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' })
 
         // Auth kontrolü
-        const supabaseClient = createClient(
-            Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-            { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
-        )
-        const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-        if (authError || !user) {
-            return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        const authHeader = req.headers.get('Authorization')
+        if (!authHeader) {
+            return new Response(JSON.stringify({ error: 'Missing Authorization header' }), {
                 status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             })
         }
 
-        const { productId, productType, mode, language = 'tr', mobile_redirect = false } = await req.json()
+        const supabaseClient = createClient(
+            Deno.env.get('SUPABASE_URL') ?? '',
+            Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+            { global: { headers: { Authorization: authHeader } } }
+        )
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+        if (authError || !user) {
+            console.error('Auth error:', authError)
+            return new Response(JSON.stringify({ error: 'Unauthorized', details: authError?.message }), {
+                status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+        }
+
+        let body;
+        try {
+            body = await req.json()
+        } catch (e) {
+            return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+                status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+        }
+
+        const { productId, productType, mode, language = 'tr', mobile_redirect = false } = body
+
+        if (!productId) {
+            return new Response(JSON.stringify({ error: 'productId is required' }), {
+                status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+        }
 
         // Ürün doğrulama
         const product = PRICE_MAP[productId]
         if (!product) {
+            console.error(`Product not found in PRICE_MAP: ${productId}`)
             return new Response(JSON.stringify({ error: `Unknown product: ${productId}` }), {
                 status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             })
@@ -76,32 +100,53 @@ serve(async (req) => {
         const currency = language === 'tr' ? 'try' : 'usd'
         const priceId = product[currency] || product.usd
 
+        if (!priceId) {
+            console.error(`Price ID missing for product ${productId} in currency ${currency}`)
+            return new Response(JSON.stringify({ error: 'Price configuration error' }), {
+                status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+        }
+
         // Stripe Customer kontrolü (varsa kullan, yoksa oluştur)
         const supabaseAdmin = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        const { data: profile } = await supabaseAdmin
+        const { data: profile, error: dbError } = await supabaseAdmin
             .from('profiles')
             .select('stripe_customer_id, first_purchase_used')
             .eq('id', user.id)
-            .single()
+            .maybeSingle()
+
+        if (dbError) {
+            console.error('Database error fetching profile:', dbError)
+        }
 
         let customerId = profile?.stripe_customer_id
 
         if (!customerId) {
-            const customer = await stripe.customers.create({
-                email: user.email,
-                metadata: { supabase_user_id: user.id }
-            })
-            customerId = customer.id
+            console.log(`Creating new Stripe customer for user ${user.id}`)
+            try {
+                const customer = await stripe.customers.create({
+                    email: user.email,
+                    metadata: { supabase_user_id: user.id }
+                })
+                customerId = customer.id
 
-            // Profilde Stripe customer ID'yi kaydet
-            await supabaseAdmin
-                .from('profiles')
-                .update({ stripe_customer_id: customerId })
-                .eq('id', user.id)
+                // Profilde Stripe customer ID'yi kaydet
+                const { error: updateError } = await supabaseAdmin
+                    .from('profiles')
+                    .update({ stripe_customer_id: customerId })
+                    .eq('id', user.id)
+                    
+                if (updateError) {
+                    console.error('Error updating profile with customerId:', updateError)
+                }
+            } catch (stripeErr) {
+                console.error('Stripe customer creation error:', stripeErr)
+                throw new Error(`Failed to create Stripe customer: ${stripeErr.message}`)
+            }
         }
 
         // success/cancel URL — mobil ise Deep Link kullan
@@ -113,8 +158,10 @@ serve(async (req) => {
             ? `wordlenge://payment?status=cancelled`
             : `${webBase}/?payment=cancelled`
 
+        console.log(`Creating checkout session for product: ${productId}, mode: ${mode}, user: ${user.id}`)
+
         // Checkout Session ayarları
-        const sessionConfig = {
+        const sessionConfig: any = {
             customer: customerId,
             line_items: [{ price: priceId, quantity: 1 }],
             mode: mode === 'subscription' ? 'subscription' : 'payment',
@@ -139,7 +186,7 @@ serve(async (req) => {
     } catch (err) {
         console.error('Checkout error:', err)
         return new Response(
-            JSON.stringify({ error: err.message }),
+            JSON.stringify({ error: err.message || 'Internal server error' }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
     }

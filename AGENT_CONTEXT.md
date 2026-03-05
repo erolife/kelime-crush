@@ -9,12 +9,18 @@
         - **Sınırsız Enerji:** PRO kullanıcıları için enerji tüketimi devre dışı bırakıldı. Enerji göstergesinde "∞" simgesi aktif edildi.
         - **2x Günlük Ödül:** Şans çarkından kazanılan tüm ödüller (Altın ve Araçlar) PRO kullanıcıları için otomatik olarak 2 katı verilir. Ödül ekranında "PRO 2x BONUS" ibaresi eklendi.
         - **PRO Rozeti:** Liderlik tablosunda ve Profil sayfasında PRO üyeleri için özel "Mavi Yıldız" rozeti eklendi.
-    - [x] `create-checkout-session/index.ts`: `try` reserved keyword hatası, eksik tırnak ve Price ID düzeltildi. Stripe Price ID'leri güncellendi. (04.03.2026)
+    - [x] `create-checkout-session/index.ts`: Hata yönetimi, yetkilendirme (Auth) başlığı kontrolü ve Stripe müşteri oluşturma süreçleri iyileştirildi. (05.03.2026)
     - [x] [Feature] `energy_24h` (Sınırsız Enerji) ürünü Mağaza > Araçlar sekmesine "Premium" etiketiyle eklendi. Stripe entegrasyonu tamamlandı. (04.03.2026)
     - [x] Stripe Secret'lar girildi. Edge Function'lar BULUTA DEPLOY EDİLDİ.
     - [x] Veritabanı şeması güncellendi (`unlimited_energy_until` sütunu eklendi).
     - [x] Deep Link Entegrasyonu: Ödeme sonrası `wordlenge://` şeması ile uygulamaya otomatik dönüş. `@capacitor/browser` In-App Browser ve `@capacitor/app` Deep Link dinleyicisi eklendi. (04.03.2026)
     - [x] Footer linkleri (Kullanım Şartları / Gizlilik Politikası) landing page'e yönlendiriliyor.
+- **Günlük Görev Sistemi (v11.0.0)** (05.03.2026):
+    - [x] **Kumülatif Takip:** Araç kullanımı, kelime bulma ve oyun oynama aksiyonları gün boyunca takip ediliyor.
+    - [x] **Ödül Sistemi:** Görevler tamamlandığında Altın ve XP ödülleri toplanabiliyor.
+    - [x] **Supabase Sync:** Görev ilerlemeleri `profiles` tablosundaki `daily_missions` JSONB sütunu ile senkronize edildi.
+    - [x] **Fix:** `App.jsx` içerisindeki `ReferenceError: dailyMissions is not defined` hatası giderildi (Prop passing & deconstruction).
+    - [x] **UI:** Mobil alt navigasyondaki (footer) işlevsiz "OYNA" butonu kullanıcı talebiyle kaldırıldı.
 - **Şans Çarkı Güvenliği** (05.03.2026):
     - [x] **Race Condition Fix:** Çark çevrildiği anda kilitlenerek üst üste çevrilmesi engellendi.
     - [x] **UX:** Ödül talep edildikten sonra modalın otomatik kapanması sağlandı.
