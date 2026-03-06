@@ -135,7 +135,7 @@ export default function DailySpin({ onClose, user, profile, updateProfile, addCo
     const SLICE_DEGREE = 360 / SPIN_WHEEL_SLICES.length;
 
     return (
-        <div className="absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-md overflow-y-auto w-full h-full flex flex-col pt-[max(env(safe-area-inset-top),16px)]">
+        <div className="absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-md overflow-y-auto w-full h-full flex flex-col pt-[max(env(safe-area-inset-top),16px)] pb-28">
             <style>{`
                 @keyframes flyToCorner {
                     0% {
@@ -163,9 +163,6 @@ export default function DailySpin({ onClose, user, profile, updateProfile, addCo
                         <X size={24} />
                     </button>
                     <div className="flex-1 px-4 text-center">
-                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 mb-2 shadow-lg shadow-orange-500/20 text-white">
-                            <Gift size={28} />
-                        </div>
                         <h2 className="text-xl md:text-3xl font-black text-white uppercase italic tracking-tighter">
                             {t('daily_spin_title') || 'GÜNLÜK ŞANS ÇARKI'}
                         </h2>

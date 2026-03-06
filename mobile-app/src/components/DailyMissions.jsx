@@ -46,7 +46,7 @@ export default function DailyMissions({ onClose, dailyMissions, claimMissionRewa
     };
 
     return (
-        <div className="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-xl flex flex-col pt-[max(env(safe-area-inset-top),16px)] animate-in fade-in duration-300">
+        <div className="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-xl flex flex-col pt-[max(env(safe-area-inset-top),16px)] pb-28 animate-in fade-in duration-300">
             <div className="flex-1 max-w-2xl w-full mx-auto p-4 md:p-8 flex flex-col">
 
                 {/* Header */}
@@ -58,7 +58,7 @@ export default function DailyMissions({ onClose, dailyMissions, claimMissionRewa
                         <X size={24} />
                     </button>
                     <div className="flex-1 px-4 text-center">
-                        <h2 className="text-2xl md:text-3xl font-black text-white uppercase italic tracking-tighter">
+                        <h2 className="text-xl md:text-2xl font-black text-white uppercase italic tracking-tighter">
                             {t('daily_missions_title') || (language === 'tr' ? 'GÜNLÜK GÖREVLER' : 'DAILY MISSIONS')}
                         </h2>
                         <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">

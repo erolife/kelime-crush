@@ -250,4 +250,5 @@
     - [ ] **Yerel Bildirimler (Local Notifications):** Enerji dolumu ve ücretsiz çark süresi takibi için Capacitor Local Notifications entegrasyonu planlandı.
     - [ ] **Push Bildirimler (Firebase FCM):** Etkinlik duyuruları ve global bildirimler için Firebase entegrasyonu (Android/iOS) planlandı.
     - [ ] **Supabase Edge Functions:** Bildirim tetikleyicileri için sunucu tarafı mantığı planlandı.
-    - [x] **Footer Navigasyon İyileştirmesi (v13.0.0):** Alt menü dashboard genelinde kalıcı hale getirildi. "Ana Sayfa" öğesi eklenerek toplam 6 öğeli, optimize edilmiş mobil düzen (px-4) uygulandı. (06.03.2026)
+    - [x] **Footer Navigasyon İyileştirmesi (v13.0.0):** Alt menü dashboard genelinde kalıcı hale getirildi. "Ana Sayfa" öğesi eklenerek toplam 6 öğeli, optimize edilmiş mobil düzen (px-4) uygulandı. İçeriklerin menü altında kalmaması için tüm görünümlere `pb-28/32` padding eklendi. (06.03.2026)
+- [x] **UI Mikro Düzenlemeler:** Hediye ekranındaki ikon kaldırılarak yer kazanıldı, Günlük Görevler başlığı mobil için küçültüldü (`text-xl`). Market sekmeleri sabitlendi ve içerik kaydırma özelliği eklendi. (06.03.2026)

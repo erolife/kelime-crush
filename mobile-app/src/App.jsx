@@ -262,7 +262,7 @@ const Dashboard = ({
     switch (dashboardView) {
       case 'eventsList':
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-20 landscape:pb-16 px-4 landscape:px-3">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-32 landscape:pb-16 px-4 landscape:px-3">
             <div className="flex items-center gap-4 mb-4 landscape:mb-3 md:mb-8">
               <button onClick={() => setDashboardView('modes')} className="p-2 landscape:p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
                 <X size={20} className="md:w-6 md:h-6" />
@@ -337,7 +337,7 @@ const Dashboard = ({
         );
       case 'timeBattlePregame': {
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full max-h-screen">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full max-h-screen pb-28">
             <div className="flex items-center justify-between gap-2 md:gap-4 mb-2 landscape:mb-1 md:mb-6 shrink-0 pt-2 md:pt-0">
               <div className="flex items-center gap-2 md:gap-4 min-w-0">
                 <button onClick={() => setDashboardView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
@@ -425,7 +425,7 @@ const Dashboard = ({
         const selectedLevel = isArcade ? { id: t('arcade'), title: t('arcade_desc'), goals: [] } : levels[selectedLevelIdx];
         if (!selectedLevel) return null;
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full max-h-screen">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full max-h-screen pb-28">
             <div className="flex items-center justify-between gap-2 md:gap-4 mb-2 landscape:mb-1 md:mb-6 shrink-0 pt-2 md:pt-0">
               <div className="flex items-center gap-2 md:gap-4 min-w-0">
                 <button onClick={() => setDashboardView(isArcade ? 'modes' : 'levels')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
@@ -609,7 +609,7 @@ const Dashboard = ({
 
       case 'inventory':
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full overflow-y-auto no-scrollbar pb-6 landscape:pb-20">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full overflow-y-auto no-scrollbar pb-32 landscape:pb-20">
             <div className="flex items-center gap-3 md:gap-4 mb-2 md:mb-8 shrink-0">
               <button
                 onClick={() => setDashboardView('modes')}
@@ -733,7 +733,7 @@ const Dashboard = ({
       case 'shop':
         console.log('--- RENDERING SHOP VIEW ---');
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto flex flex-col h-full max-h-[85vh]">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto flex flex-col h-full max-h-[85vh] pb-28">
             <div className="flex items-center justify-between mb-4 md:mb-6 shrink-0 pt-2 md:pt-0">
               <div className="flex items-center gap-4 min-w-0">
                 <button onClick={() => setDashboardView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
@@ -748,7 +748,7 @@ const Dashboard = ({
               </div>
             </div>
 
-            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 backdrop-blur-md flex-1 overflow-y-auto no-scrollbar flex flex-col landscape:pb-20">
+            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 backdrop-blur-md flex-1 no-scrollbar flex flex-col">
               <ShopView t={t} coins={coins} tools={tools} buyTool={buyTool} language={language} user={user} profile={profile} onOpenAuth={onOpenAuth} />
             </div>
           </div>
@@ -827,7 +827,7 @@ const Dashboard = ({
         };
 
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-24 px-4 landscape:px-3">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-32 px-4 landscape:px-3">
             <div className="flex items-center justify-between mb-4 md:mb-8">
               <div className="flex items-center gap-4">
                 <button onClick={() => setDashboardView('modes')} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
@@ -1666,7 +1666,7 @@ const Dashboard = ({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 w-full flex items-center justify-center p-4 lg:p-8 min-h-0 relative z-10">
+      <div className="flex-1 w-full flex items-center justify-center p-4 lg:p-8 pb-24 lg:pb-8 min-h-0 relative z-10">
         {renderView()}
       </div>
 
@@ -2167,229 +2167,231 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool, language, user, profile
           </button>
         ))}
       </div>
+      <div className="flex-1 overflow-y-auto no-scrollbar landscape:pb-20">
 
-      {/* İlk alım bonusu banner */}
-      {activeTab === 'gold' && isFirstPurchase && (
-        <div className="relative overflow-hidden bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-xl p-2.5 animate-in slide-in-from-top fade-in duration-500">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-amber-400/10 rounded-full blur-2xl" />
-          <div className="flex items-center gap-2 relative z-10">
-            <div className="w-8 h-8 bg-amber-500/30 rounded-lg flex items-center justify-center shrink-0">
-              <Gift size={16} className="text-amber-400" />
-            </div>
-            <div>
-              <div className="text-amber-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest">{t('first_purchase_bonus')}</div>
-              <div className="text-amber-300/60 text-[7px] md:text-[8px] font-bold">{language === 'tr' ? 'İlk altın paketinde 2 katı altın kazan!' : 'Earn double gold on your first pack!'}</div>
+        {/* İlk alım bonusu banner */}
+        {activeTab === 'gold' && isFirstPurchase && (
+          <div className="relative overflow-hidden bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-xl p-2.5 animate-in slide-in-from-top fade-in duration-500">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-amber-400/10 rounded-full blur-2xl" />
+            <div className="flex items-center gap-2 relative z-10">
+              <div className="w-8 h-8 bg-amber-500/30 rounded-lg flex items-center justify-center shrink-0">
+                <Gift size={16} className="text-amber-400" />
+              </div>
+              <div>
+                <div className="text-amber-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest">{t('first_purchase_bonus')}</div>
+                <div className="text-amber-300/60 text-[7px] md:text-[8px] font-bold">{language === 'tr' ? 'İlk altın paketinde 2 katı altın kazan!' : 'Earn double gold on your first pack!'}</div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* === ARAÇLAR SEKMESİ (Mevcut market aynen korundu) === */}
-      {activeTab === 'tools' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-5 lg:grid-cols-3 gap-2 md:gap-4 pb-6 animate-in fade-in duration-300">
-          {toolItems.map(item => {
-            const isStripeProd = item.isStripe;
-            const canAfford = isStripeProd ? true : coins >= item.cost;
-            const isLoading = purchaseLoading === item.id;
+        {/* === ARAÇLAR SEKMESİ (Mevcut market aynen korundu) === */}
+        {activeTab === 'tools' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-5 lg:grid-cols-3 gap-2 md:gap-4 pb-6 animate-in fade-in duration-300">
+            {toolItems.map(item => {
+              const isStripeProd = item.isStripe;
+              const canAfford = isStripeProd ? true : coins >= item.cost;
+              const isLoading = purchaseLoading === item.id;
 
-            return (
-              <div key={item.id} className={`relative overflow-hidden ${isStripeProd ? 'bg-rose-500/5 border-rose-500/20' : 'bg-slate-900/40 border-white/5'} border rounded-2xl md:rounded-3xl p-2 landscape:p-2.5 md:p-4 flex items-center landscape:flex-col lg:flex-row gap-2 md:gap-4 transition-all group hover:border-white/10 shadow-lg`}>
-                {isStripeProd && (
-                  <div className="absolute top-0 right-0 bg-rose-500 text-white text-[6px] md:text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg z-10">
-                    PREMIUM
-                  </div>
-                )}
-                <div className="flex items-center gap-3 landscape:flex-col landscape:w-full">
-                  <div className="relative shrink-0">
-                    <div className={`w-8 h-8 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center bg-slate-950/60 shadow-inner group-hover:scale-110 transition-transform border border-white/5`}>
-                      {React.cloneElement(item.icon, { size: 16, className: item.icon.props.className.replace('size={20}', '') })}
+              return (
+                <div key={item.id} className={`relative overflow-hidden ${isStripeProd ? 'bg-rose-500/5 border-rose-500/20' : 'bg-slate-900/40 border-white/5'} border rounded-2xl md:rounded-3xl p-2 landscape:p-2.5 md:p-4 flex items-center landscape:flex-col lg:flex-row gap-2 md:gap-4 transition-all group hover:border-white/10 shadow-lg`}>
+                  {isStripeProd && (
+                    <div className="absolute top-0 right-0 bg-rose-500 text-white text-[6px] md:text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg z-10">
+                      PREMIUM
                     </div>
-                    {!isStripeProd && (
-                      <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] md:min-w-[20px] md:h-[20px] bg-amber-500 rounded-full flex items-center justify-center border-2 border-slate-900 shadow-lg">
-                        <span className="text-[8px] md:text-[10px] font-black text-slate-950 leading-none">{tools?.[item.id] || 0}</span>
+                  )}
+                  <div className="flex items-center gap-3 landscape:flex-col landscape:w-full">
+                    <div className="relative shrink-0">
+                      <div className={`w-8 h-8 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center bg-slate-950/60 shadow-inner group-hover:scale-110 transition-transform border border-white/5`}>
+                        {React.cloneElement(item.icon, { size: 16, className: item.icon.props.className.replace('size={20}', '') })}
                       </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0 landscape:w-full landscape:text-center">
-                    <h4 className="text-white font-black italic uppercase text-[10px] md:text-sm mb-0.5 truncate">{item.name}</h4>
-                    <p className="text-[8px] md:text-[10px] text-slate-400 leading-tight pr-1 font-medium line-clamp-1 md:line-clamp-none landscape:block lg:block">{item.desc}</p>
-                  </div>
-                </div>
-
-                <div className="shrink-0 landscape:w-full landscape:mt-1">
-                  <button
-                    onClick={() => isStripeProd ? handlePurchase(item.id, 'energy') : buyTool(item.id, item.cost)}
-                    disabled={!canAfford || isLoading}
-                    className={`flex flex-col items-center justify-center w-full min-w-[60px] md:min-w-[80px] py-1 md:py-1.5 px-2 md:px-3 rounded-lg md:rounded-xl transition-all active:scale-95 border-2 ${isLoading
-                      ? 'bg-slate-800 border-transparent text-slate-500'
-                      : canAfford
-                        ? isStripeProd
-                          ? 'bg-rose-500/10 border-rose-500/30 hover:bg-rose-500/20 text-rose-500 shadow-lg'
-                          : 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 text-amber-500 shadow-lg'
-                        : 'bg-slate-800/50 border-transparent text-slate-500 cursor-not-allowed opacity-50'}`}
-                  >
-                    <div className="flex items-center gap-1">
-                      {isLoading ? (
-                        <span className="font-black text-[9px] md:text-xs tracking-widest">...</span>
-                      ) : isStripeProd ? (
-                        <span className="font-black text-[9px] md:text-xs italic">{language === 'tr' ? `₺${item.priceTRY}` : `$${item.price}`}</span>
-                      ) : (
-                        <>
-                          <span className="font-black text-[9px] md:text-xs italic">{item.cost}</span>
-                          <Coins size={8} className="text-amber-500" />
-                        </>
+                      {!isStripeProd && (
+                        <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] md:min-w-[20px] md:h-[20px] bg-amber-500 rounded-full flex items-center justify-center border-2 border-slate-900 shadow-lg">
+                          <span className="text-[8px] md:text-[10px] font-black text-slate-950 leading-none">{tools?.[item.id] || 0}</span>
+                        </div>
                       )}
                     </div>
-                    <span className="text-[5px] md:text-[7px] uppercase font-black tracking-tighter opacity-70 group-hover:opacity-100">{isLoading ? t('processing') : t('buy')}</span>
-                  </button>
+                    <div className="flex-1 min-w-0 landscape:w-full landscape:text-center">
+                      <h4 className="text-white font-black italic uppercase text-[10px] md:text-sm mb-0.5 truncate">{item.name}</h4>
+                      <p className="text-[8px] md:text-[10px] text-slate-400 leading-tight pr-1 font-medium line-clamp-1 md:line-clamp-none landscape:block lg:block">{item.desc}</p>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 landscape:w-full landscape:mt-1">
+                    <button
+                      onClick={() => isStripeProd ? handlePurchase(item.id, 'energy') : buyTool(item.id, item.cost)}
+                      disabled={!canAfford || isLoading}
+                      className={`flex flex-col items-center justify-center w-full min-w-[60px] md:min-w-[80px] py-1 md:py-1.5 px-2 md:px-3 rounded-lg md:rounded-xl transition-all active:scale-95 border-2 ${isLoading
+                        ? 'bg-slate-800 border-transparent text-slate-500'
+                        : canAfford
+                          ? isStripeProd
+                            ? 'bg-rose-500/10 border-rose-500/30 hover:bg-rose-500/20 text-rose-500 shadow-lg'
+                            : 'bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 text-amber-500 shadow-lg'
+                          : 'bg-slate-800/50 border-transparent text-slate-500 cursor-not-allowed opacity-50'}`}
+                    >
+                      <div className="flex items-center gap-1">
+                        {isLoading ? (
+                          <span className="font-black text-[9px] md:text-xs tracking-widest">...</span>
+                        ) : isStripeProd ? (
+                          <span className="font-black text-[9px] md:text-xs italic">{language === 'tr' ? `₺${item.priceTRY}` : `$${item.price}`}</span>
+                        ) : (
+                          <>
+                            <span className="font-black text-[9px] md:text-xs italic">{item.cost}</span>
+                            <Coins size={8} className="text-amber-500" />
+                          </>
+                        )}
+                      </div>
+                      <span className="text-[5px] md:text-[7px] uppercase font-black tracking-tighter opacity-70 group-hover:opacity-100">{isLoading ? t('processing') : t('buy')}</span>
+                    </button>
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* === ALTIN PAKETLERİ SEKMESİ === */}
+        {activeTab === 'gold' && (
+          <div className="grid grid-cols-1 gap-2.5 md:gap-3 pb-6 animate-in fade-in duration-300">
+            {goldPackages.map(pkg => {
+              const displayCoins = isFirstPurchase ? pkg.coins * 2 : pkg.coins;
+              const isLoading = purchaseLoading === pkg.id;
+              return (
+                <button
+                  key={pkg.id}
+                  onClick={() => handlePurchase(pkg.id, 'coins')}
+                  disabled={isLoading}
+                  className={`relative overflow-hidden rounded-2xl md:rounded-3xl border p-3 md:p-4 flex items-center gap-3 md:gap-4 transition-all active:scale-[0.98] group ${pkg.popular
+                    ? 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/30 hover:border-amber-400/50 shadow-lg shadow-amber-500/5'
+                    : 'bg-slate-900/40 border-white/5 hover:border-white/15'
+                    }`}
+                >
+                  {/* Popüler badge */}
+                  {pkg.popular && (
+                    <div className="absolute top-0 right-0 bg-amber-500 text-slate-950 text-[6px] md:text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">
+                      {t('most_popular')}
+                    </div>
+                  )}
+
+                  {/* Altın ikonu */}
+                  <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 ${pkg.popular ? 'bg-amber-500/20 border border-amber-500/30' : 'bg-slate-800/60 border border-white/5'
+                    } group-hover:scale-110 transition-transform`}>
+                    <Coins size={24} className={`md:w-7 md:h-7 ${pkg.popular ? 'text-amber-400' : 'text-amber-500/70'}`} />
+                  </div>
+
+                  {/* Paket bilgileri */}
+                  <div className="flex-1 text-left min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-white font-black italic text-sm md:text-base tracking-tight">{displayCoins.toLocaleString()} 🪙</span>
+                      {isFirstPurchase && (
+                        <span className="text-[7px] md:text-[8px] font-black text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded-md uppercase">{t('first_purchase_label')}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[9px] md:text-[10px] font-bold text-slate-500">{t(pkg.id)}</span>
+                      {pkg.bonus && (
+                        <span className="text-[8px] md:text-[9px] font-black text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">{pkg.bonus}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Fiyat butonu */}
+                  <div className={`shrink-0 px-3 md:px-4 py-2 md:py-2.5 rounded-xl font-black text-xs md:text-sm tracking-tight transition-all border-2 ${isLoading
+                    ? 'bg-slate-800 border-slate-700 text-slate-500'
+                    : pkg.popular
+                      ? 'bg-amber-500 border-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 group-hover:bg-amber-400'
+                      : 'bg-white/5 border-white/10 text-white group-hover:bg-white/10'
+                    }`}>
+                    {isLoading ? '...' : language === 'tr' ? `₺${pkg.priceTRY}` : `$${pkg.price}`}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* === PRO ABONELIK SEKMESİ === */}
+        {activeTab === 'pro' && (
+          <div className="pb-6 space-y-3 md:space-y-4 animate-in fade-in duration-300">
+            {/* PRO Başlık */}
+            <div className="text-center space-y-1">
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+                  <Star size={16} className="text-white" fill="white" />
+                </div>
+                <h3 className="text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 italic tracking-tighter uppercase">{t('pro_title')}</h3>
               </div>
-            );
-          })}
-        </div>
-      )}
+              <p className="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest">{t('pro_subtitle')}</p>
+            </div>
 
-      {/* === ALTIN PAKETLERİ SEKMESİ === */}
-      {activeTab === 'gold' && (
-        <div className="grid grid-cols-1 gap-2.5 md:gap-3 pb-6 animate-in fade-in duration-300">
-          {goldPackages.map(pkg => {
-            const displayCoins = isFirstPurchase ? pkg.coins * 2 : pkg.coins;
-            const isLoading = purchaseLoading === pkg.id;
-            return (
-              <button
-                key={pkg.id}
-                onClick={() => handlePurchase(pkg.id, 'coins')}
-                disabled={isLoading}
-                className={`relative overflow-hidden rounded-2xl md:rounded-3xl border p-3 md:p-4 flex items-center gap-3 md:gap-4 transition-all active:scale-[0.98] group ${pkg.popular
-                  ? 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/30 hover:border-amber-400/50 shadow-lg shadow-amber-500/5'
-                  : 'bg-slate-900/40 border-white/5 hover:border-white/15'
-                  }`}
-              >
-                {/* Popüler badge */}
-                {pkg.popular && (
-                  <div className="absolute top-0 right-0 bg-amber-500 text-slate-950 text-[6px] md:text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">
-                    {t('most_popular')}
+            {/* Zaten PRO ise */}
+            {isPro && (
+              <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-2xl p-4 text-center">
+                <span className="text-amber-400 text-sm font-black italic uppercase tracking-wider">{t('already_pro')}</span>
+              </div>
+            )}
+
+            {/* Avantajlar */}
+            <div className="bg-slate-900/60 border border-white/5 rounded-2xl p-3 md:p-4 space-y-2">
+              {proFeatures.map((feat, i) => (
+                <div key={i} className="flex items-center gap-3 py-1">
+                  <div className="w-7 h-7 bg-white/5 rounded-lg flex items-center justify-center border border-white/5 shrink-0">
+                    {feat.icon}
                   </div>
-                )}
-
-                {/* Altın ikonu */}
-                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 ${pkg.popular ? 'bg-amber-500/20 border border-amber-500/30' : 'bg-slate-800/60 border border-white/5'
-                  } group-hover:scale-110 transition-transform`}>
-                  <Coins size={24} className={`md:w-7 md:h-7 ${pkg.popular ? 'text-amber-400' : 'text-amber-500/70'}`} />
+                  <span className="text-[10px] md:text-xs font-bold text-slate-300">{feat.text}</span>
                 </div>
+              ))}
+            </div>
 
-                {/* Paket bilgileri */}
-                <div className="flex-1 text-left min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-white font-black italic text-sm md:text-base tracking-tight">{displayCoins.toLocaleString()} 🪙</span>
-                    {isFirstPurchase && (
-                      <span className="text-[7px] md:text-[8px] font-black text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded-md uppercase">{t('first_purchase_label')}</span>
-                    )}
+            {/* Plan seçimi */}
+            {!isPro && (
+              <div className="grid grid-cols-2 gap-2 md:gap-3">
+                {/* Aylık */}
+                <button
+                  onClick={() => handlePurchase('pro_monthly', 'pro')}
+                  disabled={purchaseLoading === 'pro_monthly'}
+                  className="relative overflow-hidden bg-slate-900/60 border border-white/10 hover:border-amber-500/30 rounded-2xl p-3 md:p-4 flex flex-col items-center gap-2 transition-all active:scale-[0.98] group"
+                >
+                  <div className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest">{t('pro_monthly')}</div>
+                  <div className="flex items-baseline gap-0.5">
+                    <span className="text-2xl md:text-3xl font-black text-white italic tracking-tighter">{language === 'tr' ? '₺109.99' : '$2.99'}</span>
+                    <span className="text-[9px] md:text-[10px] font-bold text-slate-500">{t('per_month')}</span>
                   </div>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[9px] md:text-[10px] font-bold text-slate-500">{t(pkg.id)}</span>
-                    {pkg.bonus && (
-                      <span className="text-[8px] md:text-[9px] font-black text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">{pkg.bonus}</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Fiyat butonu */}
-                <div className={`shrink-0 px-3 md:px-4 py-2 md:py-2.5 rounded-xl font-black text-xs md:text-sm tracking-tight transition-all border-2 ${isLoading
-                  ? 'bg-slate-800 border-slate-700 text-slate-500'
-                  : pkg.popular
-                    ? 'bg-amber-500 border-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 group-hover:bg-amber-400'
+                  <div className={`w-full py-2 rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-wider text-center transition-all border ${purchaseLoading === 'pro_monthly'
+                    ? 'bg-slate-800 border-slate-700 text-slate-500'
                     : 'bg-white/5 border-white/10 text-white group-hover:bg-white/10'
-                  }`}>
-                  {isLoading ? '...' : language === 'tr' ? `₺${pkg.priceTRY}` : `$${pkg.price}`}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
+                    }`}>
+                    {purchaseLoading === 'pro_monthly' ? t('payment_processing') : t('subscribe')}
+                  </div>
+                </button>
 
-      {/* === PRO ABONELIK SEKMESİ === */}
-      {activeTab === 'pro' && (
-        <div className="pb-6 space-y-3 md:space-y-4 animate-in fade-in duration-300">
-          {/* PRO Başlık */}
-          <div className="text-center space-y-1">
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
-                <Star size={16} className="text-white" fill="white" />
+                {/* Yıllık */}
+                <button
+                  onClick={() => handlePurchase('pro_yearly', 'pro')}
+                  disabled={purchaseLoading === 'pro_yearly'}
+                  className="relative overflow-hidden bg-gradient-to-b from-amber-500/10 to-orange-500/5 border border-amber-500/30 hover:border-amber-400/50 rounded-2xl p-3 md:p-4 flex flex-col items-center gap-2 transition-all active:scale-[0.98] group shadow-lg shadow-amber-500/5"
+                >
+                  <div className="absolute top-0 right-0 bg-emerald-500 text-slate-950 text-[6px] md:text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">
+                    {t('pro_save')} 44%
+                  </div>
+                  <div className="text-[8px] md:text-[9px] font-black text-amber-500 uppercase tracking-widest">{t('pro_yearly')}</div>
+                  <div className="flex items-baseline gap-0.5">
+                    <span className="text-2xl md:text-3xl font-black text-white italic tracking-tighter">{language === 'tr' ? '₺749.99' : '$19.99'}</span>
+                    <span className="text-[9px] md:text-[10px] font-bold text-slate-500">{t('per_year')}</span>
+                  </div>
+                  <div className="text-[7px] md:text-[8px] font-bold text-emerald-400">≈ {language === 'tr' ? '₺62.50' : '$1.67'}{t('per_month')}</div>
+                  <div className={`w-full py-2 rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-wider text-center transition-all border ${purchaseLoading === 'pro_yearly'
+                    ? 'bg-slate-800 border-slate-700 text-slate-500'
+                    : 'bg-amber-500 border-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 group-hover:bg-amber-400'
+                    }`}>
+                    {purchaseLoading === 'pro_yearly' ? t('payment_processing') : `${t('subscribe')} ⭐`}
+                  </div>
+                </button>
               </div>
-              <h3 className="text-lg md:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 italic tracking-tighter uppercase">{t('pro_title')}</h3>
-            </div>
-            <p className="text-[9px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest">{t('pro_subtitle')}</p>
+            )}
           </div>
-
-          {/* Zaten PRO ise */}
-          {isPro && (
-            <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-2xl p-4 text-center">
-              <span className="text-amber-400 text-sm font-black italic uppercase tracking-wider">{t('already_pro')}</span>
-            </div>
-          )}
-
-          {/* Avantajlar */}
-          <div className="bg-slate-900/60 border border-white/5 rounded-2xl p-3 md:p-4 space-y-2">
-            {proFeatures.map((feat, i) => (
-              <div key={i} className="flex items-center gap-3 py-1">
-                <div className="w-7 h-7 bg-white/5 rounded-lg flex items-center justify-center border border-white/5 shrink-0">
-                  {feat.icon}
-                </div>
-                <span className="text-[10px] md:text-xs font-bold text-slate-300">{feat.text}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Plan seçimi */}
-          {!isPro && (
-            <div className="grid grid-cols-2 gap-2 md:gap-3">
-              {/* Aylık */}
-              <button
-                onClick={() => handlePurchase('pro_monthly', 'pro')}
-                disabled={purchaseLoading === 'pro_monthly'}
-                className="relative overflow-hidden bg-slate-900/60 border border-white/10 hover:border-amber-500/30 rounded-2xl p-3 md:p-4 flex flex-col items-center gap-2 transition-all active:scale-[0.98] group"
-              >
-                <div className="text-[8px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest">{t('pro_monthly')}</div>
-                <div className="flex items-baseline gap-0.5">
-                  <span className="text-2xl md:text-3xl font-black text-white italic tracking-tighter">{language === 'tr' ? '₺109.99' : '$2.99'}</span>
-                  <span className="text-[9px] md:text-[10px] font-bold text-slate-500">{t('per_month')}</span>
-                </div>
-                <div className={`w-full py-2 rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-wider text-center transition-all border ${purchaseLoading === 'pro_monthly'
-                  ? 'bg-slate-800 border-slate-700 text-slate-500'
-                  : 'bg-white/5 border-white/10 text-white group-hover:bg-white/10'
-                  }`}>
-                  {purchaseLoading === 'pro_monthly' ? t('payment_processing') : t('subscribe')}
-                </div>
-              </button>
-
-              {/* Yıllık */}
-              <button
-                onClick={() => handlePurchase('pro_yearly', 'pro')}
-                disabled={purchaseLoading === 'pro_yearly'}
-                className="relative overflow-hidden bg-gradient-to-b from-amber-500/10 to-orange-500/5 border border-amber-500/30 hover:border-amber-400/50 rounded-2xl p-3 md:p-4 flex flex-col items-center gap-2 transition-all active:scale-[0.98] group shadow-lg shadow-amber-500/5"
-              >
-                <div className="absolute top-0 right-0 bg-emerald-500 text-slate-950 text-[6px] md:text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-bl-lg">
-                  {t('pro_save')} 44%
-                </div>
-                <div className="text-[8px] md:text-[9px] font-black text-amber-500 uppercase tracking-widest">{t('pro_yearly')}</div>
-                <div className="flex items-baseline gap-0.5">
-                  <span className="text-2xl md:text-3xl font-black text-white italic tracking-tighter">{language === 'tr' ? '₺749.99' : '$19.99'}</span>
-                  <span className="text-[9px] md:text-[10px] font-bold text-slate-500">{t('per_year')}</span>
-                </div>
-                <div className="text-[7px] md:text-[8px] font-bold text-emerald-400">≈ {language === 'tr' ? '₺62.50' : '$1.67'}{t('per_month')}</div>
-                <div className={`w-full py-2 rounded-xl font-black text-[9px] md:text-[10px] uppercase tracking-wider text-center transition-all border ${purchaseLoading === 'pro_yearly'
-                  ? 'bg-slate-800 border-slate-700 text-slate-500'
-                  : 'bg-amber-500 border-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 group-hover:bg-amber-400'
-                  }`}>
-                  {purchaseLoading === 'pro_yearly' ? t('payment_processing') : `${t('subscribe')} ⭐`}
-                </div>
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
@@ -2730,7 +2732,7 @@ function App() {
     switch (view) {
       case 'event':
         return (
-          <div className="fixed inset-0 z-[500] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="fixed inset-0 z-[500] flex items-center justify-center p-6 pb-24 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
             <div className="w-full max-w-md bg-slate-900 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
               <div className="p-8 text-center">
                 <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border bg-amber-500/20 border-amber-400 text-amber-400">
