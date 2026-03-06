@@ -2829,7 +2829,7 @@ function App() {
   };
 
   return (
-    <div className="relative h-screen w-screen bg-[#020617] text-slate-100 font-outfit select-none overflow-hidden flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]">
+    <div className="relative h-screen w-screen bg-[#020617] text-slate-100 font-outfit select-none overflow-hidden flex flex-col">
       {/* Splash Screen Animation */}
       {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
 

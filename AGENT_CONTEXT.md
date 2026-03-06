@@ -41,11 +41,10 @@
 - **UI & Balancing** (04.03.2026):
     - [x] Header'daki profil badge'inden "Lvl" ön eki kaldırıldı.
     - [x] **XP/Level Re-balancing:** Seviye atlama barajı 1000'den 2500 XP'ye çıkarıldı, artış katsayısı %20 yapıldı. Kelime ödülleri %50 azaltıldı.
-- **SafeArea & Header Düzeltmesi (v10.2.1)** (04.03.2026):
-    - [x] Header'ın çentik/status bar altında kalma sorunu çözüldü.
-    - [x] `capacitor.config.json`'da `overlaysWebView: true` yapıldı.
-    - [x] Android `styles.xml`'e edge-to-edge (translucent status bar) desteği eklendi.
-    - [x] `App.jsx` başlangıcında StatusBar plugin'i ile overlay yapılandırıldı. (04.03.2026)
+- **SafeArea & Header Düzeltmesi (v10.2.2)** (06.03.2026):
+    - [x] Android APK build'indeki mükerrer SafeArea/boşluk sorunu çözüldü.
+    - [x] `index.css` body padding'leri ve `App.jsx` ana hiyerarşisindeki mükerrer `env(safe-area-inset-top)` kuralları kaldırıldı.
+    - [x] SafeArea yönetimi Capacitor StatusBar plugin ve kontrollü hiyerarşi ile stabilize edildi.
 - **Visual (v10.0.0)**: **Game Juice & Görsel İyileştirmeler (04.03.2026):**
     - **Electric Selection Trail:** Harf birleştirme hattı artık statik değil, titreşimli ve parlayan bir elektrik akımı şeklinde.
     - **Spring Physics & Snap:** Harfler yere düştüğünde "Yaylı Fizik" ile organik bir şekilde yaylanıyor. Düşüş hızı (gravity) %80 artırıldı (2.5 -> 4.5), daha "snappy" ve akıcı bir his sağlandı.
