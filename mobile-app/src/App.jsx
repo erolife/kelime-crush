@@ -272,7 +272,7 @@ const Dashboard = ({
   const renderView = () => {
     console.log('--- DASHBOARD RENDERVIEW CALLED ---', dashboardView);
     switch (dashboardView) {
-      case 'eventsList':
+      case 'eventsList': {
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto flex flex-col h-full items-stretch px-4 landscape:px-3">
             <div className="flex items-center gap-4 mb-4 landscape:mb-3 md:mb-8 shrink-0">
@@ -347,6 +347,7 @@ const Dashboard = ({
             </div>
           </div>
         );
+      }
       case 'timeBattlePregame': {
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full min-h-0 pt-2 lg:pt-0 pb-4">
@@ -362,7 +363,7 @@ const Dashboard = ({
               </p>
             </div>
 
-            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-3 landscape:p-2.5 md:p-8 backdrop-blur-md space-y-3 landscape:space-y-2 md:space-y-8 flex-1 overflow-y-auto no-scrollbar">
+            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-3 landscape:p-2.5 md:p-8 backdrop-blur-md space-y-3 landscape:space-y-2 md:space-y-8 flex-1 overflow-y-auto no-scrollbar touch-pan-y">
               {/* Duration selection */}
               <div className="space-y-2 landscape:space-y-1 md:space-y-4">
                 <div className="text-[8px] landscape:text-[7px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-2 font-inter">{t('time_battle_select_duration')}</div>
@@ -467,7 +468,7 @@ const Dashboard = ({
               </div>
             )}
 
-            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-3 landscape:p-2.5 md:p-8 backdrop-blur-md space-y-3 landscape:space-y-2 md:space-y-8 flex-1 overflow-y-auto no-scrollbar">
+            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-3 landscape:p-2.5 md:p-8 backdrop-blur-md space-y-3 landscape:space-y-2 md:space-y-8 flex-1 overflow-y-auto no-scrollbar touch-pan-y">
               {/* Description inside card - portrait only */}
               <div className="text-center shrink-0 landscape:hidden">
                 <h3 className="text-base md:text-xl font-black text-white italic tracking-tighter uppercase mb-1 md:mb-2">
@@ -619,7 +620,7 @@ const Dashboard = ({
         );
       }
 
-      case 'inventory':
+      case 'inventory': {
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full px-4 landscape:px-3">
             <div className="flex items-center gap-3 md:gap-4 mb-2 md:mb-8 shrink-0">
@@ -669,8 +670,8 @@ const Dashboard = ({
 
           </div>
         );
-
-      case 'leaderboard':
+      }
+      case 'leaderboard': {
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full flex flex-col p-2 md:p-0">
             <div className="flex items-center gap-4 mb-2 md:mb-6 shrink-0">
@@ -687,20 +688,21 @@ const Dashboard = ({
             </div>
           </div>
         );
-
-      case 'settings':
+      }
+      case 'settings': {
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto">
-            <div className="flex items-center gap-4 mb-4 landscape:mb-3 md:mb-8">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex-1 flex flex-col justify-center p-4">
+            <div className="flex items-center gap-4 mb-4 landscape:mb-3 md:mb-8 shrink-0">
               <button
                 onClick={() => setDashboardView('modes')}
                 className="p-2 landscape:p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
               >
                 <X size={20} className="md:w-6 md:h-6" />
               </button>
-              <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase">{t('settings')}</h2>
+              <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase leading-none">{t('settings')}</h2>
             </div>
-            <div className="bg-slate-900/40 border border-white/5 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] p-4 landscape:p-3 md:p-8 backdrop-blur-md space-y-4 landscape:space-y-3 md:space-y-8 shadow-2xl">
+
+            <div className="bg-slate-900/40 border border-white/5 rounded-2xl landscape:rounded-xl md:rounded-[2.5rem] p-4 landscape:p-3 md:p-8 backdrop-blur-md space-y-4 landscape:space-y-3 md:space-y-8 shadow-2xl overflow-y-auto no-scrollbar touch-pan-y">
               <div className="space-y-2 landscape:space-y-1.5 md:space-y-4">
                 <div className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] font-inter">{t('sound_music') || (language === 'tr' ? 'SES VE MÜZİK' : 'SOUND & MUSIC')}</div>
                 <button
@@ -727,11 +729,11 @@ const Dashboard = ({
                       key={d}
                       onClick={() => changeDifficulty(d)}
                       className={`
-                        py-3 landscape:py-2 md:py-5 rounded-xl landscape:rounded-lg md:rounded-2xl text-[10px] landscape:text-[9px] md:text-xs font-black uppercase transition-all border
-                        ${difficulty === d
+                      py-3 landscape:py-2 md:py-5 rounded-xl landscape:rounded-lg md:rounded-2xl text-[10px] landscape:text-[9px] md:text-xs font-black uppercase transition-all border
+                      ${difficulty === d
                           ? 'bg-orange-500 border-orange-400 text-white shadow-xl shadow-orange-500/20'
                           : 'bg-slate-800/50 border-white/5 text-slate-400 hover:bg-slate-800'}
-                      `}
+                    `}
                     >
                       {d === 'easy' ? (language === 'tr' ? 'Kolay' : 'Easy') : d === 'normal' ? 'Normal' : (language === 'tr' ? 'Profesör' : 'Pro')}
                     </button>
@@ -741,14 +743,14 @@ const Dashboard = ({
             </div>
           </div>
         );
+      }
 
-      case 'shop':
-        console.log('--- RENDERING SHOP VIEW ---');
+      case 'shop': {
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto flex flex-col h-full min-h-0">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full flex flex-col p-2 md:p-0">
             <div className="flex items-center justify-between mb-4 md:mb-6 shrink-0 pt-2 md:pt-0">
               <div className="flex items-center gap-4 min-w-0">
-                <button onClick={() => setDashboardView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
+                <button onClick={() => setDashboardView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
                   <X size={20} className="md:w-6 md:h-6" />
                 </button>
                 <h2 className="text-xl md:text-3xl font-black bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent italic tracking-tighter uppercase leading-none pr-2">{t('market')}</h2>
@@ -760,11 +762,12 @@ const Dashboard = ({
               </div>
             </div>
 
-            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 backdrop-blur-md flex-1 min-h-0 no-scrollbar flex flex-col">
+            <div className="flex-1 min-h-0">
               <ShopView t={t} coins={coins} tools={tools} buyTool={buyTool} language={language} user={user} profile={profile} onOpenAuth={onOpenAuth} />
             </div>
           </div>
         );
+      }
 
       case 'daily': {
         return (
@@ -807,7 +810,7 @@ const Dashboard = ({
         // Gereksiz kod kalabalığını ve çakışmaları önlemek için dashboardView içinden kaldırıldı.
         return null;
       }
-      case 'profile':
+      case 'profile': {
         console.log('--- RENDERING PROFILE VIEW ---');
         const handleSaveProfile = async () => {
           if (!user) return;
@@ -867,7 +870,7 @@ const Dashboard = ({
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 overflow-y-auto no-scrollbar pb-32">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 overflow-y-auto no-scrollbar pb-32 touch-pan-y">
               {/* Sol Sütun: Profil Özeti */}
               <div className="space-y-4 md:space-y-6">
                 <div className="bg-slate-900/60 border border-white/5 rounded-[2.5rem] p-6 backdrop-blur-md flex flex-col items-center text-center">
@@ -1160,7 +1163,7 @@ const Dashboard = ({
             </div>
           </div>
         );
-
+      }
       default: // 'modes'
         console.log('--- RENDERING MODES (MAIN) VIEW ---');
         return (
@@ -1474,7 +1477,7 @@ const Dashboard = ({
             </div>
 
 
-          </div >
+          </div>
         );
     }
   };
@@ -1684,7 +1687,7 @@ const Dashboard = ({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 w-full flex items-center justify-center p-4 lg:p-8 min-h-0 relative z-10">
+      <div className="flex-1 w-full min-h-0 relative z-10 overflow-hidden">
         {renderView()}
       </div>
 
@@ -1896,7 +1899,7 @@ const EventRewards = ({ eventId, t, language }) => {
       const rewardsKey = input.items || input.rewards_config || input.rewards || input.prizes;
       if (rewardsKey) return flattenItems(rewardsKey);
 
-      // Klasik { "gold": 1000 } yapısı. Ama metadata anahtarlarını FİLTRELE!
+      // Klasik {"gold": 1000 } yapısı. Ama metadata anahtarlarını FİLTRELE!
       const metadataKeys = ['rank', 'rank_min', 'rank_max', 'min_rank', 'max_rank', 'id', 'event_id', 'created_at', 'updated_at', 'prizes', 'items', 'rewards', 'rewards_config'];
       return Object.entries(input)
         .filter(([key]) => !metadataKeys.includes(key))
@@ -2025,7 +2028,7 @@ const LeaderboardView = ({ t = (s) => s, profile }) => {
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto pr-1 no-scrollbar space-y-2 pb-20">
+      <div className="flex-1 overflow-y-auto pr-1 no-scrollbar space-y-2 pb-20 touch-pan-y">
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center text-slate-500 animate-pulse">
             <RefreshCw size={48} className="animate-spin mb-4 opacity-20" />
@@ -2128,6 +2131,16 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool, language, user, profile
   const [purchaseLoading, setPurchaseLoading] = React.useState(null);
   const [purchaseError, setPurchaseError] = React.useState(null);
 
+  // Scroll sıfırlama için ref
+  const scrollRef = React.useRef(null);
+
+  // Sekme değiştiğinde scroll'u başa sar
+  React.useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo(0, 0);
+    }
+  }, [activeTab]);
+
   const isFirstPurchase = !profile?.first_purchase_used;
   const isPro = profile?.is_pro || false;
 
@@ -2188,7 +2201,7 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool, language, user, profile
   ];
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 gap-3">
+    <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 backdrop-blur-md flex flex-col h-full min-h-0 gap-3">
       {/* Hata mesajı */}
       {purchaseError && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-2 text-center animate-in fade-in duration-300">
@@ -2198,7 +2211,7 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool, language, user, profile
       )}
 
       {/* Sekme Başlıkları */}
-      <div className="flex gap-1.5 bg-slate-950/50 rounded-xl p-1 border border-white/5 shrink-0 overflow-x-auto no-scrollbar">
+      <div className="flex gap-1.5 bg-slate-950/50 rounded-xl p-1 border border-white/5 shrink-0 overflow-x-auto no-scrollbar touch-pan-x">
         {tabs.map(tab => (
           <button
             key={tab.id}
@@ -2215,7 +2228,7 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool, language, user, profile
           </button>
         ))}
       </div>
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-28">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar pb-28 touch-pan-y">
 
         {/* İlk alım bonusu banner */}
         {activeTab === 'gold' && isFirstPurchase && (
@@ -3282,7 +3295,7 @@ function App() {
                     <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('words')} <span className="text-sky-400 ml-1">({foundWords.length})</span></h2>
                     <AlignLeft className="w-3.5 h-3.5 text-sky-400" />
                   </div>
-                  <div className="flex-1 overflow-y-auto no-scrollbar py-2 space-y-2">
+                  <div className="flex-1 overflow-y-auto no-scrollbar py-2 space-y-2 touch-pan-y">
                     {foundWords.map((word, idx) => (
                       <div key={idx} className="px-2 py-1 bg-white/5 rounded-lg text-[10px] font-bold text-slate-300 border border-white/5 truncate">
                         {word}

@@ -6,6 +6,7 @@ import { DIFFICULTY_SETTINGS, getGridSize, TIME_BATTLE_GOLD_TIERS, TIME_BATTLE_R
 import { SupabaseService } from '../logic/SupabaseService';
 import { supabase } from '../logic/supabaseClient';
 import { TRANSLATIONS } from '../logic/Translations';
+import { NotificationService } from '../logic/NotificationService';
 
 // --- Onboarding / Tutorial Boards (v10.4.2) ---
 const LOCAL_LOCAL_TUTORIAL_BOARD_TR = [
@@ -468,6 +469,21 @@ export const useGame = (initialDifficulty = 'normal') => {
         }, 1000);
         return () => clearInterval(interval);
     }, [energy, lastEnergyRefill]);
+
+    // Yerel Bildirim Zamanlama (Enerji Dolduğunda)
+    useEffect(() => {
+        if (energy < 5 && !isPro && !isEnergyUnlimited) {
+            const refillTimeLeftSeconds = (5 - energy) * 20 * 60; // Kalan toplam saniye (her enerji için 20 dk)
+            const secondsToFull = refillTimeLeftSeconds - Math.floor((Date.now() - lastEnergyRefill) / 1000);
+
+            if (secondsToFull > 0) {
+                NotificationService.scheduleEnergyFullNotification(secondsToFull, language);
+            }
+        } else {
+            // Enerji tam ise veya sınırsız ise bekleyen bildirimleri iptal et
+            NotificationService.cancelEnergyNotifications();
+        }
+    }, [energy, lastEnergyRefill, isPro, isEnergyUnlimited, language]);
 
     // Arcade & Event Timer Logic (for time modes or events with duration_limit)
     useEffect(() => {

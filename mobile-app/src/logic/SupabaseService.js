@@ -35,16 +35,14 @@ export const SupabaseService = {
         }
     },
 
-    // Profil verilerini güncelle (Auth gerektirir)
+    // Profil verilerini güncelle (Auth/RPC üzerinden güvenli güncelleme)
     async updateProfile(userId, updates) {
         try {
-            const { error } = await supabase
-                .from('profiles')
-                .update({
-                    ...updates,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', userId);
+            // Kritik alanları ve standart alanları ayırarak RPC'ye gönderiyoruz
+            const { error } = await supabase.rpc('update_profile_secure', {
+                p_user_id: userId,
+                p_updates: updates
+            });
 
             if (error) throw error;
             return true;
@@ -83,38 +81,16 @@ export const SupabaseService = {
         }
     },
 
-    // Mod bazlı istatistikleri güncelle (Zen, Arcade, Mission)
+    // Mod bazlı istatistikleri güncelle (RPC üzerinden güvenli/kümülatif)
     async updateModeStats(userId, mode, sessionStats) {
         try {
-            // Mevcut profil verisini al
-            const { data: profile, error: getError } = await supabase
-                .from('profiles')
-                .select('mode_stats')
-                .eq('id', userId)
-                .single();
+            const { error } = await supabase.rpc('update_mode_stats_secure', {
+                p_user_id: userId,
+                p_mode: mode,
+                p_session_stats: sessionStats
+            });
 
-            if (getError) throw getError;
-
-            const modeStats = profile.mode_stats || {};
-            const currentModeData = modeStats[mode] || { words: 0, moves: 0, duration: 0, game_count: 0 };
-
-            // İstatistikleri kümülatif olarak güncelle
-            modeStats[mode] = {
-                words: currentModeData.words + (sessionStats.words || 0),
-                moves: currentModeData.moves + (sessionStats.moves || 0),
-                duration: currentModeData.duration + (sessionStats.duration || 0),
-                game_count: (currentModeData.game_count || 0) + 1
-            };
-
-            const { error: updateError } = await supabase
-                .from('profiles')
-                .update({
-                    mode_stats: modeStats,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', userId);
-
-            if (updateError) throw updateError;
+            if (error) throw error;
             return true;
         } catch (error) {
             console.error('Mod istatistikleri güncellenirken hata oluştu:', error.message);

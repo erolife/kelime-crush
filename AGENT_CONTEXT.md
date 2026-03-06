@@ -250,16 +250,21 @@
 - **Sizing:** `ResizeObserver` ile %100 responsive dikdörtgen oyun alanı.
 - **Performans:** Canvas API ile 60 FPS akıcılık. Hücre hit detection radius: 38%.
 - **Sizing Correction (v4.0.1):** Mobil cihazlarda ızgara görünürlüğü için `aspect-[11/9]` zorunlu kılındı ve kök div `h-screen w-screen` ile sabitlendi.
-- **Gelecek Planı: Bildirim Sistemi (Push & Local) (v12.0.0)** (06.03.2026):
-    - [ ] **Yerel Bildirimler (Local Notifications):** Enerji dolumu ve ücretsiz çark süresi takibi için Capacitor Local Notifications entegrasyonu planlandı.
-    - [ ] **Push Bildirimler (Firebase FCM):** Etkinlik duyuruları ve global bildirimler için Firebase entegrasyonu (Android/iOS) planlandı.
-    - [ ] **Supabase Edge Functions:** Bildirim tetikleyicileri için sunucu tarafı mantığı planlandı.
+- [x] **Yerel Bildirim Entegrasyonu (v15.0.0)** (06.03.2026):
+    - [x] `@capacitor/local-notifications` kuruldu ve `NotificationService.js` oluşturuldu. Enerji 5/5 olduğunda kullanıcıya bildirim gönderme mantığı eklendi.
+    - [x] Android 13+ için `POST_NOTIFICATIONS` izni eklendi.
+- [ ] **Push Bildirimler (Firebase FCM):** Etkinlik duyuruları ve global bildirimler için Firebase entegrasyonu (Android/iOS) maaza girişi sonrası için planlandı.
     - [x] **Footer Navigasyon İyileştirmesi (v13.0.0):** Alt menü dashboard genelinde kalıcı hale getirildi. "Ana Sayfa" öğesi eklenerek toplam 6 öğeli, optimize edilmiş mobil düzen (px-4) uygulandı. İçeriklerin menü altında kalmaması için tüm görünümlere `pb-28/32` padding eklendi. (06.03.2026)
 - [x] **UI Mikro Düzenlemeler:** Hediye ekranındaki ikon kaldırılarak yer kazanıldı, Günlük Görevler başlığı mobil için küçültüldü (`text-xl`). Market sekmeleri sabitlendi ve içerik kaydırma özelliği eklendi. (06.03.2026)
 - [x] **Hesap Silme Özelliği (v14.0.0)** (06.03.2026): Google Play Store veri gizliliği politikalarına uyum için geliştirildi.
     - [x] **Mobil Uygulama:** Profil ekranına "Hesabı Sil" butonu ve geri dönüşü olmayan işlem uyarısı içeren onay modalı eklendi. `handleDeleteAccount` fonksiyonu `Dashboard` seviyesine taşınarak kapsam sorunu giderildi.
     - [x] **Supabase Entegrasyonu:** `SupabaseService.js` içerisinde profile verilerini silen ve oturumu kapatan `deleteUserAccount` fonksiyonu uygulandı.
     - [x] **Web (Landing Page):** `wordlengenext` projesinde `https://wordlenge.com/delete-account` URL'si ile hesap silme talep ve bilgilendirme sayfası oluşturuldu.
-- [x] **Market & Görevler UI İyileştirmesi (v14.1.0)** (06.03.2026):
-    - [x] **Market (ShopView):** İçerik alanı `min-h-0` ve `flex-1` yapılarak kaydırma (scroll) özelliği aktifleştirildi. Navigasyon barı ile çakışmayı önlemek için `pb-28` eklendi.
-    - [x] **Günlük Görevler (DailyMissions):** Görev kartları daha kompakt hale getirildi (padding ve ikon boyutları küçültüldü). Header `shrink-0` yapılarak kaydırma alanı maksimize edildi. (06.03.2026)
+- [x] **Market & Genel Scroll Fix (v14.2.0)** (06.03.2026):
+    - [x] **ShopView:** "SIRA" (Leaderboard) sayfasıyla teknik hiyerarşi eşitlendi. `h-full` ve `flex-1 min-h-0` zinciri kurularak mobil tarayıcıların height kısıtlamasını doğru algılaması sağlandı.
+    - [x] **Scroll Reset:** Sekme değişimlerinde scroll pozisyonunun sıfırlanması için `ref` tabanlı `useEffect` eklendi.
+    - [x] **Touch Scroll Support:** `touch-none` engelini aşmak için tüm ana dikey kaydırma alanlarına (`ShopView`, `LeaderboardView`, `DailyMissions`, `Settings`, `Profile`, `Pregame`) `touch-pan-y` sınıfı eklendi. Mobil cihazlardaki dikey kaydırma blokajı tamamen kaldırıldı.
+- [x] **Güvenlik Sertleştirmesi (Anti-Cheat) (v1.0.0)** (06.03.2026):
+    - [x] Altın, XP ve Araç manipülasyonunu engelleyen RPC'ler (`update_profile_secure`, `update_mode_stats_secure`) oluşturuldu ve `SupabaseService.js` entegre edildi.
+    - [x] `security_hardening.sql` ile veritabanı RLS ve Storage politikaları sertleştirildi.
+    - [x] Uygulama sürümü Google Play Store yayını için `1.0.0` olarak güncellendi.

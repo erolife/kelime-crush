@@ -1,5 +1,11 @@
 ## Proje: Kelime Crush (Mobile App)
 
+### 06.03.2026 - Stabilite ve Layout İyileştirmeleri
+- **App.jsx Stabilizasyonu:** `renderView` fonksiyonu içindeki `case` blokları `{}` ile sarmalanarak JSX parantez hataları ve çökme sorunları giderildi.
+- **Layout Optimizasyonu:** `DailyMissions.jsx` ve `App.jsx` içerisindeki ana görünümler (Market, Ayarlar, Profil) `flex-1` ve `min-h-0` yapısına geçirilerek dikey alan kullanımı ve kaydırma performansı artırıldı.
+- **Hata Giderme:** `DailyMissions.jsx` üzerindeki `isMobile` referans hatası ve `App.jsx` üzerindeki yazım hataları düzeltildi.
+- **Hesap Silme:** Google Play politikaları gereği profil ekranına "Hesabı Sil" özelliği ve Supabase entegrasyonu eklendi.
+
 ### 04.03.2026 - UI ve Güvenlik İyileştirmeleri
 - **UI & Balancing:** Header'daki profil badge'inden "Lvl" ön eki kaldırıldı. XP kazanımı ve seviye atlama hızı (getNextLevelXp) makul seviyelere çekilerek oyun dengelendi.
 - **Güvenlik:** Sistem analizi raporu doğrultusunda "Try Again" enerji sızıntısı giderildi ve misafir kullanıcı enerji tüketimi düzeltildi.

@@ -46,8 +46,8 @@ export default function DailyMissions({ onClose, dailyMissions, claimMissionRewa
     };
 
     return (
-        <div className="relative w-full h-full z-50 bg-slate-950/90 backdrop-blur-xl flex flex-col pt-4 animate-in fade-in duration-300">
-            <div className="flex-1 max-w-2xl w-full mx-auto p-4 md:p-8 flex flex-col min-h-0 pb-20">
+        <div className="relative w-full flex-1 z-50 bg-slate-950/90 backdrop-blur-xl flex flex-col pt-2 md:pt-6 animate-in fade-in duration-300 min-h-0">
+            <div className="flex-1 max-w-2xl w-full mx-auto p-4 md:p-8 flex flex-col min-h-0">
 
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6 shrink-0">
@@ -73,7 +73,7 @@ export default function DailyMissions({ onClose, dailyMissions, claimMissionRewa
                 </div>
 
                 {/* Mission List */}
-                <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-1">
+                <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-1 touch-pan-y">
                     {dailyMissions?.tasks?.map((task) => {
                         const Icon = getIcon(task.id);
                         const isCompleted = task.current >= task.target;
