@@ -760,7 +760,7 @@ const Dashboard = ({
               </div>
             </div>
 
-            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 backdrop-blur-md flex-1 no-scrollbar flex flex-col">
+            <div className="bg-slate-900/60 border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 backdrop-blur-md flex-1 min-h-0 no-scrollbar flex flex-col">
               <ShopView t={t} coins={coins} tools={tools} buyTool={buyTool} language={language} user={user} profile={profile} onOpenAuth={onOpenAuth} />
             </div>
           </div>
@@ -796,6 +796,7 @@ const Dashboard = ({
             language={language}
             t={t}
             profile={profile}
+            isMobile={isMobile}
             soundManager={soundManager}
           />
         );
@@ -2187,7 +2188,7 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool, language, user, profile
   ];
 
   return (
-    <div className="flex-1 flex flex-col gap-3">
+    <div className="flex-1 flex flex-col min-h-0 gap-3">
       {/* Hata mesajı */}
       {purchaseError && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-2 text-center animate-in fade-in duration-300">
@@ -2214,7 +2215,7 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool, language, user, profile
           </button>
         ))}
       </div>
-      <div className="flex-1 overflow-y-auto no-scrollbar landscape:pb-20">
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-28">
 
         {/* İlk alım bonusu banner */}
         {activeTab === 'gold' && isFirstPurchase && (

@@ -257,6 +257,9 @@
     - [x] **Footer Navigasyon İyileştirmesi (v13.0.0):** Alt menü dashboard genelinde kalıcı hale getirildi. "Ana Sayfa" öğesi eklenerek toplam 6 öğeli, optimize edilmiş mobil düzen (px-4) uygulandı. İçeriklerin menü altında kalmaması için tüm görünümlere `pb-28/32` padding eklendi. (06.03.2026)
 - [x] **UI Mikro Düzenlemeler:** Hediye ekranındaki ikon kaldırılarak yer kazanıldı, Günlük Görevler başlığı mobil için küçültüldü (`text-xl`). Market sekmeleri sabitlendi ve içerik kaydırma özelliği eklendi. (06.03.2026)
 - [x] **Hesap Silme Özelliği (v14.0.0)** (06.03.2026): Google Play Store veri gizliliği politikalarına uyum için geliştirildi.
-    - [x] **Mobil Uygulama:** Profil ekranına "Hesabı Sil" butonu ve geri dönüşü olmayan işlem uyarısı içeren onay modalı eklendi.
+    - [x] **Mobil Uygulama:** Profil ekranına "Hesabı Sil" butonu ve geri dönüşü olmayan işlem uyarısı içeren onay modalı eklendi. `handleDeleteAccount` fonksiyonu `Dashboard` seviyesine taşınarak kapsam sorunu giderildi.
     - [x] **Supabase Entegrasyonu:** `SupabaseService.js` içerisinde profile verilerini silen ve oturumu kapatan `deleteUserAccount` fonksiyonu uygulandı.
-    - [x] **Web (Landing Page):** `wordlengenext` projesinde `https://wordlenge.com/delete-account` URL'si ile hesap silme talep ve bilgilendirme sayfası oluşturuldu. (06.03.2026)
+    - [x] **Web (Landing Page):** `wordlengenext` projesinde `https://wordlenge.com/delete-account` URL'si ile hesap silme talep ve bilgilendirme sayfası oluşturuldu.
+- [x] **Market & Görevler UI İyileştirmesi (v14.1.0)** (06.03.2026):
+    - [x] **Market (ShopView):** İçerik alanı `min-h-0` ve `flex-1` yapılarak kaydırma (scroll) özelliği aktifleştirildi. Navigasyon barı ile çakışmayı önlemek için `pb-28` eklendi.
+    - [x] **Günlük Görevler (DailyMissions):** Görev kartları daha kompakt hale getirildi (padding ve ikon boyutları küçültüldü). Header `shrink-0` yapılarak kaydırma alanı maksimize edildi. (06.03.2026)
