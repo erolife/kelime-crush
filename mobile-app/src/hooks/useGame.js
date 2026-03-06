@@ -471,6 +471,9 @@ export const useGame = (initialDifficulty = 'normal') => {
     }, [energy, lastEnergyRefill]);
 
     // Yerel Bildirim Zamanlama (Enerji Dolduğunda)
+    const isEnergyUnlimited = unlimitedEnergyUntil ? new Date(unlimitedEnergyUntil) > new Date() : false;
+    const isPro = profile?.is_pro || false;
+
     useEffect(() => {
         if (energy < 5 && !isPro && !isEnergyUnlimited) {
             const refillTimeLeftSeconds = (5 - energy) * 20 * 60; // Kalan toplam saniye (her enerji için 20 dk)
@@ -1127,6 +1130,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         coins, buyTool, addCoins, addTool,
         cloudLevels, isLoadingLevels,
         user, profile, isLoadingProfile, fetchProfile, completedLevels,
+        isPro, isEnergyUnlimited,
         language, setLanguage, t,
         energy, nextEnergyIn, setEnergy, setLastEnergyRefill,
         totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId,

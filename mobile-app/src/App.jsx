@@ -2605,11 +2605,10 @@ function App() {
     unlimitedEnergyUntil,
     isMobile,
     isTutorial, tutorialHint,
-    dailyMissions, claimMissionReward, updateMissionProgress
+    dailyMissions, claimMissionReward, updateMissionProgress,
+    isPro, isEnergyUnlimited
   } = useGame();
 
-  const isEnergyUnlimited = unlimitedEnergyUntil ? new Date(unlimitedEnergyUntil) > new Date() : false;
-  const isPro = profile?.is_pro || false;
 
   const [isMuted, setIsMuted] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
