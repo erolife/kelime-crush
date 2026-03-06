@@ -86,20 +86,6 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess, t = (s) => s }) => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setError(null);
-    setLoading(true);
-    try {
-      const result = await AuthService.signInWithGoogle();
-      if (result.error) {
-        setError(result.error);
-        setLoading(false);
-      }
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 landscape:p-2 md:p-6 bg-slate-950/90 backdrop-blur-2xl animate-in fade-in duration-300">
@@ -120,26 +106,6 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess, t = (s) => s }) => {
           </p>
         </div>
 
-        {/* Google OAuth */}
-        <button
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          className="w-full py-3 landscape:py-2 md:py-4 bg-white hover:bg-gray-100 text-slate-800 font-bold rounded-xl landscape:rounded-lg md:rounded-2xl transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2 landscape:gap-1.5 md:gap-3 mb-3 landscape:mb-2 md:mb-6 text-sm landscape:text-xs md:text-base"
-        >
-          <svg className="w-5 h-5 landscape:w-4 landscape:h-4" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-          </svg>
-          Google {isLogin ? t('signin_button') : t('signup_button')}
-        </button>
-
-        <div className="flex items-center gap-3 landscape:gap-2 mb-3 landscape:mb-2 md:mb-6">
-          <div className="flex-1 h-px bg-white/10" />
-          <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-600 uppercase tracking-widest">{t('or') || 'VEYA'}</span>
-          <div className="flex-1 h-px bg-white/10" />
-        </div>
 
         <form onSubmit={handleSubmit} className="space-y-3 landscape:space-y-1.5 md:space-y-4">
           {!isLogin && (
@@ -2683,44 +2649,6 @@ function App() {
           try {
             const url = new URL(event.url);
 
-            // 1. Google OAuth Callback İşleme
-            if (event.url.includes('auth-callback')) {
-              let accessToken = null;
-              let refreshToken = null;
-              let code = null;
-
-              if (url.hash) {
-                const hashParams = new URLSearchParams(url.hash.substring(1));
-                accessToken = hashParams.get('access_token');
-                refreshToken = hashParams.get('refresh_token');
-              }
-
-              const searchParams = url.searchParams;
-              if (!accessToken) accessToken = searchParams.get('access_token');
-              if (!refreshToken) refreshToken = searchParams.get('refresh_token');
-              code = searchParams.get('code');
-
-              if (accessToken && refreshToken) {
-                const { data, error } = await supabase.auth.setSession({
-                  access_token: accessToken,
-                  refresh_token: refreshToken
-                });
-
-                if (!error && data.session) {
-                  setIsAuthModalOpen(false);
-                  if (fetchProfile) await fetchProfile();
-                }
-              } else if (code) {
-                const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-
-                if (!error && data.session) {
-                  setIsAuthModalOpen(false);
-                  if (fetchProfile) await fetchProfile();
-                }
-              }
-
-              setTimeout(() => setIsAuthModalOpen(false), 1500);
-            }
           } catch (urlError) {
             console.error('[DeepLink] URL parse error:', urlError);
             if (event.url.includes('access_token=') || event.url.includes('code=')) {
