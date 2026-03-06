@@ -68,3 +68,17 @@ Görselini seçtikten sonra alttaki "Resize" (Ölçek) kaydırıcısı ile logon
 (İsteğe Bağlı) Aynı sayfanın üst tarafında "Background Layer" sekmesine geçip logonun arkasındaki rengi (Siyah, Beyaz veya Hex koduyla) belirleyebilirsin.
 Son olarak sağ alttan Next ve sonra gelen ekrandan Finish'e bas.
 İşte bu kadar! Android Studio cihazın hem eski versiyonları (kare/yuvarlak) hem de yeni versiyonları (adaptive) için logoyu onlarca klasöre otomatik olarak çizip kesti bile. Tekrar build aldığında Wordlenge logon cihazında göz alıcı duracaktır. 🪄
+
+
+
+### 🔔 Oyuncu Bildirim Sistemi (Push & Local)
+- [ ] **Yerel Bildirimler (Local Notifications):** Enerji full olduğunda ve ücretsiz çark süresi dolduğunda bildirim gönderilmesi.
+- [ ] **Push Bildirimler (Firebase FCM):** Etkinlik başlangıç/bitiş duyuruları ve global mesajlar.
+- [ ] **Firebase Entegrasyonu:** Android ve iOS için gerekli sertifikaların ve kütüphanelerin kurulumu.
+- [ ] **Supabase Edge Functions:** Sunucu tarafında etkinlik takibi ve bildirim tetikleyici mekanizmaların kurulması.
+
+- [ ] **Footer Navigasyon İyileştirmesi:**
+    - Alt menünün oyun ekranı hariç (Market, Profil, Etkinlik vb.) tüm dashboard görünümlerinde kalıcı olması sağlanacak.
+    - Menü kodları `Dashboard` bileşeninden `App.jsx` ana seviyesine taşınacak.
+
+*Bu görevler bugünkü iş planına eklendi, işlemlere birkaç saat sonra başlanacak.*

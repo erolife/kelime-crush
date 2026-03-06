@@ -217,9 +217,11 @@ const Dashboard = ({
   totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId, completedLevels,
   activeEvents = [], activeEvent, setSelectedEventId, setView,
   xp, level, masteryPoints, sessionXP, getNextLevelXp,
-  isPro, isEnergyUnlimited, isMobile
+  isPro, isEnergyUnlimited, isMobile,
+  dashboardView, setDashboardView,
+  showMissionLock, setShowMissionLock,
+  lockReason, setLockReason
 }) => {
-  const [dashboardView, setDashboardView] = React.useState('modes');
   const [selectedEventIdLocal, setSelectedEventIdLocal] = React.useState(null);
   const [selectedLevelIdx, setSelectedLevelIdx] = React.useState(null);
   const [selectedBoosters, setSelectedBoosters] = React.useState({ bomb: false, row: false, col: false });
@@ -227,8 +229,7 @@ const Dashboard = ({
   const [arcadeValue, setArcadeValue] = React.useState(15);
   const [tbDuration, setTbDuration] = React.useState(TIME_BATTLE_OPTIONS[1]); // default 3dk
   const [showMemberOnlyModal, setShowMemberOnlyModal] = React.useState(false);
-  const [showMissionLock, setShowMissionLock] = React.useState(false);
-  const [lockReason, setLockReason] = React.useState('auth'); // 'auth' | 'energy'
+
   const [isEditingProfile, setIsEditingProfile] = React.useState(false);
   const [editData, setEditData] = React.useState({});
   const [isSavingProfile, setIsSavingProfile] = React.useState(false);
@@ -1454,60 +1455,6 @@ const Dashboard = ({
               </div>
             </div>
 
-            {/* ── MOBİL: Alt İkon Barı (Premium Bottom Nav) ── */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-2xl border-t border-white/10 px-6 py-4 flex justify-between items-center shadow-[0_-15px_40px_rgba(0,0,0,0.5)]">
-
-              <button
-                onClick={() => { if (!user) setShowMissionLock(true); else setDashboardView('inventory'); }}
-                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'inventory' ? 'text-purple-400 scale-110' : 'text-slate-500'}`}
-              >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'inventory' ? 'bg-purple-500/20 border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'bg-white/5 border-transparent'}`}>
-                  <Box size={20} />
-                </div>
-                <span className="text-[8px] font-black uppercase tracking-widest">{t('tools') || 'Araçlar'}</span>
-              </button>
-
-              <button
-                onClick={() => setDashboardView('leaderboard')}
-                className={`flex flex-col items-center gap-1 -mt-8 transition-all ${dashboardView === 'leaderboard' ? 'scale-125' : 'scale-100 opacity-80'}`}
-              >
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-slate-950 border-2 border-slate-950 shadow-2xl relative overflow-hidden">
-                  <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                  <Trophy size={28} className="relative z-10" />
-                </div>
-                <span className={`text-[8px] font-black uppercase tracking-widest mt-1 ${dashboardView === 'leaderboard' ? 'text-amber-400' : 'text-slate-500'}`}>{t('rank') || 'Sıra'}</span>
-              </button>
-
-              <button
-                onClick={() => { if (!user) setShowMissionLock(true); else setDashboardView('shop'); }}
-                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'shop' ? 'text-emerald-400 scale-110' : 'text-slate-500'}`}
-              >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'shop' ? 'bg-emerald-500/20 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'bg-white/5 border-transparent'}`}>
-                  <ShoppingBag size={20} />
-                </div>
-                <span className="text-[8px] font-black uppercase tracking-widest">{t('market') || 'Shop'}</span>
-              </button>
-
-              <button
-                onClick={() => { if (!user) { setLockReason('auth'); setShowMissionLock(true); } else setDashboardView('missions'); }}
-                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'missions' ? 'text-sky-400 scale-110' : 'text-slate-500'}`}
-              >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'missions' ? 'bg-sky-500/20 border-sky-500/40 shadow-[0_0_15px_rgba(14,165,233,0.3)]' : 'bg-white/5 border-transparent'}`}>
-                  <ListTodo size={20} />
-                </div>
-                <span className="text-[8px] font-black uppercase tracking-widest">{t('missions') || 'Görev'}</span>
-              </button>
-
-              <button
-                onClick={() => { if (!user) { setLockReason('auth'); setShowMissionLock(true); } else setDashboardView('daily'); }}
-                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'daily' ? 'text-amber-400 scale-110' : 'text-slate-500'}`}
-              >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'daily' ? 'bg-amber-500/20 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'bg-white/5 border-transparent'} relative`}>
-                  <Gift size={20} />
-                </div>
-                <span className="text-[8px] font-black uppercase tracking-widest">{t('daily') || 'Hediye'}</span>
-              </button>
-            </div>
 
           </div >
         );
@@ -2609,6 +2556,9 @@ function App() {
   const [view, setView] = useState('dashboard'); // 'dashboard', 'settings', 'profile', 'event'
   const [selectedEventId, setSelectedEventId] = useState(null);
   const [eventTab, setEventTab] = useState('leaderboard'); // 'leaderboard' or 'rewards'
+  const [dashboardView, setDashboardView] = useState('modes');
+  const [showMissionLock, setShowMissionLock] = useState(false);
+  const [lockReason, setLockReason] = useState('auth'); // 'auth' | 'energy'
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
@@ -2998,8 +2948,80 @@ function App() {
             setView={setView}
             isPro={isPro}
             isMobile={isMobile}
+            dashboardView={dashboardView}
+            setDashboardView={setDashboardView}
+            showMissionLock={showMissionLock}
+            setShowMissionLock={setShowMissionLock}
+            lockReason={lockReason}
+            setLockReason={setLockReason}
           />
           {renderAppView()}
+
+          {/* ── MOBİL: Alt İkon Barı (Kalıcı Navigasyon) ── */}
+          {isMobile && showDashboard && (
+            <div className="fixed bottom-0 left-0 right-0 z-[600] bg-slate-950/80 backdrop-blur-2xl border-t border-white/10 px-4 py-4 flex justify-between items-center shadow-[0_-15px_40px_rgba(0,0,0,0.5)]">
+
+              <button
+                onClick={() => setDashboardView('modes')}
+                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'modes' ? 'text-sky-400 scale-110' : 'text-slate-500'}`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'modes' ? 'bg-sky-500/20 border-sky-500/40 shadow-[0_0_15px_rgba(14,165,233,0.3)] text-sky-400' : 'bg-white/5 border-transparent text-slate-500'} relative overflow-hidden`}>
+                  <LayoutGrid size={20} />
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-widest">{t('home') || 'Ana Sayfa'}</span>
+              </button>
+
+              <button
+                onClick={() => { if (!user) setShowMissionLock(true); else setDashboardView('inventory'); }}
+                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'inventory' ? 'text-purple-400 scale-110' : 'text-slate-500'}`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'inventory' ? 'bg-purple-500/20 border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.3)] text-purple-400' : 'bg-white/5 border-transparent text-slate-500'} relative overflow-hidden`}>
+                  <Box size={20} />
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-widest">{t('tools') || 'Araçlar'}</span>
+              </button>
+
+              <button
+                onClick={() => setDashboardView('leaderboard')}
+                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'leaderboard' ? 'text-amber-400 scale-110' : 'text-slate-500'}`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'leaderboard' ? 'bg-amber-500/20 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.3)] text-amber-500' : 'bg-white/5 border-transparent text-slate-500'} relative overflow-hidden`}>
+                  <Trophy size={20} />
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-widest">{t('rank') || 'Sıra'}</span>
+              </button>
+
+              <button
+                onClick={() => { if (!user) setShowMissionLock(true); else setDashboardView('shop'); }}
+                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'shop' ? 'text-emerald-400 scale-110' : 'text-slate-500'}`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'shop' ? 'bg-emerald-500/20 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.3)] text-emerald-400' : 'bg-white/5 border-transparent text-slate-500'} relative overflow-hidden`}>
+                  <ShoppingBag size={20} />
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-widest">{t('market') || 'Shop'}</span>
+              </button>
+
+              <button
+                onClick={() => { if (!user) { setLockReason('auth'); setShowMissionLock(true); } else setDashboardView('missions'); }}
+                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'missions' ? 'text-sky-400 scale-110' : 'text-slate-500'}`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'missions' ? 'bg-sky-500/20 border-sky-500/40 shadow-[0_0_15px_rgba(14,165,233,0.3)] text-sky-400' : 'bg-white/5 border-transparent text-slate-500'} relative overflow-hidden`}>
+                  <ListTodo size={20} />
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-widest">{t('missions') || 'Görev'}</span>
+              </button>
+
+              <button
+                onClick={() => { if (!user) { setLockReason('auth'); setShowMissionLock(true); } else setDashboardView('daily'); }}
+                className={`flex flex-col items-center gap-1 transition-all ${dashboardView === 'daily' ? 'text-amber-400 scale-110' : 'text-slate-500'}`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${dashboardView === 'daily' ? 'bg-amber-500/20 border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.3)] text-amber-500' : 'bg-white/5 border-transparent text-slate-500'} relative overflow-hidden`}>
+                  <Gift size={20} />
+                </div>
+                <span className="text-[8px] font-black uppercase tracking-widest">{t('daily') || 'Hediye'}</span>
+              </button>
+            </div>
+          )}
         </>
       ) : (
         <>

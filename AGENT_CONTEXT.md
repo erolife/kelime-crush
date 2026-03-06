@@ -26,6 +26,11 @@
     - [x] **Görsel Rehber (👇):** Kullanıcıyı ilk hamlesine yönlendiren, harfler üzerinde gezinen hareketli bir el simgesi animasyonu `PremiumCanvas`'a eklendi.
     - [x] **Otomatik Tamamlama:** İlk kelime bulunduğunda eğitici mod otomatik olarak sona erer ve `localStorage` üzerinden kalıcı olarak kaydedilir.
     - [x] **Fix:** `useGame.js` içerisindeki hook sıralaması ve eksik return değerleri düzeltilerek eğitici modun stabil çalışması sağlandı.
+- **Sistem Kararlılık & Seçici Geri Yükleme (05.03.2026):**
+    - [x] **Revert:** Layout ve grid sorunları (ezilme, hitbox kayması) nedeniyle sistem `2bd2773` (Tutorial Modu Tamamlanması) commit'ine geri döndürüldü.
+    - [x] **Seçici Geri Yükleme:** Sorunlu seanstaki kıymetli özellikler (Google Deep Link, Profil Fix, Enerji Kontrolü, Market Yeni Ürün) manuel olarak kararlı sürüm üzerine entegre edildi.
+    - [x] **Google OAuth Fix:** Native cihazlarda `wordlenge://auth-callback` yönlendirmesi ve Deep Link dinleyicisi başarıyla geri yüklendi.
+    - [x] **Enerji & Market:** Enerji bittiğinde markete yönlendirme ve 500 altına enerji alma özelliği eklendi.
 - **Şans Çarkı Güvenliği** (05.03.2026):
     - [x] **Race Condition Fix:** Çark çevrildiği anda kilitlenerek üst üste çevrilmesi engellendi.
     - [x] **UX:** Ödül talep edildikten sonra modalın otomatik kapanması sağlandı.
@@ -241,4 +246,8 @@
 - **Sizing:** `ResizeObserver` ile %100 responsive dikdörtgen oyun alanı.
 - **Performans:** Canvas API ile 60 FPS akıcılık. Hücre hit detection radius: 38%.
 - **Sizing Correction (v4.0.1):** Mobil cihazlarda ızgara görünürlüğü için `aspect-[11/9]` zorunlu kılındı ve kök div `h-screen w-screen` ile sabitlendi.
-- **Prop Logic Correction (v4.0.2):** Alt bileşenlere `t = (s) => s` ve `levels = []` gibi fallback propları eklenerek JS çökmeleri (TypeError) kalıcı olarak engellendi.
+- **Gelecek Planı: Bildirim Sistemi (Push & Local) (v12.0.0)** (06.03.2026):
+    - [ ] **Yerel Bildirimler (Local Notifications):** Enerji dolumu ve ücretsiz çark süresi takibi için Capacitor Local Notifications entegrasyonu planlandı.
+    - [ ] **Push Bildirimler (Firebase FCM):** Etkinlik duyuruları ve global bildirimler için Firebase entegrasyonu (Android/iOS) planlandı.
+    - [ ] **Supabase Edge Functions:** Bildirim tetikleyicileri için sunucu tarafı mantığı planlandı.
+    - [x] **Footer Navigasyon İyileştirmesi (v13.0.0):** Alt menü dashboard genelinde kalıcı hale getirildi. "Ana Sayfa" öğesi eklenerek toplam 6 öğeli, optimize edilmiş mobil düzen (px-4) uygulandı. (06.03.2026)

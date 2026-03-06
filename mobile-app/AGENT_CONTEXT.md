@@ -20,3 +20,4 @@
 - **Önemli Notlar:** 
     - Periyodik etkinlikler haftalık döngüye göre (start_day, end_day) dinamik olarak hesaplanır.
     - Etkinliklerde hamle sınırı standart olarak 30 olarak belirlendi.
+    - **Gelecek Planı:** Bildirim sistemi (Push & Local) ve Navigasyon iyileştirmesi (kalıcı footer) entegrasyonu için hazırlıklar başladı.
