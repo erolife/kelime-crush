@@ -10,7 +10,7 @@ import {
   LayoutGrid, RotateCcw, Coins, Calendar, Box,
   ListTodo, Gift, ShoppingBag, BarChart3, Share2,
   User, LogOut, Mail, Lock, UserPlus, LogIn, Clock, Home,
-  Bomb, Radiation, Star, MapPin, Camera
+  Bomb, Radiation, Star, MapPin, Camera, Trash2
 } from 'lucide-react';
 import { LETTER_POINTS, TIME_BATTLE_OPTIONS } from './logic/Constants';
 import { AuthService } from './logic/AuthService';
@@ -229,10 +229,22 @@ const Dashboard = ({
   const [arcadeValue, setArcadeValue] = React.useState(15);
   const [tbDuration, setTbDuration] = React.useState(TIME_BATTLE_OPTIONS[1]); // default 3dk
   const [showMemberOnlyModal, setShowMemberOnlyModal] = React.useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
   const [isEditingProfile, setIsEditingProfile] = React.useState(false);
   const [editData, setEditData] = React.useState({});
   const [isSavingProfile, setIsSavingProfile] = React.useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    const success = await SupabaseService.deleteUserAccount(user.id);
+    if (success) {
+      setShowDeleteConfirm(false);
+      window.location.reload();
+    } else {
+      alert("Hesap silinirken bir hata oluştu. Lütfen tekrar deneyin.");
+    }
+  };
 
   console.log('--- DASHBOARD RENDER ---');
   console.log('Current View:', dashboardView);
@@ -262,8 +274,8 @@ const Dashboard = ({
     switch (dashboardView) {
       case 'eventsList':
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-32 landscape:pb-16 px-4 landscape:px-3">
-            <div className="flex items-center gap-4 mb-4 landscape:mb-3 md:mb-8">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto flex flex-col h-full items-stretch px-4 landscape:px-3">
+            <div className="flex items-center gap-4 mb-4 landscape:mb-3 md:mb-8 shrink-0">
               <button onClick={() => setDashboardView('modes')} className="p-2 landscape:p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
                 <X size={20} className="md:w-6 md:h-6" />
               </button>
@@ -337,7 +349,7 @@ const Dashboard = ({
         );
       case 'timeBattlePregame': {
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full max-h-screen pb-28">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full min-h-0 pt-2 lg:pt-0 pb-4">
             <div className="flex items-center justify-between gap-2 md:gap-4 mb-2 landscape:mb-1 md:mb-6 shrink-0 pt-2 md:pt-0">
               <div className="flex items-center gap-2 md:gap-4 min-w-0">
                 <button onClick={() => setDashboardView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
@@ -425,7 +437,7 @@ const Dashboard = ({
         const selectedLevel = isArcade ? { id: t('arcade'), title: t('arcade_desc'), goals: [] } : levels[selectedLevelIdx];
         if (!selectedLevel) return null;
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full max-h-screen pb-28">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full min-h-0 pt-2 lg:pt-0 pb-4">
             <div className="flex items-center justify-between gap-2 md:gap-4 mb-2 landscape:mb-1 md:mb-6 shrink-0 pt-2 md:pt-0">
               <div className="flex items-center gap-2 md:gap-4 min-w-0">
                 <button onClick={() => setDashboardView(isArcade ? 'modes' : 'levels')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
@@ -609,7 +621,7 @@ const Dashboard = ({
 
       case 'inventory':
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full overflow-y-auto no-scrollbar pb-32 landscape:pb-20">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full px-4 landscape:px-3">
             <div className="flex items-center gap-3 md:gap-4 mb-2 md:mb-8 shrink-0">
               <button
                 onClick={() => setDashboardView('modes')}
@@ -733,7 +745,7 @@ const Dashboard = ({
       case 'shop':
         console.log('--- RENDERING SHOP VIEW ---');
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto flex flex-col h-full max-h-[85vh] pb-28">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto flex flex-col h-full min-h-0">
             <div className="flex items-center justify-between mb-4 md:mb-6 shrink-0 pt-2 md:pt-0">
               <div className="flex items-center gap-4 min-w-0">
                 <button onClick={() => setDashboardView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
@@ -827,8 +839,8 @@ const Dashboard = ({
         };
 
         return (
-          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full overflow-y-auto no-scrollbar pb-32 px-4 landscape:px-3">
-            <div className="flex items-center justify-between mb-4 md:mb-8">
+          <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto flex flex-col h-full px-4 landscape:px-3">
+            <div className="flex items-center justify-between mb-4 md:mb-8 shrink-0">
               <div className="flex items-center gap-4">
                 <button onClick={() => setDashboardView('modes')} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
                   <X size={20} className="md:w-6 md:h-6" />
@@ -854,7 +866,7 @@ const Dashboard = ({
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 overflow-y-auto no-scrollbar pb-32">
               {/* Sol Sütun: Profil Özeti */}
               <div className="space-y-4 md:space-y-6">
                 <div className="bg-slate-900/60 border border-white/5 rounded-[2.5rem] p-6 backdrop-blur-md flex flex-col items-center text-center">
@@ -899,9 +911,14 @@ const Dashboard = ({
                     </button>
                   )}
                   {user && !isEditingProfile && (
-                    <button onClick={() => AuthService.signOut()} className="w-full py-3 bg-white/5 hover:bg-red-500/10 hover:border-red-500/30 border border-white/5 rounded-2xl text-xs font-black text-slate-400 hover:text-red-400 transition-all uppercase tracking-widest italic">
-                      {t('logout')}
-                    </button>
+                    <div className="w-full flex flex-col gap-2">
+                      <button onClick={() => AuthService.signOut()} className="w-full py-3 bg-white/5 hover:bg-red-500/10 hover:border-red-500/30 border border-white/5 rounded-2xl text-xs font-black text-slate-400 hover:text-red-400 transition-all uppercase tracking-widest italic">
+                        {t('logout')}
+                      </button>
+                      <button onClick={() => setShowDeleteConfirm(true)} className="w-full py-2 text-[9px] font-black text-slate-600 hover:text-rose-500 transition-colors uppercase tracking-widest">
+                        {t('delete_account')}
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -1462,7 +1479,7 @@ const Dashboard = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[400] flex flex-col bg-slate-950/95 backdrop-blur-xl overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+    <div className="relative w-full h-full z-[400] flex flex-col bg-slate-950/95 backdrop-blur-xl overflow-hidden pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       {/* Falling Letters Background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-50 select-none">
         {fallingLetters.map(item => {
@@ -1666,7 +1683,7 @@ const Dashboard = ({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 w-full flex items-center justify-center p-4 lg:p-8 pb-24 lg:pb-8 min-h-0 relative z-10">
+      <div className="flex-1 w-full flex items-center justify-center p-4 lg:p-8 min-h-0 relative z-10">
         {renderView()}
       </div>
 
@@ -1713,6 +1730,36 @@ const Dashboard = ({
                   {t('back')}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Account Deletion Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-slate-900 border border-rose-500/30 rounded-[2.5rem] p-8 max-w-sm w-full text-center shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 rounded-full blur-[60px] pointer-events-none" />
+            <div className="w-20 h-20 bg-rose-500/10 rounded-3xl flex items-center justify-center text-rose-500 mx-auto mb-6 border border-rose-500/20 relative">
+              <Trash2 size={40} />
+            </div>
+            <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-4 relative">{t('delete_account_title')}</h3>
+            <p className="text-slate-400 text-sm font-medium leading-relaxed mb-8 relative">
+              {t('delete_account_warning')}
+            </p>
+            <div className="flex flex-col gap-3 relative">
+              <button
+                onClick={handleDeleteAccount}
+                className="w-full py-4 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-2xl transition-all active:scale-95 shadow-lg shadow-rose-600/20 uppercase tracking-widest italic text-sm"
+              >
+                {t('delete_account_confirm')}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="w-full py-3 bg-white/5 hover:bg-white/10 text-slate-400 font-black rounded-2xl transition-all uppercase tracking-widest italic text-xs"
+              >
+                {t('delete_account_cancel')}
+              </button>
             </div>
           </div>
         </div>
@@ -2150,12 +2197,12 @@ const ShopView = ({ t = (s) => s, coins, tools, buyTool, language, user, profile
       )}
 
       {/* Sekme Başlıkları */}
-      <div className="flex bg-slate-950/50 rounded-xl p-1 border border-white/5 shrink-0">
+      <div className="flex gap-1.5 bg-slate-950/50 rounded-xl p-1 border border-white/5 shrink-0 overflow-x-auto no-scrollbar">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-wider transition-all ${activeTab === tab.id
+            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${activeTab === tab.id
               ? tab.id === 'pro'
                 ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border border-amber-500/30 shadow-lg shadow-amber-500/10'
                 : 'bg-white/10 text-white border border-white/10 shadow-lg'
@@ -2728,11 +2775,12 @@ function App() {
     }
   };
 
+
   const renderAppView = () => {
     switch (view) {
       case 'event':
         return (
-          <div className="fixed inset-0 z-[500] flex items-center justify-center p-6 pb-24 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="fixed inset-0 z-[500] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
             <div className="w-full max-w-md bg-slate-900 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
               <div className="p-8 text-center">
                 <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 border bg-amber-500/20 border-amber-400 text-amber-400">
@@ -2876,92 +2924,92 @@ function App() {
 
       {console.log('--- APP MAIN RENDER ---', { showDashboard })}
       {showDashboard ? (
-        <>
-          <Dashboard
-            levels={cloudLevels}
-            isLoading={isLoadingLevels}
-            currentLevel={completedLevels}
-            completedLevels={completedLevels}
-            coins={coins}
-            tools={tools}
-            buyTool={buyTool}
-            user={user}
-            profile={profile}
-            fetchProfile={fetchProfile}
-            language={language}
-            setLanguage={setLanguage}
-            t={t}
-            isMuted={isMuted}
-            toggleMute={toggleMute}
-            difficulty={difficulty}
-            changeDifficulty={changeDifficulty}
-            dailyMissions={dailyMissions}
-            claimMissionReward={claimMissionReward}
-            updateMissionProgress={updateMissionProgress}
-            addCoins={addCoins}
-            addTool={addTool}
-            soundManager={soundManager}
-            onOpenAuth={() => setIsAuthModalOpen(true)}
-            energy={energy}
-            isEnergyUnlimited={isEnergyUnlimited}
-            nextEnergyIn={nextEnergyIn}
-            onSelectArcade={(boosters, subMode, subValue) => {
-              if (isPro || isEnergyUnlimited || energy > 0) {
-                if (!isPro && !isEnergyUnlimited) {
-                  setEnergy(prev => prev - 1);
-                  if (energy === 5) setLastEnergyRefill(Date.now());
+        <div className="flex flex-col h-[100dvh] overflow-hidden bg-slate-950 relative">
+          <div className="flex-1 min-h-0 relative">
+            <Dashboard
+              levels={cloudLevels}
+              isLoading={isLoadingLevels}
+              currentLevel={completedLevels}
+              completedLevels={completedLevels}
+              coins={coins}
+              tools={tools}
+              buyTool={buyTool}
+              user={user}
+              profile={profile}
+              fetchProfile={fetchProfile}
+              language={language}
+              setLanguage={setLanguage}
+              t={t}
+              isMuted={isMuted}
+              toggleMute={toggleMute}
+              difficulty={difficulty}
+              changeDifficulty={changeDifficulty}
+              dailyMissions={dailyMissions}
+              claimMissionReward={claimMissionReward}
+              updateMissionProgress={updateMissionProgress}
+              addCoins={addCoins}
+              addTool={addTool}
+              soundManager={soundManager}
+              onOpenAuth={() => setIsAuthModalOpen(true)}
+              energy={energy}
+              isEnergyUnlimited={isEnergyUnlimited}
+              nextEnergyIn={nextEnergyIn}
+              onSelectArcade={(boosters, subMode, subValue) => {
+                if (isPro || isEnergyUnlimited || energy > 0) {
+                  if (!isPro && !isEnergyUnlimited) {
+                    setEnergy(prev => prev - 1);
+                    if (energy === 5) setLastEnergyRefill(Date.now());
+                  }
+                  setShowDashboard(false);
+                  resetGame(boosters, 'arcade', subMode, subValue, difficulty);
                 }
-                setShowDashboard(false);
-                resetGame(boosters, 'arcade', subMode, subValue, difficulty);
-              }
-            }}
-            onSelectTimeBattle={(duration, boosters) => {
-              if (isPro || isEnergyUnlimited || energy > 0) {
-                if (!isPro && !isEnergyUnlimited) {
-                  setEnergy(prev => prev - 1);
-                  if (energy === 5) setLastEnergyRefill(Date.now());
+              }}
+              onSelectTimeBattle={(duration, boosters) => {
+                if (isPro || isEnergyUnlimited || energy > 0) {
+                  if (!isPro && !isEnergyUnlimited) {
+                    setEnergy(prev => prev - 1);
+                    if (energy === 5) setLastEnergyRefill(Date.now());
+                  }
+                  startTimeBattle(duration, boosters);
+                  setShowDashboard(false);
                 }
-                startTimeBattle(duration, boosters);
-                setShowDashboard(false);
-              }
-            }}
-            onSelectZen={() => {
-              if (isPro || isEnergyUnlimited || energy > 0) {
-                if (!isPro && !isEnergyUnlimited) {
-                  setEnergy(prev => prev - 1);
-                  if (energy === 5) setLastEnergyRefill(Date.now());
+              }}
+              onSelectZen={() => {
+                if (isPro || isEnergyUnlimited || energy > 0) {
+                  if (!isPro && !isEnergyUnlimited) {
+                    setEnergy(prev => prev - 1);
+                    if (energy === 5) setLastEnergyRefill(Date.now());
+                  }
+                  setShowDashboard(false);
+                  resetGame({}, 'zen', 'moves', 999, difficulty);
                 }
-                setShowDashboard(false);
-                resetGame({}, 'zen', 'moves', 999, difficulty);
-              }
-            }}
-            totalScore={totalScore}
-            wordsFoundCount={wordsFoundCount}
-            gamesPlayed={gamesPlayed}
-            highScore={highScore}
-            activeEvents={activeEvents}
-            activeEvent={activeEvent}
-            setSelectedEventId={setSelectedEventId}
-            xp={xp}
-            level={level}
-            masteryPoints={masteryPoints}
-            sessionXP={sessionXP}
-            getNextLevelXp={getNextLevelXp}
-            setView={setView}
-            isPro={isPro}
-            isMobile={isMobile}
-            dashboardView={dashboardView}
-            setDashboardView={setDashboardView}
-            showMissionLock={showMissionLock}
-            setShowMissionLock={setShowMissionLock}
-            lockReason={lockReason}
-            setLockReason={setLockReason}
-          />
-          {renderAppView()}
-
-          {/* ── MOBİL: Alt İkon Barı (Kalıcı Navigasyon) ── */}
-          {isMobile && showDashboard && (
-            <div className="fixed bottom-0 left-0 right-0 z-[600] bg-slate-950/80 backdrop-blur-2xl border-t border-white/10 px-4 py-4 flex justify-between items-center shadow-[0_-15px_40px_rgba(0,0,0,0.5)]">
+              }}
+              totalScore={totalScore}
+              wordsFoundCount={wordsFoundCount}
+              gamesPlayed={gamesPlayed}
+              highScore={highScore}
+              activeEvents={activeEvents}
+              activeEvent={activeEvent}
+              setSelectedEventId={setSelectedEventId}
+              xp={xp}
+              level={level}
+              masteryPoints={masteryPoints}
+              sessionXP={sessionXP}
+              getNextLevelXp={getNextLevelXp}
+              setView={setView}
+              isPro={isPro}
+              isMobile={isMobile}
+              dashboardView={dashboardView}
+              setDashboardView={setDashboardView}
+              showMissionLock={showMissionLock}
+              setShowMissionLock={setShowMissionLock}
+              lockReason={lockReason}
+              setLockReason={setLockReason}
+            />
+            {renderAppView()}
+          </div>
+          {isMobile && (
+            <div className="shrink-0 bg-slate-950/80 backdrop-blur-2xl border-t border-white/10 px-4 py-4 pb-[max(env(safe-area-inset-bottom),1rem)] flex justify-between items-center shadow-[0_-15px_40px_rgba(0,0,0,0.5)]">
 
               <button
                 onClick={() => setDashboardView('modes')}
@@ -3024,7 +3072,7 @@ function App() {
               </button>
             </div>
           )}
-        </>
+        </div>
       ) : (
         <>
           {/* Header */}

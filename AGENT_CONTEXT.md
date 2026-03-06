@@ -1,6 +1,6 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
-**Son Güncelleme:** 2026-03-04
+**Son Güncelleme:** 2026-03-06
 ## Proje Durumu: v9.0.0 (Monetizasyon & Stripe Entegrasyonu)
 - **Feature (v9.0.0)**: Monetizasyon altyapısı oluşturuldu — Stripe-only (USD bazlı):
     - Mevcut araç marketi korunarak sekmeli mağaza yapısı kuruldu (Araçlar / Altın Paketleri / PRO).
@@ -193,6 +193,10 @@
 - **Periyodiklik & Nullable Fix:** Periyodik etkinliklerin kaydedilebilmesi için `start_at`/`end_at` alanları nullable yapıldı (`fix_events_nullable.sql`) ve mobil uygulamada (SupabaseService) periyodik vakitleri kontrol eden akıllı filtreleme mantığına geçildi.
 - **Dashboard Entegrasyonu:** Mobil uygulamada çok dilli başlık/açıklama render desteği eklendi.
 - [Fix] `App.jsx` boş ekran hatası giderildi: JSX syntax hataları temizlendi ve `Dashboard` yerel state'i `dashboardView` olarak izole edildi.
+- **Kalıcı Mobil UI Çözümü (Flexbox):** Uygulama ana hiyerarşisi `App.jsx` içinde `flex flex-col h-[100dvh]` olarak güncellendi. Navigasyon barı `shrink-0` yapılarak içeriğin üzerine binmesi engellendi. (06.03.2026)
+- **Market (ShopView) Sekmeleri:** SIRA sayfasındaki gibi kaydırılabilir tab yapısı (`overflow-x-auto no-scrollbar`) uygulandı.
+- **Çeviri Fixleri:** `Translations.js` dosyasına `start_game` anahtarı eklendi, Arcade/Macera modundaki buton metni düzeltildi.
+- **Layout Temizliği:** Pregame ekranlarındaki `pb-28` gibi manuel paddingler kaldırıldı, yerine Flexbox dinamik hiyerarşisi getirildi.
 - [Admin] Seviye yönetimi sidebar'dan yoruma alınarak kaldırıldı.
 - **Günlük Görevler (Daily Missions):** Sidebar üzerindeki kilitli buton aktif edilecek ve ödüllü dinamik görevler eklenecek.
 - **Seviye Editörü:** Kullanıcıların kendi seviyelerini tasarlayabileceği bir modül.
@@ -252,3 +256,7 @@
     - [ ] **Supabase Edge Functions:** Bildirim tetikleyicileri için sunucu tarafı mantığı planlandı.
     - [x] **Footer Navigasyon İyileştirmesi (v13.0.0):** Alt menü dashboard genelinde kalıcı hale getirildi. "Ana Sayfa" öğesi eklenerek toplam 6 öğeli, optimize edilmiş mobil düzen (px-4) uygulandı. İçeriklerin menü altında kalmaması için tüm görünümlere `pb-28/32` padding eklendi. (06.03.2026)
 - [x] **UI Mikro Düzenlemeler:** Hediye ekranındaki ikon kaldırılarak yer kazanıldı, Günlük Görevler başlığı mobil için küçültüldü (`text-xl`). Market sekmeleri sabitlendi ve içerik kaydırma özelliği eklendi. (06.03.2026)
+- [x] **Hesap Silme Özelliği (v14.0.0)** (06.03.2026): Google Play Store veri gizliliği politikalarına uyum için geliştirildi.
+    - [x] **Mobil Uygulama:** Profil ekranına "Hesabı Sil" butonu ve geri dönüşü olmayan işlem uyarısı içeren onay modalı eklendi.
+    - [x] **Supabase Entegrasyonu:** `SupabaseService.js` içerisinde profile verilerini silen ve oturumu kapatan `deleteUserAccount` fonksiyonu uygulandı.
+    - [x] **Web (Landing Page):** `wordlengenext` projesinde `https://wordlenge.com/delete-account` URL'si ile hesap silme talep ve bilgilendirme sayfası oluşturuldu. (06.03.2026)

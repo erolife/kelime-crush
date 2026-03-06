@@ -314,4 +314,24 @@ score,
     onAuthStateChange(callback) {
         return supabase.auth.onAuthStateChange(callback);
     },
+
+    // Hesabı sil (Profil verilerini temizle ve oturumu kapat)
+    async deleteUserAccount(userId) {
+        try {
+            // 1. Profili sil (RLS izin vermelidir veya cascade silme olmalıdır)
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .delete()
+                .eq('id', userId);
+
+            if (profileError) throw profileError;
+
+            // 2. Oturumu kapat
+            await supabase.auth.signOut();
+            return true;
+        } catch (error) {
+            console.error('Hesap silinirken hata oluştu:', error.message);
+            return false;
+        }
+    }
 };
