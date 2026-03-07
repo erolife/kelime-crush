@@ -3,12 +3,14 @@
 **Son Güncelleme:** 2026-03-07
 ## Proje Durumu (Son Güncelleme: 07.03.2026)
 
-- **Sürüm:** v1.0.2 (Google Play Kapalı Test İyileştirmeleri)
-- **Aşama:** Kapalı test geri bildirimleri uygulandı.
+- **Sürüm:** v1.2.0 (Google Play Build v3)
+- **Aşama:** Kapalı test geri bildirimleri uygulandı ve sürüm kodu yükseltildi.
 - **Yapılan İyileştirmeler:**
     1. **Günlük Çark Güvenliği:** `DailySpin.jsx` üzerinde saat hilesine karşı istemci/sunucu senkronizasyonu artırıldı.
     2. **Özel Bombalar:** X-Bomba ve Nükleer Bomba araç çubuğuna ve **Pregame (başlangıç)** ekranına eklendi. Oyun başında seçilerek tahtaya yerleştirilmesi aktif hale getirildi.
     3. **Performans:** "Düşük Performans Modu" eklendi. Eski cihazlar için gölge (`shadowBlur`), partikül ve karmaşık görsel efektler dinamik olarak kısıtlandı.
+    4. **Sürüm Güncelleme:** Google Play için `versionCode` 3, `versionName` "1.2" olarak yükseltildi.
+    5. **Hata Düzeltme:** Ayarlar ekranındaki çökme giderildi.
 
 ## Güncel Görevler & Sorunlar
 - [x] Günlük çark hilesinin engellenmesi.
@@ -161,9 +163,16 @@
 ## 🎯 Proje Özeti
 "Kelime Crush" olan projenin ismi **WORDLENGE** olarak değiştirilmiş ve görsel kimliği yeni logoya (Turuncu, Kırmızı, Mavi) uyarlanmıştır. Oyun, modern ve premium bir "Gaming Dashboard" üzerinden yönetilen, bulut destekli ve çok dilli bir puzzle-kelime avı oyunudur.
 
-## 🚀 Önemli Gelişmeler & Kararlar
+## Son Yapılan Güncellemeler (08.03.2026)
 
-### 1. Ayarlar & Ses Kontrolü (Phase 6.5 - v3.1)
+- **Bomba Puanı:** Araç kullanımı (`bomb`, `nuclear` vb.) sırasında patlayan harflerin değerleri hesaplanarak oyuncu skoruna eklenmesi sağlandı (`useGame.js`).
+- **Oyun Sonu Mantığı:** Game Over ekranında sürekli "SÜRE DOLDU" yazması düzeltildi. Oyun hamle bitiminden biterse artık "HAMLELER TÜKENDİ" ibaresi çıkıyor (`App.jsx`).
+- **Hamle / Süre Uyarısı:** Süre modlarında son 4 saniyede, Hamle modlarında son 4 hamlede oyun alanının çerçevesine kırmızı bir uyarı (`pulse`) eklendi (`App.jsx`).
+- **Teselli Ödülü (Consolation Prize):** Oyun kaybedildiğinde bile (skor > 100 ise) %50 ihtimalle kullanıcılara 10-30 altın arası veya rastgele bir araç "Teselli Ödülü" olarak hediye edilecek şekilde kurgulandı ve eklendi (`Translations.js` ve `App.jsx` entegrasyonu).
+
+## Bilinmesi Gereken Önemli Kurallar
+
+### 1. Dosya ve Klasör Yapısı Kontrolü (Phase 6.5 - v3.1)
 - **Settings Restore:** Dashboard Header'ına "Ayarlar" butonu geri eklendi. Ses aç/kapat ve zorluk seviyesi ayarlarına erişim sağlandı.
 - [x] v4.4.1: Guest data isolation (Inventory/Profile/Leaderboard lock)
 - [x] v4.4.0: Misafir kullanıcı Seviye modu kısıtlaması & Üyelik teşviki

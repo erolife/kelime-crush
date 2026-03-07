@@ -383,6 +383,7 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [isDictionaryLoaded, setIsDictionaryLoaded] = useState(false);
     const [foundWords, setFoundWords] = useState([]);
     const [gameState, setGameState] = useState('playing'); // 'playing', 'gameover', 'victory'
+    const [pendingGameOverReward, setPendingGameOverReward] = useState(null);
 
     const [activeTool, setActiveTool] = useState(null);
 
@@ -784,6 +785,15 @@ export const useGame = (initialDifficulty = 'normal') => {
             if (result.blasted) {
                 setAnimatingCells(result.blasted);
                 setTimeout(() => setAnimatingCells([]), 600);
+
+                // Araç kullanımı sonucu patlayan harflerin puanlarını hesapla
+                const blastedScore = (result.blasted || []).reduce((sum, b) => {
+                    return sum + engine.getLetterPoint(b.letter || 'A');
+                }, 0);
+
+                if (blastedScore > 0) {
+                    setScore(s => s + blastedScore);
+                }
             }
             setGrid([...result.grid]);
             setTools(prev => ({ ...prev, [activeTool]: prev[activeTool] - 1 }));
@@ -828,6 +838,16 @@ export const useGame = (initialDifficulty = 'normal') => {
                 const { grid: newGrid, blasted } = engine.removeSingle(p.r, p.c);
                 setAnimatingCells(blasted || []);
                 setTimeout(() => setAnimatingCells([]), 600);
+
+                // Tekli tıklama ile patlayan hücrelerden gelen puanları hesapla
+                const blastedScore = (blasted || []).reduce((sum, b) => {
+                    return sum + engine.getLetterPoint(b.letter || 'A');
+                }, 0);
+
+                if (blastedScore > 0) {
+                    setScore(s => s + blastedScore);
+                }
+
                 setGrid([...newGrid]);
                 setMoves(m => {
                     if (gameMode === 'arcade' && arcadeSubMode === 'time') return m;
@@ -857,9 +877,9 @@ export const useGame = (initialDifficulty = 'normal') => {
             const turnScore = engine.calculateScore(selectedPath);
             const { grid: newGrid, blasted, createdSpecial: newSpecial } = engine.removeCells(selectedPath);
 
-            // Bonus points from blasted cells (half value — reward for chain reactions)
+            // Bonus points from blasted cells (tam puan ver — reward for chain reactions)
             const blastedBonus = (blasted || []).reduce((sum, b) => {
-                return sum + Math.floor(engine.getLetterPoint(b.letter || 'A') * 0.5);
+                return sum + engine.getLetterPoint(b.letter || 'A');
             }, 0);
 
             const allRemoved = [
@@ -991,6 +1011,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         setZenDuration(0);
         setGardenState({ flowers: 0, stones: 0, ripples: 0 });
         setCurrentEventId(eventId);
+        setPendingGameOverReward(null);
 
         if (targetMode === 'zen') {
             setMoves(999);
@@ -1096,6 +1117,26 @@ export const useGame = (initialDifficulty = 'normal') => {
         }
         // timeBattle gameover is handled by the timeBattle timer effect
 
+        // Oyun Bitişi Random / Teselli Ödülü
+        if (gameState === 'gameover' && score > 100 && !pendingGameOverReward) {
+            // %50 ihtimalle ödül ver
+            if (Math.random() > 0.5) {
+                const toolsList = ['bomb', 'xbomb', 'nuclear', 'swap', 'row', 'col', 'cell'];
+                const isTool = Math.random() > 0.7; // %30 araç, %70 altın
+                if (isTool) {
+                    const randTool = toolsList[Math.floor(Math.random() * toolsList.length)];
+                    setPendingGameOverReward({ type: 'tool', item: randTool, amount: 1 });
+                    setTools(prev => ({ ...prev, [randTool]: (prev[randTool] || 0) + 1 }));
+                } else {
+                    const randCoins = Math.floor(Math.random() * 20) + 10; // 10-30 arası altın
+                    setPendingGameOverReward({ type: 'coins', amount: randCoins });
+                    setCoins(c => c + randCoins);
+                }
+            } else {
+                setPendingGameOverReward({ type: 'none' }); // Ödül yoksa ödül durumunu kapat ki tekrar tekrar çalışmasın
+            }
+        }
+
         // Time Battle: award gold on game end
         if (gameState === 'gameover' && gameMode === 'timeBattle' && timeBattleElapsed > 0) {
             const goldReward = calculateTimeBattleGold(timeBattleElapsed);
@@ -1152,7 +1193,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId,
         arcadeSubMode, arcadeValue, timeLeft, totalMovesMade, zenDuration,
         gardenState, setGameState,
-        celebration,
+        celebration, pendingGameOverReward,
         // Rank & Mastery exports
         xp, level, masteryPoints, sessionXP, getNextLevelXp,
         // Time Battle exports

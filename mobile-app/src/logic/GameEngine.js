@@ -132,7 +132,7 @@ export class GameEngine {
         // Avoid infinite recursion if cells are already null
         if (!this.grid[r] || !this.grid[r][c]) return;
 
-        blasted.push({ r, c, type });
+        blasted.push({ r, c, type, letter: this.grid[r][c].letter });
         this.grid[r][c] = null;
 
         if (type === 'row_blast') {
@@ -142,7 +142,7 @@ export class GameEngine {
                     const tType = target.type;
                     if (tType !== 'normal') this.triggerSpecialCell(r, i, tType, blasted);
                     else {
-                        blasted.push({ r, c: i, type: 'normal' });
+                        blasted.push({ r, c: i, type: 'normal', letter: target.letter });
                         this.grid[r][i] = null;
                     }
                 }
@@ -154,7 +154,7 @@ export class GameEngine {
                     const tType = target.type;
                     if (tType !== 'normal') this.triggerSpecialCell(i, c, tType, blasted);
                     else {
-                        blasted.push({ r: i, c, type: 'normal' });
+                        blasted.push({ r: i, c, type: 'normal', letter: target.letter });
                         this.grid[i][c] = null;
                     }
                 }
@@ -167,7 +167,7 @@ export class GameEngine {
                         const tType = target.type;
                         if (tType !== 'normal') this.triggerSpecialCell(i, j, tType, blasted);
                         else {
-                            blasted.push({ r: i, c: j, type: 'normal' });
+                            blasted.push({ r: i, c: j, type: 'normal', letter: target.letter });
                             this.grid[i][j] = null;
                         }
                     }
@@ -185,7 +185,7 @@ export class GameEngine {
                         const tType = target.type;
                         if (tType !== 'normal') this.triggerSpecialCell(i, j, tType, blasted);
                         else {
-                            blasted.push({ r: i, c: j, type: 'normal' });
+                            blasted.push({ r: i, c: j, type: 'normal', letter: target.letter });
                             this.grid[i][j] = null;
                         }
                     }
@@ -202,7 +202,7 @@ export class GameEngine {
                         const tType = target.type;
                         if (tType !== 'normal') this.triggerSpecialCell(i, j, tType, blasted);
                         else {
-                            blasted.push({ r: i, c: j, type: 'normal' });
+                            blasted.push({ r: i, c: j, type: 'normal', letter: target.letter });
                             this.grid[i][j] = null;
                         }
                     }
@@ -219,7 +219,7 @@ export class GameEngine {
                 if (cell) {
                     if (cell.type !== 'normal') this.triggerSpecialCell(r, c, cell.type, blasted);
                     else {
-                        blasted.push({ r, c, type: 'normal' });
+                        blasted.push({ r, c, type: 'normal', letter: cell.letter });
                         this.grid[r][c] = null;
                     }
                 }
@@ -235,7 +235,7 @@ export class GameEngine {
             if (cell) {
                 if (cell.type !== 'normal') this.triggerSpecialCell(r, c, cell.type, blasted);
                 else {
-                    blasted.push({ r, c, type: 'normal' });
+                    blasted.push({ r, c, type: 'normal', letter: cell.letter });
                     this.grid[r][c] = null;
                 }
             }
@@ -249,7 +249,7 @@ export class GameEngine {
         if (cell) {
             if (cell.type !== 'normal') this.triggerSpecialCell(r, c, cell.type, blasted);
             else {
-                blasted.push({ r, c, type: 'normal' });
+                blasted.push({ r, c, type: 'normal', letter: cell.letter });
                 this.grid[r][c] = null;
             }
         }
@@ -264,7 +264,7 @@ export class GameEngine {
                     const cell = this.grid[i][j];
                     if (cell.type !== 'normal') this.triggerSpecialCell(i, j, cell.type, blasted);
                     else {
-                        blasted.push({ r: i, c: j, type: 'normal' });
+                        blasted.push({ r: i, c: j, type: 'normal', letter: cell.letter });
                         this.grid[i][j] = null;
                     }
                 }

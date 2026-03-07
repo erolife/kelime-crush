@@ -200,6 +200,7 @@ export const TRANSLATIONS = {
         already_pro: "PRO ÜYESİSİN ✨",
         energy_unlimited_24h: "24 Saat Sınırsız Enerji",
         energy_unlimited_24h_desc: "24 saat boyunca beklemeden oyna!",
+        consolation_prize: "TESELLİ ÖDÜLÜ",
     },
     en: {
         arcade: "ARCADE",
@@ -401,5 +402,6 @@ export const TRANSLATIONS = {
         already_pro: "YOU'RE PRO ✨",
         energy_unlimited_24h: "24 Hours Unlimited Energy",
         energy_unlimited_24h_desc: "Play without waiting for 24 hours!",
+        consolation_prize: "CONSOLATION PRIZE",
     }
 };

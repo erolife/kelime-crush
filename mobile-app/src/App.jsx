@@ -181,7 +181,7 @@ const Dashboard = ({
   isMuted, toggleMute, difficulty, changeDifficulty, dailyReward, claimGift, STREAK_REWARDS = [],
   showDailyGift, energy, nextEnergyIn, buyTool, addCoins, addTool, soundManager,
   totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId, completedLevels,
-  activeEvents = [], activeEvent, setSelectedEventId, setView,
+  activeEvents = [], activeEvent, setSelectedEventId, setView, pendingGameOverReward,
   xp, level, masteryPoints, sessionXP, getNextLevelXp,
   isPro, isEnergyUnlimited, isMobile,
   dashboardView, setDashboardView,
@@ -2601,7 +2601,7 @@ function App() {
     totalScore, wordsFoundCount, gamesPlayed, highScore,
     arcadeSubMode, arcadeValue, timeLeft, totalMovesMade, zenDuration,
     gardenState, setGameState,
-    celebration,
+    celebration, pendingGameOverReward,
     timeBattleElapsed, timeBattleToolRewards, pendingToolReward,
     timeBattleInitialDuration, calculateTimeBattleGold, getTimeBattleRank, nextToolRewardAt,
     xp, level, masteryPoints, sessionXP, getNextLevelXp,
@@ -2972,6 +2972,7 @@ function App() {
               highScore={highScore}
               activeEvents={activeEvents}
               activeEvent={activeEvent}
+              pendingGameOverReward={pendingGameOverReward}
               setSelectedEventId={setSelectedEventId}
               xp={xp}
               level={level}
@@ -3314,6 +3315,11 @@ function App() {
                 <div className={`
                   relative max-h-full w-full bg-slate-950/40 rounded-xl md:rounded-3xl border-2 shadow-2xl overflow-hidden transition-all duration-300
                   ${activeTool ? 'border-purple-500 ring-[8px] ring-purple-500/10' : 'border-white/5'}
+                  ${(() => {
+                    const isTimeMode = gameMode === 'timeBattle' || (gameMode === 'arcade' && arcadeSubMode === 'time') || (currentEventId && activeEvents?.find(e => e.id === currentEventId)?.duration_limit > 0);
+                    const isCritical = isTimeMode ? (timeLeft > 0 && timeLeft <= 4) : (moves > 0 && moves <= 4 && gameMode !== 'zen');
+                    return isCritical && !activeTool ? 'border-rose-500 ring-4 ring-rose-500/50 shadow-[0_0_30px_rgba(225,29,72,0.4)] animate-pulse' : '';
+                  })()}
                 `}
                   style={{ aspectRatio: `${grid[0]?.length || 11} / ${grid?.length || 9}`, maxWidth: `min(100%, ${78 * (grid[0]?.length || 11) / (grid?.length || 9)}vh)` }}
                 >
@@ -3577,10 +3583,29 @@ function App() {
                         {t('game_over')}
                       </h2>
                       <p className="text-sky-500 text-[9px] landscape:text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 landscape:mb-2 md:mb-6 italic">
-                        {timeLeft <= 0 ? (t('time_up') || 'SÜRE DOLDU') : t('moves_exhausted')}
+                        {(gameMode === 'timeBattle' ||
+                          (gameMode === 'arcade' && arcadeSubMode === 'time') ||
+                          (currentEventId && activeEvents?.find(e => e.id === currentEventId)?.duration_limit > 0))
+                          ? (t('time_up') || 'SÜRE DOLDU')
+                          : t('moves_exhausted')}
                       </p>
 
                       <div className="grid grid-cols-2 gap-2 landscape:gap-1.5 md:gap-4 mb-4 landscape:mb-2 md:mb-8">
+                        {pendingGameOverReward && pendingGameOverReward.type !== 'none' && (
+                          <div className="col-span-2 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/40 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 shadow-lg shadow-emerald-500/10">
+                            <div className="w-10 h-10 landscape:w-8 landscape:h-8 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 border border-emerald-400/50">
+                              <Gift className="w-5 h-5 text-emerald-400" />
+                            </div>
+                            <div className="flex-1 text-left">
+                              <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-emerald-300 font-black uppercase mb-0.5 tracking-widest">{t('consolation_prize')}</div>
+                              <div className="text-sm landscape:text-xs md:text-base font-black text-white italic">
+                                {pendingGameOverReward.type === 'coins' ? `+${pendingGameOverReward.amount} ${t('gold')}` : `+1 ${t(pendingGameOverReward.item)}`}
+                              </div>
+                            </div>
+                            <Sparkles className="w-4 h-4 text-emerald-400 animate-pulse" />
+                          </div>
+                        )}
+
                         <div className="bg-slate-800/50 p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5">
                           <div className="text-[9px] landscape:text-[8px] md:text-[10px] text-slate-500 font-black uppercase mb-0.5">{t('score')}</div>
                           <div className="text-xl landscape:text-lg md:text-2xl font-black text-white italic tabular-nums">{score}</div>
