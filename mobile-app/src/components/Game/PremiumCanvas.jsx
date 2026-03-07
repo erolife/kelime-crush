@@ -3,7 +3,7 @@ import confetti from 'canvas-confetti';
 import { soundManager } from '../../logic/SoundManager';
 import { LETTER_POINTS } from '../../logic/Constants';
 
-const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, createdSpecial, onSelectCell, onFinishTurn, gameMode, isTutorial, tutorialHint }) => {
+const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, createdSpecial, onSelectCell, onFinishTurn, gameMode, isTutorial, tutorialHint, lowPerformance }) => {
     const canvasRef = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const particlesRef = useRef([]);
@@ -11,12 +11,13 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
 
     // Performance and Visual Toggles
     const VISUAL_CONFIG = {
-        electricTrail: true,
-        springPhysics: true,
-        squashStretch: true,
-        specialTileEffects: true,
-        particleGlow: true,
-        jellyEffect: true
+        electricTrail: !lowPerformance,
+        springPhysics: true, // Fizik kalsın, görsel değil mantıksal
+        squashStretch: !lowPerformance,
+        specialTileEffects: !lowPerformance,
+        particleGlow: !lowPerformance,
+        jellyEffect: !lowPerformance,
+        shadows: !lowPerformance
     };
 
     const COLORS = {
@@ -63,7 +64,7 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
                 else if (cell.type === 'match') color = '#ffffff';
 
                 // Spawn particles for a visual "poof"
-                const count = cell.type === 'match' ? 12 : 30;
+                const count = lowPerformance ? (cell.type === 'match' ? 4 : 8) : (cell.type === 'match' ? 12 : 30);
                 const isZen = gameMode === 'zen';
 
                 for (let i = 0; i < count; i++) {
@@ -179,8 +180,10 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
             ctx.lineWidth = cellSize * 0.22;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
-            ctx.shadowBlur = 25;
-            ctx.shadowColor = COLORS.line;
+            if (VISUAL_CONFIG.shadows) {
+                ctx.shadowBlur = 25;
+                ctx.shadowColor = COLORS.line;
+            }
             ctx.globalAlpha = 0.4;
             selectedPath.forEach((p, i) => {
                 const x = p.c * cellSize + cellSize / 2;
@@ -195,7 +198,9 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
                 ctx.globalAlpha = 0.8 + Math.random() * 0.2;
                 ctx.strokeStyle = COLORS.electric;
                 ctx.lineWidth = cellSize * 0.08;
-                ctx.shadowBlur = 10;
+                if (VISUAL_CONFIG.shadows) {
+                    ctx.shadowBlur = 10;
+                }
                 ctx.beginPath();
                 selectedPath.forEach((p, i) => {
                     // Add subtle jitter to simulate electric current
@@ -308,7 +313,7 @@ const PremiumCanvas = ({ grid, selectedPath, animatingCells, swapSelection, crea
 
                 // Glow/Shadow
                 // Glow/Shadow (ONLY for selected/special to save performance)
-                if (isSelected || isSwapTarget || cell.type !== 'normal') {
+                if (VISUAL_CONFIG.shadows && (isSelected || isSwapTarget || cell.type !== 'normal')) {
                     const extraGlow = cell.type !== 'normal' ? Math.sin(time / 150) * 10 : 0;
                     ctx.shadowBlur = (isSelected || isSwapTarget) ? 35 : 25 + extraGlow;
 

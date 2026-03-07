@@ -186,11 +186,12 @@ const Dashboard = ({
   isPro, isEnergyUnlimited, isMobile,
   dashboardView, setDashboardView,
   showMissionLock, setShowMissionLock,
-  lockReason, setLockReason
+  lockReason, setLockReason,
+  lowPerformance, setLowPerformance
 }) => {
   const [selectedEventIdLocal, setSelectedEventIdLocal] = React.useState(null);
   const [selectedLevelIdx, setSelectedLevelIdx] = React.useState(null);
-  const [selectedBoosters, setSelectedBoosters] = React.useState({ bomb: false, row: false, col: false });
+  const [selectedBoosters, setSelectedBoosters] = React.useState({ bomb: false, xbomb: false, nuclear: false, row: false, col: false });
   const [arcadeSubMode, setArcadeSubMode] = React.useState('moves'); // 'moves' | 'time'
   const [arcadeValue, setArcadeValue] = React.useState(15);
   const [tbDuration, setTbDuration] = React.useState(TIME_BATTLE_OPTIONS[1]); // default 3dk
@@ -354,14 +355,22 @@ const Dashboard = ({
               {/* Booster selection */}
               <div className="space-y-1.5 landscape:space-y-1 md:space-y-4 shrink-0">
                 <div className="text-[8px] landscape:text-[7px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1 md:ml-2 font-inter">{t('select_boosters')}</div>
-                <div className="grid grid-cols-3 gap-1.5 landscape:gap-1 md:gap-4">
-                  {['bomb', 'row', 'col'].map(type => {
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-1.5 landscape:gap-1 md:gap-4">
+                  {['bomb', 'xbomb', 'nuclear', 'row', 'col'].map(type => {
                     const count = tools?.[type] || 0;
                     const isSelected = selectedBoosters[type];
-                    const Icon = type === 'bomb' ? Zap : type === 'row' ? MoveHorizontal : MoveVertical;
+
+                    let Icon = Zap;
+                    let colorClass = "amber";
+
+                    if (type === 'row') Icon = MoveHorizontal;
+                    if (type === 'col') Icon = MoveVertical;
+                    if (type === 'xbomb') { Icon = Bomb; colorClass = "orange"; }
+                    if (type === 'nuclear') { Icon = Radiation; colorClass = "rose"; }
+
                     return (
-                      <button key={type} disabled={count === 0} onClick={() => setSelectedBoosters(prev => ({ ...prev, [type]: !prev[type] }))}
-                        className={`relative p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border transition-all flex flex-col items-center gap-1.5 landscape:gap-1 md:gap-2 group ${isSelected ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-xl shadow-amber-500/10' : count > 0 ? 'bg-slate-800/40 border-white/5 text-slate-400 hover:bg-slate-800' : 'bg-slate-900/20 border-white/5 opacity-40 grayscale'}`}>
+                      <button key={type} disabled={count <= 0} onClick={() => setSelectedBoosters(prev => ({ ...prev, [type]: !prev[type] }))}
+                        className={`relative p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border transition-all flex flex-col items-center gap-1.5 landscape:gap-1 md:gap-2 group ${isSelected ? `bg-${colorClass}-500/20 border-${colorClass}-500 text-${colorClass}-500 shadow-xl shadow-${colorClass}-500/10` : count > 0 ? 'bg-slate-800/40 border-white/5 text-slate-400 hover:bg-slate-800' : 'bg-slate-900/20 border-white/5 opacity-40 grayscale'}`}>
                         <Icon className={`w-5 h-5 landscape:w-4 landscape:h-4 md:w-6 md:h-6 ${isSelected ? 'animate-bounce' : ''}`} />
                         <span className="text-[8px] landscape:text-[7px] md:text-[10px] font-black uppercase tracking-widest leading-none">{t(type)}</span>
                         <span className="absolute -top-1.5 -right-1.5 md:-top-2 md:-right-2 bg-white text-slate-950 text-[9px] landscape:text-[8px] md:text-[10px] font-black w-5 h-5 landscape:w-4 landscape:h-4 md:w-6 md:h-6 rounded-full border-2 border-slate-950 flex items-center justify-center">{count}</span>
@@ -377,7 +386,7 @@ const Dashboard = ({
                   onClick={() => {
                     if (energy > 0 || isPro || isEnergyUnlimited) {
                       onSelectTimeBattle(tbDuration, selectedBoosters);
-                      setSelectedBoosters({ bomb: false, row: false, col: false });
+                      setSelectedBoosters({ bomb: false, xbomb: false, nuclear: false, row: false, col: false });
                     } else {
                       setDashboardView('shop');
                     }
@@ -529,19 +538,27 @@ const Dashboard = ({
 
               <div className="space-y-1.5 landscape:space-y-1 md:space-y-4 shrink-0">
                 <div className="text-[8px] landscape:text-[7px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1 md:ml-2 font-inter">{t('select_boosters')}</div>
-                <div className="grid grid-cols-3 gap-1.5 landscape:gap-1 md:gap-4">
-                  {['bomb', 'row', 'col'].map(type => {
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-1.5 landscape:gap-1 md:gap-4">
+                  {['bomb', 'xbomb', 'nuclear', 'row', 'col'].map(type => {
                     const count = tools?.[type] || 0;
                     const isSelected = selectedBoosters[type];
-                    const Icon = type === 'bomb' ? Zap : type === 'row' ? MoveHorizontal : MoveVertical;
+
+                    let Icon = Zap;
+                    let colorClass = "amber";
+
+                    if (type === 'row') Icon = MoveHorizontal;
+                    if (type === 'col') Icon = MoveVertical;
+                    if (type === 'xbomb') { Icon = Bomb; colorClass = "orange"; }
+                    if (type === 'nuclear') { Icon = Radiation; colorClass = "rose"; }
+
                     return (
                       <button
                         key={type}
-                        disabled={count === 0}
+                        disabled={count <= 0}
                         onClick={() => setSelectedBoosters(prev => ({ ...prev, [type]: !prev[type] }))}
                         className={`
                           relative p-3 landscape:p-2 md:p-4 rounded-xl landscape:rounded-lg md:rounded-2xl border transition-all flex flex-col items-center gap-1.5 landscape:gap-1 md:gap-2 group
-                          ${isSelected ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-xl shadow-amber-500/10' :
+                          ${isSelected ? `bg-${colorClass}-500/20 border-${colorClass}-500 text-${colorClass}-500 shadow-xl shadow-${colorClass}-500/10` :
                             count > 0 ? 'bg-slate-800/40 border-white/5 text-slate-400 hover:bg-slate-800' : 'bg-slate-900/20 border-white/5 opacity-40 grayscale'}
                         `}
                       >
@@ -561,7 +578,7 @@ const Dashboard = ({
                       onSelectArcade(selectedBoosters, arcadeSubMode, arcadeValue);
                       // Reset local states for next time
                       setSelectedLevelIdx(null);
-                      setSelectedBoosters({ bomb: false, row: false, col: false });
+                      setSelectedBoosters({ bomb: false, xbomb: false, nuclear: false, row: false, col: false });
                     } else {
                       setDashboardView('shop');
                     }
@@ -705,6 +722,27 @@ const Dashboard = ({
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div className="space-y-2 landscape:space-y-1.5 md:space-y-4 pt-2">
+                <div className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] font-inter">{language === 'tr' ? 'PERFORMANS' : 'PERFORMANCE'}</div>
+                <button
+                  onClick={() => setLowPerformance(!lowPerformance)}
+                  className="w-full flex items-center justify-between p-3 landscape:p-2.5 md:p-6 bg-slate-800/50 rounded-xl landscape:rounded-lg md:rounded-2xl border border-white/5 hover:bg-slate-800 transition-all group"
+                >
+                  <div className="flex items-center gap-3 landscape:gap-2 md:gap-4">
+                    <div className={`p-2 landscape:p-1.5 md:p-3 rounded-lg landscape:rounded-md md:rounded-xl ${lowPerformance ? 'bg-amber-500/20 text-amber-500' : 'bg-emerald-500/20 text-emerald-500'} group-hover:scale-110 transition-transform`}>
+                      <Zap size={18} className="landscape:w-4 landscape:h-4 md:w-6 md:h-6" />
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="text-sm landscape:text-xs md:text-lg font-bold text-white">{language === 'tr' ? 'Düşük Performans Modu' : 'Low Performance Mode'}</span>
+                      <span className="text-[9px] landscape:text-[8px] md:text-xs text-slate-500 font-medium">{language === 'tr' ? 'Eski cihazlar için efektleri azaltır' : 'Reduces effects for older devices'}</span>
+                    </div>
+                  </div>
+                  <div className={`w-11 h-6 landscape:w-9 landscape:h-5 md:w-14 md:h-7 rounded-full relative transition-colors ${lowPerformance ? 'bg-amber-500' : 'bg-slate-700'}`}>
+                    <div className={`absolute top-0.5 landscape:top-0.5 md:top-1 w-5 h-5 landscape:w-4 landscape:h-4 md:w-5 md:h-5 rounded-full bg-white transition-all ${lowPerformance ? 'left-5 landscape:left-4 md:left-8' : 'left-0.5'}`} />
+                  </div>
+                </button>
               </div>
             </div>
           </div>
@@ -2572,7 +2610,8 @@ function App() {
     isMobile,
     isTutorial, tutorialHint,
     dailyMissions, claimMissionReward, updateMissionProgress,
-    isPro, isEnergyUnlimited
+    isPro, isEnergyUnlimited,
+    lowPerformance, setLowPerformance
   } = useGame();
 
 
@@ -2895,6 +2934,8 @@ function App() {
               energy={energy}
               isEnergyUnlimited={isEnergyUnlimited}
               nextEnergyIn={nextEnergyIn}
+              lowPerformance={lowPerformance}
+              setLowPerformance={setLowPerformance}
               onSelectArcade={(boosters, subMode, subValue) => {
                 if (isPro || isEnergyUnlimited || energy > 0) {
                   if (!isPro && !isEnergyUnlimited) {
@@ -3288,6 +3329,7 @@ function App() {
                     gameMode={gameMode}
                     isTutorial={isTutorial}
                     tutorialHint={tutorialHint}
+                    lowPerformance={lowPerformance}
                   />
 
                   {/* Victory Overlay (Only for Victory) */}
@@ -3386,9 +3428,9 @@ function App() {
                 <button onClick={shuffle} className="shrink-0 w-12 h-12 landscape:w-10 landscape:h-10 bg-slate-900 rounded-xl landscape:rounded-lg border border-white/5 flex items-center justify-center">
                   <RefreshCw className="w-5 h-5 landscape:w-4 landscape:h-4 text-amber-400" />
                 </button>
-                {['cell', 'bomb', 'row', 'col', 'swap'].map(id => {
-                  const Icon = id === 'bomb' ? Zap : id === 'row' ? MoveHorizontal : id === 'col' ? MoveVertical : id === 'swap' ? RefreshCw : Target;
-                  const colorClass = id === 'bomb' ? 'text-amber-400' : id === 'row' ? 'text-rose-400' : id === 'col' ? 'text-emerald-400' : id === 'swap' ? 'text-sky-400' : 'text-purple-400';
+                {['cell', 'bomb', 'xbomb', 'nuclear', 'row', 'col', 'swap'].map(id => {
+                  const Icon = id === 'bomb' ? Zap : id === 'xbomb' ? Bomb : id === 'nuclear' ? Radiation : id === 'row' ? MoveHorizontal : id === 'col' ? MoveVertical : id === 'swap' ? RefreshCw : Target;
+                  const colorClass = id === 'bomb' ? 'text-amber-400' : id === 'xbomb' ? 'text-orange-400' : id === 'nuclear' ? 'text-lime-400' : id === 'row' ? 'text-rose-400' : id === 'col' ? 'text-emerald-400' : id === 'swap' ? 'text-sky-400' : 'text-purple-400';
 
                   return (
                     <button key={id} disabled={tools[id] === 0} onClick={() => setActiveTool(activeTool === id ? null : id)} className={`shrink-0 w-12 h-12 landscape:w-10 landscape:h-10 rounded-xl landscape:rounded-lg border flex items-center justify-center relative ${activeTool === id ? 'bg-amber-400/10 border-amber-400' : 'bg-slate-900 border-white/5'}`}>
@@ -3407,13 +3449,14 @@ function App() {
               <button onClick={shuffle} className="p-3 bg-slate-950 rounded-xl border border-white/5 text-amber-400 hover:bg-slate-900 transition-all">
                 <RefreshCw size={20} />
               </button>
-              {['cell', 'bomb', 'row', 'col', 'swap'].map(id => {
-                const Icon = id === 'bomb' ? Zap : id === 'row' ? MoveHorizontal : id === 'col' ? MoveVertical : id === 'swap' ? RefreshCw : Target;
-                const colorClass = id === 'bomb' ? 'text-amber-400' : id === 'row' ? 'text-rose-400' : id === 'col' ? 'text-emerald-400' : id === 'swap' ? 'text-sky-400' : 'text-purple-400';
+              {['cell', 'bomb', 'xbomb', 'nuclear', 'row', 'col', 'swap'].map(id => {
+                const Icon = id === 'bomb' ? Zap : id === 'xbomb' ? Bomb : id === 'nuclear' ? Radiation : id === 'row' ? MoveHorizontal : id === 'col' ? MoveVertical : id === 'swap' ? RefreshCw : Target;
+                const colorClass = id === 'bomb' ? 'text-amber-400' : id === 'xbomb' ? 'text-orange-400' : id === 'nuclear' ? 'text-lime-400' : id === 'row' ? 'text-rose-400' : id === 'col' ? 'text-emerald-400' : id === 'swap' ? 'text-sky-400' : 'text-purple-400';
 
                 return (
                   <button
                     key={id}
+                    disabled={tools[id] === 0}
                     onClick={() => setActiveTool(activeTool === id ? null : id)}
                     className={`w-14 h-14 rounded-xl border flex items-center justify-center relative transition-all ${activeTool === id ? 'bg-amber-400/10 border-amber-400' : 'bg-slate-950 border-white/5'}`}
                   >

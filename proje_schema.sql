@@ -244,3 +244,10 @@ ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "purchases_select_own" ON public.purchases FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "subscriptions_select_own" ON public.subscriptions FOR SELECT USING (auth.uid() = user_id);
 
+-- 10. GÜVENLİK VE ANTI-CHEAT (v1.0.2 - 07.03.2026)
+-- İstemci tarafındaki saat hilesini engellemek için rpc('update_profile_secure') 
+-- fonksiyonuna crush_last_spin tarih kontrolü eklenmesi önerilir.
+-- Bu mantık, yeni gelen spin tarihinin mevcut tarihten veya son spin + 24 saatten 
+-- küçük olmamasını sağlar.
+
+

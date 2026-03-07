@@ -1,7 +1,21 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
-**Son Güncelleme:** 2026-03-06
-## Proje Durumu: v9.0.0 (Monetizasyon & Stripe Entegrasyonu)
+**Son Güncelleme:** 2026-03-07
+## Proje Durumu (Son Güncelleme: 07.03.2026)
+
+- **Sürüm:** v1.0.2 (Google Play Kapalı Test İyileştirmeleri)
+- **Aşama:** Kapalı test geri bildirimleri uygulandı.
+- **Yapılan İyileştirmeler:**
+    1. **Günlük Çark Güvenliği:** `DailySpin.jsx` üzerinde saat hilesine karşı istemci/sunucu senkronizasyonu artırıldı.
+    2. **Özel Bombalar:** X-Bomba ve Nükleer Bomba araç çubuğuna ve **Pregame (başlangıç)** ekranına eklendi. Oyun başında seçilerek tahtaya yerleştirilmesi aktif hale getirildi.
+    3. **Performans:** "Düşük Performans Modu" eklendi. Eski cihazlar için gölge (`shadowBlur`), partikül ve karmaşık görsel efektler dinamik olarak kısıtlandı.
+
+## Güncel Görevler & Sorunlar
+- [x] Günlük çark hilesinin engellenmesi.
+- [x] Satın alınan özel bombaların oyun tahtasına eklenmesi.
+- [x] Eski cihazlardaki kasma/donma sorunları için optimizasyon.
+
+## Proje Durumu: v1.0.0 (Google Play Yayını & Güvenlik) (06.03.2026)
 - **Feature (v9.0.0)**: Monetizasyon altyapısı oluşturuldu — Stripe-only (USD bazlı):
     - Mevcut araç marketi korunarak sekmeli mağaza yapısı kuruldu (Araçlar / Altın Paketleri / PRO).
     - **Altın Paketleri:** 5 kademe ($0.99-$19.99, ₺39.99-₺749.99). İlk alım 2x bonus.

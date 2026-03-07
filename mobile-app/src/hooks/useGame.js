@@ -101,6 +101,9 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [perks, setPerks] = useState({});
     const [sessionXP, setSessionXP] = useState(0);
     const [unlimitedEnergyUntil, setUnlimitedEnergyUntil] = useState(null); // ISO Date string
+    const [lowPerformance, setLowPerformanceState] = useState(() => {
+        return localStorage.getItem('crush_low_performance') === 'true';
+    });
 
     // Mod bazlı en iyi skorlar (Leaderboard için)
     const [bestScoreAdventure, setBestScoreAdventure] = useState(0);
@@ -318,6 +321,11 @@ export const useGame = (initialDifficulty = 'normal') => {
     const setLanguage = useCallback((lang) => {
         setLanguageState(lang);
         localStorage.setItem('crush_lang', lang);
+    }, []);
+
+    const setLowPerformance = useCallback((value) => {
+        setLowPerformanceState(value);
+        localStorage.setItem('crush_low_performance', value.toString());
     }, []);
 
     const t = useCallback((key, params = {}) => {
@@ -675,7 +683,11 @@ export const useGame = (initialDifficulty = 'normal') => {
             Object.entries(selectedBoosters).forEach(([type, isSelected]) => {
                 if (isSelected && tools[type] > 0) {
                     consumed[type] = 1;
-                    const engineType = type === 'row' ? 'row_blast' : type === 'col' ? 'col_blast' : 'bomb';
+                    let engineType = 'bomb';
+                    if (type === 'row') engineType = 'row_blast';
+                    else if (type === 'col') engineType = 'col_blast';
+                    else if (type === 'xbomb') engineType = 'dynamite';
+                    else if (type === 'nuclear') engineType = 'nuclear';
                     const r = Math.floor(Math.random() * rows);
                     const c = Math.floor(Math.random() * cols);
                     if (newGrid[r] && newGrid[r][c]) {
@@ -1026,7 +1038,11 @@ export const useGame = (initialDifficulty = 'normal') => {
             Object.entries(selectedBoosters).forEach(([type, isSelected]) => {
                 if (isSelected && tools[type] > 0) {
                     consumed[type] = 1;
-                    const engineType = type === 'row' ? 'row_blast' : type === 'col' ? 'col_blast' : 'bomb';
+                    let engineType = 'bomb';
+                    if (type === 'row') engineType = 'row_blast';
+                    else if (type === 'col') engineType = 'col_blast';
+                    else if (type === 'xbomb') engineType = 'dynamite';
+                    else if (type === 'nuclear') engineType = 'nuclear';
                     const r = Math.floor(Math.random() * rows);
                     const c = Math.floor(Math.random() * cols);
                     if (initialGrid[r] && initialGrid[r][c]) {
@@ -1146,6 +1162,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         activeEvents, isLoadingEvents, fetchActiveEvents, currentEventId,
         isMobile, orientation,
         isTutorial, tutorialHint,
-        dailyMissions, claimMissionReward, updateMissionProgress
+        dailyMissions, claimMissionReward, updateMissionProgress,
+        lowPerformance, setLowPerformance
     };
 };

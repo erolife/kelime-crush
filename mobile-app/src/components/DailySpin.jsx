@@ -26,16 +26,31 @@ export default function DailySpin({ onClose, user, profile, updateProfile, addCo
         if (!user) return;
 
         const checkSpinAvailability = () => {
-            // Önce Supabase profilinden al, yoksa localStorage'den
-            const lastSpinTimeStr = profile?.crush_last_spin || localStorage.getItem(`crush_last_spin_${user.id}`);
+            const localLast = localStorage.getItem(`crush_last_spin_${user.id}`);
+            const remoteLast = profile?.crush_last_spin;
 
-            if (!lastSpinTimeStr) {
+            // Hem yerel hem uzak veriden en GÜNCEL (en büyük) olanı al
+            const lastSpinTime = Math.max(
+                localLast ? parseInt(localLast, 10) : 0,
+                remoteLast ? parseInt(remoteLast, 10) : 0
+            );
+
+            if (lastSpinTime === 0) {
                 setCanSpin(true);
+                setTimeLeftStr('');
                 return;
             }
 
             const now = Date.now();
-            const timeDiff = now - parseInt(lastSpinTimeStr, 10);
+
+            // Gelecek zaman kontrolü (saat hilesi için basit bir önlem)
+            if (lastSpinTime > now + 60000) {
+                setCanSpin(false);
+                setTimeLeftStr("Hata!");
+                return;
+            }
+
+            const timeDiff = now - lastSpinTime;
 
             if (timeDiff >= ONE_DAY_MS) {
                 setCanSpin(true);
@@ -58,7 +73,7 @@ export default function DailySpin({ onClose, user, profile, updateProfile, addCo
         checkSpinAvailability();
         const interval = setInterval(checkSpinAvailability, 1000); // Check every second
         return () => clearInterval(interval);
-    }, [user]);
+    }, [user, profile]);
 
     const getWeightedRandomSlice = () => {
         const totalWeight = SPIN_WHEEL_SLICES.reduce((acc, slice) => acc + slice.weight, 0);
@@ -76,15 +91,20 @@ export default function DailySpin({ onClose, user, profile, updateProfile, addCo
     const handleSpin = () => {
         if (!canSpin || isSpinning || !user) return;
 
-        soundManager?.play('pop'); // Or some spin tick sound
+        setCanSpin(false); // Hemen kapat (Visual feedback)
         setIsSpinning(true);
-        setCanSpin(false); // Hemen kapat
         setReward(null);
 
         const nowStr = Date.now().toString();
-        // Hemen kilitle (race condition önlemek için)
+        // Hemen kilitle (race condition ve hızlı tıklama önlemek için)
         localStorage.setItem(`crush_last_spin_${user.id}`, nowStr);
 
+        // Veritabanına hemen yaz (UI'dan önce güvenliği önceliklendir)
+        if (updateProfile) {
+            updateProfile({ crush_last_spin: nowStr });
+        }
+
+        soundManager?.play('pop');
         const selectedSlice = getWeightedRandomSlice();
         const sliceAngle = 360 / SPIN_WHEEL_SLICES.length; // 45 derecelik dilim açıları
 
