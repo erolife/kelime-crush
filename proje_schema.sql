@@ -251,3 +251,72 @@ CREATE POLICY "subscriptions_select_own" ON public.subscriptions FOR SELECT USIN
 -- küçük olmamasını sağlar.
 
 
+
+-- 11. KOLEKSİYON (KART/ALBÜM) SİSTEMİ (v12.0.0)
+CREATE TABLE IF NOT EXISTS public.collections (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name_tr TEXT NOT NULL,
+    name_en TEXT NOT NULL,
+    total_cards INTEGER NOT NULL,
+    reward_type TEXT DEFAULT 'energy' CHECK (reward_type IN ('energy', 'coins', 'avatar')),
+    reward_value TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.collection_cards (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    collection_id UUID REFERENCES public.collections(id) ON DELETE CASCADE,
+    name_tr TEXT NOT NULL,
+    name_en TEXT NOT NULL,
+    rarity TEXT DEFAULT 'common' CHECK (rarity IN ('common', 'rare', 'epic', 'legendary')),
+    image_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.user_collections (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+    card_id UUID REFERENCES public.collection_cards(id) ON DELETE CASCADE,
+    quantity INTEGER DEFAULT 1,
+    obtained_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(user_id, card_id)
+);
+
+ALTER TABLE public.collections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.collection_cards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_collections ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Herkes koleksiyonları görebilir" ON public.collections FOR SELECT USING (TRUE);
+CREATE POLICY "Herkes koleksiyon kartlarını görebilir" ON public.collection_cards FOR SELECT USING (TRUE);
+CREATE POLICY "Kullanıcılar kendi koleksiyonlarını görebilir" ON public.user_collections FOR SELECT USING (auth.uid() = user_id);
+
+-- 12. LİG VE KLASMAN SİSTEMİ (v13.0.0)
+CREATE TABLE IF NOT EXISTS public.leagues (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tier INTEGER NOT NULL UNIQUE, -- 1: Bronz, 2: Gümüş, 3: Altın vs.
+    name_tr TEXT NOT NULL,
+    name_en TEXT NOT NULL,
+    icon_url TEXT,
+    min_xp_required INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.user_leagues (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+    league_id UUID REFERENCES public.leagues(id) ON DELETE SET NULL,
+    group_id UUID, -- Her 30 kişilik grup için atanacak rastgele ID
+    weekly_score INTEGER DEFAULT 0,
+    week_start_date DATE NOT NULL,
+    week_end_date DATE NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(user_id, week_start_date)
+);
+
+ALTER TABLE public.leagues ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_leagues ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Herkes ligleri görebilir" ON public.leagues FOR SELECT USING (TRUE);
+CREATE POLICY "Herkes oyuncu lig sıralamalarını görebilir" ON public.user_leagues FOR SELECT USING (TRUE);
+CREATE POLICY "Kullanıcılar hile olmaksızın skor güncelleyebilir" ON public.user_leagues FOR UPDATE USING (auth.uid() = user_id);

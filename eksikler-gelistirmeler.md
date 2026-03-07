@@ -42,9 +42,19 @@ Farklı kelime bazlı oyunlar oluşturulabilir mi?
 
 
 **İlerleyen zaman için etkileşim beyin fırtınası düşünceleri.**
-Bir oyuncu belirlediğimizsayıda harften fazla harf kullanarak geçerli bir kelime oluşturduğunda oyun oynayanların görebileceği bir toast mesaj ekranın sağ alt kısmında çıkabilir mi? Oyuncular tebriklerini (bir kalp gibi) göndermek için tıklayavbilirler. BU etkileşimi üst sınıra çıkarabilir ve oyuncuların oyunu oynama konusundaki iştahlarını kabartabilir mi acaba? Bu uygulanabilir bir özellik mi?
+1. Bir oyuncu belirlediğimiz sayıda harften fazla harf kullanarak geçerli bir kelime oluşturduğunda oyun oynayanların görebileceği bir toast mesaj ekranın sağ alt kısmında çıkabilir mi? Oyuncular tebriklerini (bir kalp gibi) göndermek için tıklayabilirler. Bu etkileşimi üst sınıra çıkarabilir ve oyuncuların oyunu oynama konusundaki iştahlarını kabartabilir mi acaba?
+
+2. **Yapay Zeka Destekli "Mini Hikaye" Oluşturucu (Viral Paylaşım Mekaniği)**
+   - Oyuncunun oyun içerisinde bulduğu en özel/uzun kelimeler kullanılarak oyun sonunda AI yardımıyla absürt, fantastik veya komik mikro hikayeler (2-3 cümlelik) oluşturulması.
+   - Örn: "Bugün Karanlık **ORMAN**da yürürken aniden bir **KAPLAN** belirdi. Cebimdeki **AYNA**yı çıkarıp ona tuttuğumda..."
+   - Bu hikayenin şık bir "Polaroid / Kitap Sayfası" kartında gösterilip sosyal medyada (Instagram, Twitter) direkt paylaşılabilmesinin sağlanması.
+   - Bu sayede organik bir viral büyüme döngüsü oluşturulabilir. Bu fikir detaylandırılmak üzere bekletiliyor.
 
 
+
+
+
+   
 **MOBIL DENEYIM SORUNLARI**
 Mobil cihazda sayfalar ekrana sığmıyor. header çok yer kapladığı için açılan ekrandan dashboarda dönüş yapılamıyor. Bu konuda bir çözüm geliştirilmesi lazım. Mobil kullanıcı deneyimi çok önemli. Oyun oynama ekranlarında headeri gizleyip oyun bittiğinde tekrar görünür hale getirmek gibi bir çözüm düşünülebilir. Süreç içerisinde web uygulamasını mobil bir oyun uygulamasına dönüştüreceğiz bu sorunları çözmeden yapamayız. Ya mobil için ayrı bir aryüz ayarlayacağız ya da bu tasarımı mobil uyumlu hale getireceğiz.  
 
