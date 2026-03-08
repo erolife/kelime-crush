@@ -320,3 +320,79 @@ ALTER TABLE public.user_leagues ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Herkes ligleri görebilir" ON public.leagues FOR SELECT USING (TRUE);
 CREATE POLICY "Herkes oyuncu lig sıralamalarını görebilir" ON public.user_leagues FOR SELECT USING (TRUE);
 CREATE POLICY "Kullanıcılar hile olmaksızın skor güncelleyebilir" ON public.user_leagues FOR UPDATE USING (auth.uid() = user_id);
+
+-- 13. YAZAR MODU (STORY) SİSTEMİ (v14.0.0)
+CREATE TABLE IF NOT EXISTS public.stories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+    user_name TEXT, -- Hikaye anındaki kullanıcı adı
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    theme TEXT NOT NULL,
+    words TEXT[] NOT NULL,
+    length TEXT CHECK (length IN ('short', 'long')),
+    emoji TEXT,
+    hashtag TEXT,
+    likes_count INTEGER DEFAULT 0,
+    is_public BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.story_likes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    story_id UUID REFERENCES public.stories(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(story_id, user_id)
+);
+
+ALTER TABLE public.stories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.story_likes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Hikayeler herkes tarafından okunabilir" ON public.stories FOR SELECT USING (is_public = true);
+CREATE POLICY "Kullanıcılar kendi hikayelerini görebilir" ON public.stories FOR SELECT USING (auth.uid() = user_id);
+-- Not: Stories INSERT/UPDATE işlemleri Edge Function üzerinden yapılacaktır (Service Role). 
+-- İstemciden beğeni ve okuma dışında yetki verilmemesi önerilir.
+
+CREATE POLICY "Herkes beğenileri görebilir" ON public.story_likes FOR SELECT USING (TRUE);
+CREATE POLICY "Kullanıcılar beğeni ekleyebilir" ON public.story_likes FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Kullanıcılar beğenilerini geri çekebilir" ON public.story_likes FOR DELETE USING (auth.uid() = user_id);
+
+-- Beğeni Sayısı Güncelleme Fonksiyonu
+CREATE OR REPLACE FUNCTION public.handle_story_like() 
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'INSERT') THEN
+        UPDATE public.stories SET likes_count = likes_count + 1 WHERE id = NEW.story_id;
+    ELSIF (TG_OP = 'DELETE') THEN
+        UPDATE public.stories SET likes_count = likes_count - 1 WHERE id = OLD.story_id;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_story_like
+AFTER INSERT OR DELETE ON public.story_likes
+FOR EACH ROW EXECUTE FUNCTION public.handle_story_like();
+-- 14. GÜVENLİ PROFİL GÜNCELLEME (RPC)
+-- Hikaye üretimi sırasında altın düşümü ve diğer profil güncellemeleri için gereklidir.
+CREATE OR REPLACE FUNCTION public.update_profile_secure(p_user_id UUID, p_updates JSONB)
+RETURNS VOID AS $$
+BEGIN
+    -- Güvenlik Kontrolü: Sadece kendi profilini veya Edge Function (Service Role) yetkisiyle güncellenebilir
+    IF auth.uid() IS NOT NULL AND auth.uid() <> p_user_id THEN
+        RAISE EXCEPTION 'Yetkisiz erişim.';
+    END IF;
+
+    UPDATE public.profiles
+    SET 
+        username = COALESCE((p_updates->>'username'), username),
+        avatar_url = COALESCE((p_updates->>'avatar_url'), avatar_url),
+        coins = COALESCE((p_updates->'coins')::INTEGER, coins),
+        xp = COALESCE((p_updates->'xp')::BIGINT, xp),
+        level = COALESCE((p_updates->'level')::INTEGER, level),
+        tools = COALESCE((p_updates->'tools'), tools),
+        updated_at = NOW()
+    WHERE id = p_user_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

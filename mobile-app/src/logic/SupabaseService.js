@@ -309,5 +309,64 @@ score,
             console.error('Hesap silinirken hata oluştu:', error.message);
             return false;
         }
+    },
+
+    // AI Hikaye Üretme (Edge Function Çağrısı)
+    async generateStory(options) {
+        try {
+            const { data, error } = await supabase.functions.invoke('generate-story', {
+                body: options
+            });
+
+            if (error) {
+                console.error('Edge Function Error:', error);
+                // Edge Function'dan dönen detaylı hatayı UI'a pasla
+                return { error: error.message || 'Hikaye oluşturma servisi hata verdi.' };
+            }
+            return data;
+        } catch (error) {
+            console.error('Hikaye üretilirken catch hata oluştu:', error.message);
+            return { error: error.message };
+        }
+    },
+
+    // Hikaye Beğen / Beğeniyi Kaldır
+    async toggleStoryLike(storyId, userId, isLiked) {
+        try {
+            if (isLiked) {
+                const { error } = await supabase
+                    .from('story_likes')
+                    .delete()
+                    .match({ story_id: storyId, user_id: userId });
+                if (error) throw error;
+            } else {
+                const { error } = await supabase
+                    .from('story_likes')
+                    .insert({ story_id: storyId, user_id: userId });
+                if (error) throw error;
+            }
+            return true;
+        } catch (error) {
+            console.error('Beğeni işlemi sırasında hata oluştu:', error.message);
+            return false;
+        }
+    },
+
+    // Hikayeleri getir (Landing page veya galeri için)
+    async getStories(limit = 10) {
+        try {
+            const { data, error } = await supabase
+                .from('stories')
+                .select('*, profiles(username, avatar_url)')
+                .eq('is_public', true)
+                .order('created_at', { ascending: false })
+                .limit(limit);
+
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('Hikayeler çekilirken hata oluştu:', error.message);
+            return [];
+        }
     }
 };

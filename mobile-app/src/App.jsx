@@ -10,11 +10,13 @@ import {
   LayoutGrid, RotateCcw, Coins, Calendar, Box,
   ListTodo, Gift, ShoppingBag, BarChart3, Share2,
   User, LogOut, Mail, Lock, UserPlus, LogIn, Clock, Home,
-  Bomb, Radiation, Star, MapPin, Camera, Trash2
+  Bomb, Radiation, Star, MapPin, Camera, Trash2, Info, Feather
 } from 'lucide-react';
 import { LETTER_POINTS, TIME_BATTLE_OPTIONS } from './logic/Constants';
 import { AuthService } from './logic/AuthService';
 import { SupabaseService } from './logic/SupabaseService';
+import WriterThemeModal from './components/WriterThemeModal';
+import StoryDisplayModal from './components/StoryDisplayModal';
 import DailySpin from './components/DailySpin';
 import DailyMissions from './components/DailyMissions';
 
@@ -54,6 +56,89 @@ const DictionaryLoader = ({ language, t }) => (
     </div>
   </div>
 );
+
+// --- YENİ BİLEŞEN: Game Info Modal ---
+const GameInfoModal = ({ isOpen, onClose, mode, t }) => {
+  if (!isOpen || !mode) return null;
+
+  const modeData = {
+    'arcade': {
+      title: t('info_arcade_title') || 'ARCADE',
+      desc: t('info_arcade_desc') || '',
+      icon: <History size={24} className="text-sky-400" />,
+      color: 'sky'
+    },
+    'zen': {
+      title: t('info_zen_title') || 'ZEN',
+      desc: t('info_zen_desc') || '',
+      icon: <Sparkles size={24} className="text-emerald-400" />,
+      color: 'emerald'
+    },
+    'timeBattle': {
+      title: t('info_timebattle_title') || 'ZAMAN ARENASI',
+      desc: t('info_timebattle_desc') || '',
+      icon: <Clock size={24} className="text-rose-400" />,
+      color: 'rose'
+    },
+    'missions': {
+      title: t('info_missions_title') || 'GÜNLÜK GÖREVLER',
+      desc: t('info_missions_desc') || '',
+      icon: <ListTodo size={24} className="text-purple-400" />,
+      color: 'purple'
+    },
+    'writer': {
+      title: t('info_writer_title') || 'YAZAR MODU',
+      desc: t('info_writer_desc') || '',
+      icon: <Feather size={24} className="text-indigo-400" />,
+      color: 'indigo'
+    }
+  };
+
+  const data = modeData[mode];
+  if (!data) return null;
+
+  const colorStyles = {
+    'sky': 'from-sky-500 to-sky-600 shadow-sky-500/20 text-sky-400',
+    'emerald': 'from-emerald-500 to-emerald-600 shadow-emerald-500/20 text-emerald-400',
+    'rose': 'from-rose-500 to-rose-600 shadow-rose-500/20 text-rose-400',
+    'purple': 'from-purple-500 to-purple-600 shadow-purple-500/20 text-purple-400',
+    'indigo': 'from-indigo-500 to-indigo-600 shadow-indigo-500/20 text-indigo-400'
+  };
+
+  return (
+    <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-300">
+      <div className="w-full max-w-md bg-slate-900 border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+        {/* Background Graphic */}
+        <div className={`absolute -top-20 -right-20 w-48 h-48 bg-${data.color}-500/10 rounded-full blur-[60px] pointer-events-none`} />
+
+        <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-white transition-colors z-10">
+          <X size={24} />
+        </button>
+
+        <div className="flex flex-col items-center text-center mt-2 mb-6 relative z-10">
+          <div className="w-16 h-16 bg-slate-950/50 border border-white/5 rounded-2xl flex items-center justify-center mb-4 shadow-xl">
+            {data.icon}
+          </div>
+          <h2 className="text-2xl md:text-3xl font-black text-white italic tracking-tighter uppercase leading-none mb-2">
+            {data.title}
+          </h2>
+          <div className={`h-1 w-12 rounded-full bg-gradient-to-r ${colorStyles[data.color]} mb-6 opacity-80`} />
+          <p className="text-slate-300 text-sm md:text-base font-medium leading-relaxed px-2">
+            {data.desc}
+          </p>
+        </div>
+
+        <button
+          onClick={onClose}
+          className="w-full py-4 bg-slate-800 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-700 transition-colors active:scale-[0.98]"
+        >
+          {t('continue') || 'DEVAM ET'}
+        </button>
+      </div>
+    </div>
+  );
+};
+// ----------------------------------------
 
 const AuthModal = ({ isOpen, onClose, onAuthSuccess, t = (s) => s }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -184,10 +269,12 @@ const Dashboard = ({
   activeEvents = [], activeEvent, setSelectedEventId, setView, pendingGameOverReward,
   xp, level, masteryPoints, sessionXP, getNextLevelXp,
   isPro, isEnergyUnlimited, isMobile,
-  dashboardView, setDashboardView,
+  dashboardView, setDashboardView, setInfoModalMode,
   showMissionLock, setShowMissionLock,
   lockReason, setLockReason,
-  lowPerformance, setLowPerformance
+  lowPerformance, setLowPerformance,
+  setShowWriterModal,
+  onSelectWriter
 }) => {
   const [selectedEventIdLocal, setSelectedEventIdLocal] = React.useState(null);
   const [selectedLevelIdx, setSelectedLevelIdx] = React.useState(null);
@@ -1206,7 +1293,9 @@ const Dashboard = ({
             {/* ── MOBILE MODES VIEW (Horizontal Carousel) ── */}
             <div className="lg:hidden flex-1 overflow-x-auto no-scrollbar px-6 flex flex-row gap-4 lg:gap-6 snap-x snap-mandatory items-center min-h-0 landscape:pb-16">
               {/* Arcade Mode Card */}
-              <button
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   if (energy > 0) { setSelectedLevelIdx(null); setDashboardView('pregame'); }
                   else { setLockReason('energy'); setShowMissionLock(true); }
@@ -1217,22 +1306,33 @@ const Dashboard = ({
                 <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-sky-500/20 to-transparent pointer-events-none" />
 
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setInfoModalMode('arcade'); }}
+                  className="absolute top-4 right-4 z-[50] pointer-events-auto w-8 h-8 rounded-full bg-slate-900 border border-white/20 flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/20 transition-all shadow-lg active:scale-90 cursor-pointer"
+                >
+                  <Info size={16} />
+                </div>
+
                 <div className="relative z-10 w-10 h-10 landscape:w-8 landscape:h-8 bg-sky-500/10 rounded-xl border border-sky-400/20 flex items-center justify-center text-sky-400 shrink-0">
                   <History className="w-5 h-5 landscape:w-4 landscape:h-4" />
                 </div>
 
                 <div className="relative z-10 flex flex-col items-center gap-0.5">
                   <h3 className="text-lg landscape:text-base lg:text-3xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg leading-tight">{t('arcade')}</h3>
-                  <p className="text-sky-400/80 text-[9px] landscape:text-[8px] lg:text-xs font-black uppercase tracking-[0.1em] leading-tight max-w-[160px] opacity-90">{t('arcade_desc')}</p>
+                  <p className="text-sky-400/80 text-[10px] landscape:text-[8px] lg:text-xs font-black uppercase tracking-[0.1em] leading-tight max-w-[160px] opacity-90">{t('arcade_desc')}</p>
                 </div>
 
                 <div className="relative z-10 bg-sky-500 text-slate-950 px-4 landscape:px-3 py-1.5 landscape:py-1 rounded-full font-black text-[9px] landscape:text-[8px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-[0_8px_20px_rgba(14,165,233,0.3)] shrink-0">
                   <Play size={9} fill="currentColor" /> {t('play')}
                 </div>
-              </button>
+              </div>
 
               {/* Time Battle Mode Card */}
-              <button
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   if (energy > 0) setDashboardView('timeBattlePregame');
                   else { setLockReason('energy'); setShowMissionLock(true); }
@@ -1243,22 +1343,33 @@ const Dashboard = ({
                 <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-rose-500/20 to-transparent pointer-events-none" />
 
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setInfoModalMode('timeBattle'); }}
+                  className="absolute top-4 right-4 z-[50] pointer-events-auto w-8 h-8 rounded-full bg-slate-900 border border-white/20 flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/20 transition-all shadow-lg active:scale-90 cursor-pointer"
+                >
+                  <Info size={16} />
+                </div>
+
                 <div className="relative z-10 w-10 h-10 landscape:w-8 landscape:h-8 bg-rose-500/10 rounded-xl border border-rose-400/20 flex items-center justify-center text-rose-400 shrink-0">
                   <Clock className="w-5 h-5 landscape:w-4 landscape:h-4" />
                 </div>
 
                 <div className="relative z-10 flex flex-col items-center gap-0.5">
                   <h3 className="text-lg landscape:text-base lg:text-3xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg leading-tight">{t('time_battle')}</h3>
-                  <p className="text-rose-400/80 text-[9px] landscape:text-[8px] lg:text-xs font-black uppercase tracking-[0.1em] leading-tight max-w-[180px] opacity-90">{t('time_battle_desc')}</p>
+                  <p className="text-rose-400/80 text-[10px] landscape:text-[8px] lg:text-xs font-black uppercase tracking-[0.1em] leading-tight max-w-[180px] opacity-90">{t('time_battle_desc')}</p>
                 </div>
 
                 <div className="relative z-10 bg-rose-500 text-slate-950 px-4 landscape:px-3 py-1.5 landscape:py-1 rounded-full font-black text-[9px] landscape:text-[8px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-[0_8px_20px_rgba(244,63,94,0.3)] shrink-0">
                   <Play size={9} fill="currentColor" /> {t('play')}
                 </div>
-              </button>
+              </div>
 
               {/* Zen Mode Card */}
-              <button
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   if (!user) { setLockReason('auth'); setShowMissionLock(true); }
                   else if (energy <= 0) { setLockReason('energy'); setShowMissionLock(true); }
@@ -1269,6 +1380,15 @@ const Dashboard = ({
               >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none" />
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-emerald-500/20 to-transparent pointer-events-none" />
+
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setInfoModalMode('zen'); }}
+                  className="absolute top-4 right-4 z-[50] pointer-events-auto w-8 h-8 rounded-full bg-slate-900 border border-white/20 flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/20 transition-all shadow-lg active:scale-90 cursor-pointer"
+                >
+                  <Info size={16} />
+                </div>
 
                 <div className="relative z-10 w-10 h-10 landscape:w-8 landscape:h-8 bg-emerald-500/10 rounded-xl border border-emerald-400/20 flex items-center justify-center text-emerald-400 shrink-0">
                   <Sparkles className="w-5 h-5 landscape:w-4 landscape:h-4" />
@@ -1282,68 +1402,146 @@ const Dashboard = ({
                 <div className="relative z-10 bg-emerald-500 text-slate-950 px-4 landscape:px-3 py-1.5 landscape:py-1 rounded-full font-black text-[9px] landscape:text-[8px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-[0_8px_20px_rgba(16,185,129,0.3)] shrink-0">
                   {user ? <Play size={9} fill="currentColor" /> : <Lock size={9} />} {user ? (language === 'tr' ? 'RAHATLA' : 'RELAX') : t('login')}
                 </div>
-              </button>
+              </div>
+
+              {/* Writer Mode Card (v14.0.0) */}
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  if (level < 5) { setLockReason('level'); setShowMissionLock(true); }
+                  else if (!user) { setLockReason('auth'); setShowMissionLock(true); }
+                  else if (energy <= 0 && !isPro && !isEnergyUnlimited) { setLockReason('energy'); setShowMissionLock(true); }
+                  else onSelectWriter();
+                }}
+                className={`relative w-[85vw] max-w-[280px] landscape:max-w-[240px] h-[65vh] landscape:h-auto lg:h-[55vh] max-h-[320px] landscape:max-h-[180px] shrink-0 rounded-[2rem] landscape:rounded-xl border border-white/10 overflow-hidden transition-all active:scale-95 group shadow-2xl snap-center flex flex-col items-center justify-center p-4 landscape:p-2.5 text-center gap-2 landscape:gap-1.5 ${level < 5 ? 'opacity-70' : ''}`}
+                style={{ background: 'linear-gradient(225deg, #1e1b4b 0%, #020617 100%)' }}
+              >
+                <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none" />
+                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-purple-500/20 to-transparent pointer-events-none" />
+
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setInfoModalMode('writer'); }}
+                  className="absolute top-4 right-4 z-[50] pointer-events-auto w-8 h-8 rounded-full bg-slate-900 border border-white/20 flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/20 transition-all shadow-lg active:scale-90 cursor-pointer"
+                >
+                  <Info size={16} />
+                </div>
+
+                <div className="relative z-10 w-10 h-10 landscape:w-8 landscape:h-8 bg-purple-500/10 rounded-xl border border-purple-400/20 flex items-center justify-center text-purple-400 shrink-0">
+                  <Feather className="w-5 h-5 landscape:w-4 landscape:h-4" />
+                </div>
+
+                <div className="relative z-10 flex flex-col items-center gap-0.5">
+                  <h3 className="text-lg landscape:text-base lg:text-3xl font-black text-white italic tracking-tighter uppercase drop-shadow-lg leading-tight flex items-center gap-2">
+                    {language === 'tr' ? 'Yazar Modu' : 'Writer Mode'}
+                    {level < 5 && <Lock size={14} className="text-amber-500" />}
+                  </h3>
+                  <p className="text-purple-400/80 text-[10px] landscape:text-[8px] lg:text-xs font-black uppercase tracking-[0.1em] leading-tight max-w-[160px] opacity-90">{language === 'tr' ? 'AI ile Kelimelerinden Hikaye Yaz' : 'Write Stories with AI'}</p>
+                </div>
+
+                <div className={`relative z-10 px-4 landscape:px-3 py-1.5 landscape:py-1 rounded-full font-black text-[9px] landscape:text-[8px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-lg shrink-0 ${level < 5 ? 'bg-slate-800 text-white/50' : 'bg-purple-600 text-white shadow-purple-500/30'}`}>
+                  {level < 5 ? <Lock size={9} /> : <Sparkles size={10} fill="currentColor" />} {level < 5 ? `LVL 5+` : (language === 'tr' ? 'YAZ' : 'WRITE')}
+                </div>
+              </div>
             </div>
 
             {/* ── DESKTOP MODES VIEW (Hidden on mobile/tablet landscape) ── */}
             <div className="hidden lg:flex flex-1 flex-row gap-6 min-h-0 overflow-hidden">
               <div className="flex-1 flex flex-col gap-0 min-h-0 overflow-hidden">
-                <button
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => {
                     if (energy > 0) { setSelectedLevelIdx(null); setDashboardView('pregame'); }
                     else { setLockReason('energy'); setShowMissionLock(true); }
                   }}
-                  className="group relative flex-1 overflow-hidden rounded-t-[2rem] border border-white/8 transition-all duration-500 active:scale-[0.99]"
+                  className="group relative flex-1 overflow-hidden rounded-t-[2rem] border border-white/8 transition-all duration-500 active:scale-[0.99] cursor-pointer"
                   style={{ background: 'linear-gradient(135deg, #0a0e1a 0%, #0d1526 50%, #0a1020 100%)' }}
                 >
                   <div className="absolute -top-20 -left-20 w-64 h-64 bg-sky-500/10 rounded-full blur-[80px] transition-all duration-700 group-hover:bg-sky-500/20 group-hover:scale-110" />
-                  <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")', backgroundSize: '128px' }} />
+                  <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3Cfilter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")', backgroundSize: '128px' }} />
+
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setInfoModalMode('arcade'); }}
+                    className="absolute top-6 right-6 z-[50] pointer-events-auto w-10 h-10 rounded-full bg-slate-900 border border-white/20 flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/20 transition-all shadow-lg active:scale-90 cursor-pointer"
+                  >
+                    <Info size={20} />
+                  </div>
+
                   <div className="relative z-10 h-full flex flex-col items-center justify-center p-10 gap-4">
                     <div className="w-20 h-20 bg-sky-500/15 border border-sky-500/25 rounded-3xl flex items-center justify-center text-sky-400 group-hover:scale-110 group-hover:bg-sky-500/25 group-hover:border-sky-500/50 transition-all duration-500 shadow-[0_0_30px_rgba(14,165,233,0.15)]">
                       <History size={40} />
                     </div>
                     <div className="text-center">
-                      <h3 className="text-5xl font-black text-white tracking-[-0.04em] uppercase leading-none font-outfit group-hover:text-sky-100 transition-colors">{t('arcade')}</h3>
-                      <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.2em] mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">{t('arcade_desc')}</p>
+                      <h3 className="text-3xl font-black text-white tracking-tight uppercase leading-none font-outfit group-hover:text-sky-100 transition-colors">{t('arcade')}</h3>
+                      <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">{t('arcade_desc')}</p>
                     </div>
                   </div>
-                </button>
+                </div>
 
                 <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-                <button
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => {
                     if (energy > 0) setDashboardView('timeBattlePregame');
                     else { setLockReason('energy'); setShowMissionLock(true); }
                   }}
-                  className="group relative flex-1 overflow-hidden border border-white/8 border-t-0 transition-all duration-500 active:scale-[0.99]"
+                  className="group relative flex-1 overflow-hidden border border-white/8 border-t-0 transition-all duration-500 active:scale-[0.99] cursor-pointer"
                   style={{ background: 'linear-gradient(135deg, #0f0005 0%, #1a0008 50%, #100005 100%)' }}
                 >
                   <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-rose-500/10 rounded-full blur-[80px] transition-all duration-700 group-hover:bg-rose-500/20 group-hover:scale-110" />
-                  <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")', backgroundSize: '128px' }} />
+                  <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3Cfilter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")', backgroundSize: '128px' }} />
+
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setInfoModalMode('timeBattle'); }}
+                    className="absolute top-6 right-6 z-[50] pointer-events-auto w-10 h-10 rounded-full bg-slate-900 border border-white/20 flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/20 transition-all shadow-lg active:scale-90 cursor-pointer"
+                  >
+                    <Info size={20} />
+                  </div>
+
                   <div className="relative z-10 h-full flex flex-col items-center justify-center p-10 gap-4">
                     <div className="w-20 h-20 bg-rose-500/15 border border-rose-500/25 rounded-3xl flex items-center justify-center text-rose-400 group-hover:scale-110 group-hover:bg-rose-500/25 group-hover:border-rose-500/50 transition-all duration-500 shadow-[0_0_30px_rgba(244,63,94,0.2)]">
                       <Clock size={40} />
                     </div>
                     <div className="text-center">
-                      <h3 className="text-5xl font-black text-white tracking-[-0.04em] uppercase leading-none font-outfit group-hover:text-rose-100 transition-colors">{t('time_battle')}</h3>
-                      <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.2em] mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">{t('time_battle_desc')}</p>
+                      <h3 className="text-3xl font-black text-white tracking-tight uppercase leading-none font-outfit group-hover:text-rose-100 transition-colors">{t('time_battle')}</h3>
+                      <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">{t('time_battle_desc')}</p>
                     </div>
                   </div>
-                </button>
+                </div>
 
                 <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-                <button
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => {
                     if (!user) { setLockReason('auth'); setShowMissionLock(true); }
                     else if (energy <= 0) { setLockReason('energy'); setShowMissionLock(true); }
                     else onSelectZen();
                   }}
-                  className="group relative flex-1 overflow-hidden rounded-b-[2rem] border border-white/8 border-t-0 transition-all duration-500 active:scale-[0.99]"
+                  className="group relative flex-1 overflow-hidden border border-white/8 border-t-0 transition-all duration-500 active:scale-[0.99] cursor-pointer"
                   style={{ background: 'linear-gradient(135deg, #051a10 0%, #0a261a 50%, #051a10 100%)' }}
                 >
                   <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px] transition-all duration-700 group-hover:bg-emerald-500/20 group-hover:scale-110" />
+
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setInfoModalMode('zen'); }}
+                    className="absolute top-6 right-6 z-[50] pointer-events-auto w-10 h-10 rounded-full bg-slate-900 border border-white/20 flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/20 transition-all shadow-lg active:scale-90 cursor-pointer"
+                  >
+                    <Info size={20} />
+                  </div>
+
                   <div className="relative z-10 h-full flex flex-col items-center justify-center p-8 gap-3">
                     <div className="w-16 h-16 bg-emerald-500/15 border border-emerald-500/25 rounded-2xl flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-all duration-500 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
                       <Sparkles size={32} />
@@ -1353,7 +1551,54 @@ const Dashboard = ({
                       <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest group-hover:text-slate-400 transition-colors">{t('zen_desc')}</p>
                     </div>
                   </div>
-                </button>
+                </div>
+
+                <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+                {/* Writer Mode Card Desktop (v14.0.0) */}
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => {
+                    if (level < 5) { setLockReason('level'); setShowMissionLock(true); }
+                    else if (!user) { setLockReason('auth'); setShowMissionLock(true); }
+                    else if (energy <= 0 && !isPro && !isEnergyUnlimited) { setLockReason('energy'); setShowMissionLock(true); }
+                    else onSelectWriter();
+                  }}
+                  className={`group relative flex-1 overflow-hidden rounded-b-[2rem] border border-white/8 border-t-0 transition-all duration-500 active:scale-[0.99] cursor-pointer ${level < 5 ? 'opacity-70 grayscale-[0.5]' : ''}`}
+                  style={{ background: 'linear-gradient(135deg, #020617 0%, #17153b 50%, #020617 100%)' }}
+                >
+                  <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] transition-all duration-700 group-hover:bg-purple-500/20 group-hover:scale-110" />
+
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setInfoModalMode('writer'); }}
+                    className="absolute top-6 right-6 z-[50] pointer-events-auto w-10 h-10 rounded-full bg-slate-900 border border-white/20 flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/20 transition-all shadow-lg active:scale-90 cursor-pointer"
+                  >
+                    <Info size={20} />
+                  </div>
+
+                  <div className="relative z-10 h-full flex flex-col items-center justify-center p-10 gap-4">
+                    <div className="w-20 h-20 bg-purple-500/15 border border-purple-500/25 rounded-3xl flex items-center justify-center text-purple-400 group-hover:scale-110 group-hover:bg-purple-500/25 group-hover:border-purple-500/50 transition-all duration-500 shadow-[0_0_30px_rgba(168,85,247,0.2)]">
+                      <Feather size={40} />
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-3xl font-black text-white tracking-tight uppercase leading-none font-outfit group-hover:text-purple-100 transition-colors flex items-center justify-center gap-3">
+                        {language === 'tr' ? 'YAZAR MODU' : 'WRITER MODE'}
+                        {level < 5 && <Lock size={20} className="text-amber-500 animate-pulse" />}
+                      </h3>
+                      <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-2 group-hover:text-slate-400 transition-colors max-w-[240px] mx-auto">{language === 'tr' ? 'AI ile Kelimelerinden Hikaye Yaz' : 'Write Stories with AI'}</p>
+                    </div>
+                  </div>
+
+                  {level < 5 && (
+                    <div className="absolute top-6 left-6 flex items-center gap-2 bg-slate-950/50 px-3 py-1 rounded-full border border-white/10 backdrop-blur-md">
+                      <Lock size={12} className="text-amber-500" />
+                      <span className="text-[10px] font-black text-white/50 uppercase tracking-widest leading-none">SEVİYE 5+</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* ── DESKTOP SIDEBAR ── */}
@@ -2611,7 +2856,9 @@ function App() {
     isTutorial, tutorialHint,
     dailyMissions, claimMissionReward, updateMissionProgress,
     isPro, isEnergyUnlimited,
-    lowPerformance, setLowPerformance
+    lowPerformance, setLowPerformance,
+    writerModeProgress, isWriterModeTriggered, writerModeWords, setIsWriterModeTriggered,
+    writerWords4, writerWords5, writerWords6Plus, isWriterReady
   } = useGame();
 
 
@@ -2626,6 +2873,12 @@ function App() {
   const [dashboardView, setDashboardView] = useState('modes');
   const [showMissionLock, setShowMissionLock] = useState(false);
   const [lockReason, setLockReason] = useState('auth'); // 'auth' | 'energy'
+  const [infoModalMode, setInfoModalMode] = useState(null); // 'arcade', 'zen', 'timeBattle', 'missions'
+
+  // Writer Mode Ekranı
+  const [showWriterModal, setShowWriterModal] = useState(false);
+  const [generatedStory, setGeneratedStory] = useState(null);
+  const [isLoadingStory, setIsLoadingStory] = useState(false);
 
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
@@ -2880,6 +3133,13 @@ function App() {
         t={t}
       />
 
+      <GameInfoModal
+        isOpen={!!infoModalMode}
+        onClose={() => setInfoModalMode(null)}
+        mode={infoModalMode}
+        t={t}
+      />
+
       {/* Dictionary Loader Overlay */}
       {!isDictionaryLoaded && <DictionaryLoader language={language} t={t} />}
 
@@ -2966,6 +3226,16 @@ function App() {
                   resetGame({}, 'zen', 'moves', 999, difficulty);
                 }
               }}
+              onSelectWriter={() => {
+                if (isPro || isEnergyUnlimited || energy > 0) {
+                  if (!isPro && !isEnergyUnlimited) {
+                    setEnergy(prev => prev - 1);
+                    if (energy === 5) setLastEnergyRefill(Date.now());
+                  }
+                  setShowDashboard(false);
+                  resetGame({}, 'writer', 'moves', 999, difficulty);
+                }
+              }}
               totalScore={totalScore}
               wordsFoundCount={wordsFoundCount}
               gamesPlayed={gamesPlayed}
@@ -2984,10 +3254,12 @@ function App() {
               isMobile={isMobile}
               dashboardView={dashboardView}
               setDashboardView={setDashboardView}
+              setInfoModalMode={setInfoModalMode}
               showMissionLock={showMissionLock}
               setShowMissionLock={setShowMissionLock}
               lockReason={lockReason}
               setLockReason={setLockReason}
+              setShowWriterModal={setShowWriterModal}
             />
             {renderAppView()}
           </div>
@@ -3067,10 +3339,10 @@ function App() {
               </div>
               <div className="min-w-[100px] landscape:min-w-[80px] md:min-w-[140px]">
                 <h1 className="text-lg landscape:text-base md:text-2xl font-black tracking-tight bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent italic uppercase leading-none mb-0.5 landscape:mb-0 md:mb-1">
-                  {gameMode === 'timeBattle' ? t('time_battle') : gameMode === 'zen' ? t('zen_mode') : t('arcade')}
+                  {gameMode === 'timeBattle' ? t('time_battle') : gameMode === 'zen' ? t('zen_mode') : gameMode === 'writer' ? t('writer_mode') : t('arcade')}
                 </h1>
                 <p className="text-[9px] landscape:text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate font-inter">
-                  {gameMode === 'timeBattle' ? t('time_battle_desc') : gameMode === 'zen' ? t('zen_desc') : t('arcade')}
+                  {gameMode === 'timeBattle' ? t('time_battle_desc') : gameMode === 'zen' ? t('zen_desc') : gameMode === 'writer' ? (language === 'tr' ? 'KELİMELERİNLE HİKAYE YAZ' : 'WRITE STORIES WITH WORDS') : t('arcade')}
                 </p>
               </div>
             </div>
@@ -3098,6 +3370,14 @@ function App() {
                   className="px-4 md:px-6 py-2 md:py-2.5 bg-emerald-500 text-white font-black text-[10px] md:text-xs rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:bg-emerald-400 transition-all uppercase tracking-widest"
                 >
                   {t('enough_button')}
+                </button>
+              )}
+              {gameMode === 'writer' && (
+                <button
+                  onClick={() => setShowWriterModal(true)}
+                  className={`px-4 md:px-6 py-2 md:py-2.5 font-black text-[10px] md:text-xs rounded-xl transition-all uppercase tracking-widest shadow-lg ${isWriterReady ? 'bg-purple-600 text-white shadow-purple-500/30' : 'bg-slate-800 text-slate-500'}`}
+                >
+                  {language === 'tr' ? 'HİKAYE OLUŞTUR' : 'GENERATE STORY'}
                 </button>
               )}
               <button
@@ -3168,6 +3448,21 @@ function App() {
                     {Math.floor(timeBattleElapsed / 60)}:{String(timeBattleElapsed % 60).padStart(2, '0')}
                   </span>
                 </>
+              ) : gameMode === 'writer' ? (
+                <div className="flex items-center gap-4 landscape:gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">4L:</span>
+                    <span className={`text-[11px] landscape:text-[10px] font-black tabular-nums ${writerWords4.length >= 4 ? 'text-emerald-400' : 'text-slate-300'}`}>{writerWords4.length}/4</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">5L:</span>
+                    <span className={`text-[11px] landscape:text-[10px] font-black tabular-nums ${writerWords5.length >= 2 ? 'text-emerald-400' : 'text-slate-300'}`}>{writerWords5.length}/2</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">6L+:</span>
+                    <span className={`text-[11px] landscape:text-[10px] font-black tabular-nums ${writerWords6Plus.length >= 1 ? 'text-emerald-400' : 'text-slate-300'}`}>{writerWords6Plus.length}/1</span>
+                  </div>
+                </div>
               ) : (
                 <>
                   <span className="text-[9px] landscape:text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('moves')}:</span>
@@ -3175,6 +3470,19 @@ function App() {
                 </>
               )}
             </div>
+
+            {/* Writer Mode Ready Notification (v14.1.0) */}
+            {gameMode === 'writer' && isWriterReady && (
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[90vw] max-w-sm bg-purple-600/90 backdrop-blur-md border border-purple-400/50 rounded-2xl p-3 shadow-[0_10px_40px_rgba(168,85,247,0.4)] animate-in slide-in-from-top-4 duration-500 z-[100] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white shrink-0 animate-pulse">
+                  <CheckCircle2 size={24} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] font-black text-white uppercase tracking-widest leading-none mb-1">{t('writer_target_reached_title')}</div>
+                  <div className="text-[9px] font-bold text-white/80 leading-tight">{t('writer_target_reached_desc')}</div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Mobile Time Battle Next Reward (replaces mission goals) */}
@@ -3418,6 +3726,15 @@ function App() {
                             </div>
                           </div>
 
+                          {isWriterModeTriggered && (
+                            <div className="mb-4 landscape:mb-2 w-full animate-in zoom-in slide-in-from-bottom-4 duration-500 delay-300">
+                              <button onClick={() => setShowWriterModal(true)} className="w-full flex items-center justify-center gap-2 py-3.5 landscape:py-2 md:py-4 bg-gradient-to-r from-purple-500 to-fuchsia-600 hover:from-purple-400 hover:to-fuchsia-500 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl shadow-xl shadow-purple-500/20 text-sm landscape:text-xs md:text-base tracking-widest uppercase transition-all active:scale-95">
+                                <Feather size={18} className="animate-bounce" />
+                                {t('write_story') || 'HİKAYE YAZDIR!'}
+                              </button>
+                            </div>
+                          )}
+
                           <button onClick={() => {
                             setShowDashboard(true);
                           }} className="w-full py-3 landscape:py-2 md:py-4 bg-emerald-500 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl mb-2 landscape:mb-1 hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 text-sm landscape:text-xs md:text-base">{t('continue')}</button>
@@ -3624,6 +3941,15 @@ function App() {
                         </div>
                       </div>
 
+                      {isWriterModeTriggered && (
+                        <div className="col-span-2 mb-4 landscape:mb-2 w-full animate-in zoom-in slide-in-from-bottom-4 duration-500 delay-300">
+                          <button onClick={() => setShowWriterModal(true)} className="w-full flex items-center justify-center gap-2 py-3.5 landscape:py-2 md:py-4 bg-gradient-to-r from-purple-500 to-fuchsia-600 hover:from-purple-400 hover:to-fuchsia-500 text-white font-black rounded-xl landscape:rounded-lg md:rounded-2xl shadow-xl shadow-purple-500/20 text-sm landscape:text-xs md:text-base tracking-widest uppercase transition-all active:scale-95">
+                            <Feather size={18} className="animate-bounce" />
+                            {t('write_story') || 'HİKAYE YAZDIR!'}
+                          </button>
+                        </div>
+                      )}
+
                       <button
                         onClick={() => {
                           if (isPro || isEnergyUnlimited || energy > 0) {
@@ -3705,6 +4031,72 @@ function App() {
           );
         })()
       }
+
+      {/* Writer Mode Theme Selection Modal */}
+      {/* Writer Mode Theme Selection Modal */}
+      <WriterThemeModal
+        isOpen={showWriterModal}
+        onClose={() => setShowWriterModal(false)}
+        words={writerModeWords}
+        isPro={isPro}
+        coins={coins}
+        language={language}
+        onGenerate={async (data) => {
+          setShowWriterModal(false);
+          setIsLoadingStory(true);
+
+          try {
+            // 1. API'ye isteği gönder
+            const result = await SupabaseService.generateStory({
+              theme: data.theme,
+              length: data.length,
+              words: data.words,
+              cost: data.cost
+            });
+
+            if (result && !result.error) {
+              // 2. Başarılı ise hikayeyi kaydet ve göster
+              setGeneratedStory(result);
+              // 3. Altın harcanmışsa profili güncelle
+              if (data.cost > 0) {
+                fetchProfile(user.id);
+              }
+            } else {
+              alert(result?.error || "Maalesef hikaye oluşturulamadı. Lütfen tekrar dene.");
+            }
+          } catch (err) {
+            console.error("Story Generation Flow Error:", err);
+          } finally {
+            setIsLoadingStory(false);
+          }
+        }}
+      />
+
+      {/* Story Loading Overlay */}
+      {
+        isLoadingStory && (
+          <div className="fixed inset-0 z-[800] flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="relative mb-8">
+              <div className="w-32 h-32 border-4 border-purple-500/10 border-t-purple-500 rounded-full animate-spin"></div>
+              <Feather size={48} className="absolute inset-0 m-auto text-purple-400 animate-pulse" />
+            </div>
+            <h3 className="text-white text-2xl font-black italic uppercase tracking-tighter animate-bounce leading-none">Hikayen Yazılıyor</h3>
+            <p className="text-slate-400 text-xs font-bold mt-2 uppercase tracking-[0.2em]">Yapay Zeka Kelime Dokuyor...</p>
+          </div>
+        )
+      }
+
+      {/* Story Result Modal (Polaroid) */}
+      <StoryDisplayModal
+        isOpen={!!generatedStory}
+        onClose={() => setGeneratedStory(null)}
+        story={generatedStory}
+        isLiked={false}
+        onLike={(storyId, isLiked) => {
+          SupabaseService.toggleStoryLike(storyId, user.id, isLiked);
+        }}
+        language={language}
+      />
 
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }

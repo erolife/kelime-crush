@@ -58,6 +58,16 @@ export const useGame = (initialDifficulty = 'normal') => {
     const [cloudLevels, setCloudLevels] = useState([]);
     const [isLoadingLevels, setIsLoadingLevels] = useState(false);
 
+    // Writer Mode (Hibrit) States
+    const [writerModeProgress, setWriterModeProgress] = useState(0);
+    const [writerModeWords, setWriterModeWords] = useState([]);
+    const [isWriterModeTriggered, setIsWriterModeTriggered] = useState(false);
+
+    // Writer Mode Spesifik Hedefler (v14.1.0)
+    const [writerWords4, setWriterWords4] = useState([]);
+    const [writerWords5, setWriterWords5] = useState([]);
+    const [writerWords6Plus, setWriterWords6Plus] = useState([]);
+
     // Time Battle state
     const [timeBattleElapsed, setTimeBattleElapsed] = useState(0);
     const [timeBattleToolRewards, setTimeBattleToolRewards] = useState([]);
@@ -950,6 +960,26 @@ export const useGame = (initialDifficulty = 'normal') => {
                 soundManager.play(celebrationLevel >= 3 ? 'cheer_big' : 'cheer_small');
                 setTimeout(() => setCelebration(null), durations[celebrationLevel]);
             }
+
+            // Writer Mode (Hibrit) Trigger Logic (Level 5+)
+            if (level >= 5 && word.length >= 4 && !isWriterModeTriggered) {
+                if (word.length === 4) setWriterWords4(prev => [...prev, word]);
+                else if (word.length === 5) setWriterWords5(prev => [...prev, word]);
+                else if (word.length >= 6) setWriterWords6Plus(prev => [...prev, word]);
+
+                setWriterModeWords(prev => {
+                    const newWords = [...prev, word];
+                    const progress = newWords.length;
+                    setWriterModeProgress(progress);
+
+                    if (progress === 5 && !isWriterModeTriggered) {
+                        // Artık isWriterModeTriggered sadece hibrit (oyun sonu otomatik) 
+                        // tetikleyici olarak kalabilir veya tamamen kaldırılabilir.
+                        // dashboard girişinde farklı bir mantık yürüteceğiz.
+                    }
+                    return newWords;
+                });
+            }
             // Award coins for word
             const coinReward = Math.max(0, word.length - 3) * 2;
             if (gameMode !== 'zen') {
@@ -1084,6 +1114,14 @@ export const useGame = (initialDifficulty = 'normal') => {
             }
         }
         setGamesPlayed(prev => prev + 1);
+
+        // Reset Writer Mode Specific Progress
+        setWriterWords4([]);
+        setWriterWords5([]);
+        setWriterWords6Plus([]);
+        setWriterModeWords([]);
+        setWriterModeProgress(0);
+        setIsWriterModeTriggered(false);
     }, [engine, difficulty, gameMode, startTimeBattle, language, tools, activeEvents]);
 
     // Game Over / Victory: Update highScore based on final session score
@@ -1179,7 +1217,7 @@ export const useGame = (initialDifficulty = 'normal') => {
 
 
     return {
-        grid, selectedPath, animatingCells, score, moves, level, difficulty, foundWords,
+        grid, selectedPath, animatingCells, score, moves, difficulty, foundWords,
         gameState, resetGame, swapSelection, createdSpecial,
         tools, activeTool, setActiveTool, changeDifficulty, selectCell,
         finishTurn, shuffle, isDictionaryLoaded,
@@ -1204,6 +1242,10 @@ export const useGame = (initialDifficulty = 'normal') => {
         isMobile, orientation,
         isTutorial, tutorialHint,
         dailyMissions, claimMissionReward, updateMissionProgress,
-        lowPerformance, setLowPerformance
+        lowPerformance, setLowPerformance,
+        // Writer Mode exports
+        writerModeProgress, isWriterModeTriggered, writerModeWords, setIsWriterModeTriggered,
+        writerWords4, writerWords5, writerWords6Plus,
+        isWriterReady: writerWords4.length >= 4 && writerWords5.length >= 2 && writerWords6Plus.length >= 1
     };
 };

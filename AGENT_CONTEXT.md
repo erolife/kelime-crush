@@ -1,21 +1,26 @@
 # WORDLENGE - Proje Bağlamı (AGENT_CONTEXT.md)
 
-**Son Güncelleme:** 2026-03-07
-## Proje Durumu (Son Güncelleme: 07.03.2026)
+**Son Güncelleme:** 2026-03-08
+## Proje Durumu (Son Güncelleme: 08.03.2026)
 
-- **Sürüm:** v1.2.0 (Google Play Build v3)
-- **Aşama:** Kapalı test geri bildirimleri uygulandı ve sürüm kodu yükseltildi.
+- **Sürüm:** v1.4.0 (Yazar Modu & UI Harmonizasyonu)
+- **Aşama:** Yazar Modu yayına alındı, Dashboard görsel harmonizasyonu tamamlandı.
 - **Yapılan İyileştirmeler:**
-    1. **Günlük Çark Güvenliği:** `DailySpin.jsx` üzerinde saat hilesine karşı istemci/sunucu senkronizasyonu artırıldı.
-    2. **Özel Bombalar:** X-Bomba ve Nükleer Bomba araç çubuğuna ve **Pregame (başlangıç)** ekranına eklendi. Oyun başında seçilerek tahtaya yerleştirilmesi aktif hale getirildi.
-    3. **Performans:** "Düşük Performans Modu" eklendi. Eski cihazlar için gölge (`shadowBlur`), partikül ve karmaşık görsel efektler dinamik olarak kısıtlandı.
-    4. **Sürüm Güncelleme:** Google Play için `versionCode` 3, `versionName` "1.2" olarak yükseltildi.
-    5. **Hata Düzeltme:** Ayarlar ekranındaki çökme giderildi.
+    1. **Yazar Modu (AI):** Gemini Pro destekli hikaye üretim sistemi (Edge Function) yayına alındı. Seviye 5+ kısıtlaması ve hibrit tetikleme (oyun sonu + dashboard) eklendi.
+    2. **Dashboard Harmonizasyonu:** Tüm oyun modlarının font boyutları (Desktop: 3xl, Mobile: lg) ve kart yapıları Zen moduyla eşitlendi.
+    3. **Görsel Birleştirme:** Zen Serüveni ve Yazar Modu kartları dikey düzlemde birleştirildi (Rounding & Gapless design).
+    4. **Güvenlik & Ekonomi:** `update_profile_secure` RPC fonksiyonu ile hile korumalı altın düşümü ve profil güncelleme altyapısı kuruldu.
+    5. **Hata Düzeltme:** `App.jsx` üzerindeki state tanım hataları ve SQL idempotency sorunları giderildi.
 
 ## Güncel Görevler & Sorunlar
 - [x] Günlük çark hilesinin engellenmesi.
 - [x] Satın alınan özel bombaların oyun tahtasına eklenmesi.
 - [x] Eski cihazlardaki kasma/donma sorunları için optimizasyon.
+- [x] Yazar Modu API entegrasyonu ve UI tasarımı.
+- [x] Dashboard kartlarının görsel uyumunun sağlanması.
+- [x] Seviye 5 kilit mekanizması ve kilit ikonları.
+- [ ] Koleksiyon Kartları sistemi (Planlama aşamasında).
+- [ ] Haftalık Lig Sistemi (Planlama aşamasında).
 
 ## Proje Durumu: v1.0.0 (Google Play Yayını & Güvenlik) (06.03.2026)
 - **Feature (v9.0.0)**: Monetizasyon altyapısı oluşturuldu — Stripe-only (USD bazlı):
@@ -25,9 +30,6 @@
         - **Sınırsız Enerji:** PRO kullanıcıları için enerji tüketimi devre dışı bırakıldı. Enerji göstergesinde "∞" simgesi aktif edildi.
         - **2x Günlük Ödül:** Şans çarkından kazanılan tüm ödüller (Altın ve Araçlar) PRO kullanıcıları için otomatik olarak 2 katı verilir. Ödül ekranında "PRO 2x BONUS" ibaresi eklendi.
         - **PRO Rozeti:** Liderlik tablosunda ve Profil sayfasında PRO üyeleri için özel "Mavi Yıldız" rozeti eklendi.
-    - [x] `create-checkout-session/index.ts`: Hata yönetimi, yetkilendirme (Auth) başlığı kontrolü ve Stripe müşteri oluşturma süreçleri iyileştirildi. 401 hatası için manuel header ve `--no-verify-jwt` bayrağı kullanıldı. (05.03.2026)
-    - [x] [Feature] `energy_24h` (Sınırsız Enerji) ürünü Mağaza > Araçlar sekmesine "Premium" etiketiyle eklendi. Stripe entegrasyonu tamamlandı. (04.03.2026)
-    - [x] Stripe Secret'lar girildi. Edge Function'lar BULUTA DEPLOY EDİLDİ.
     - [x] Veritabanı şeması güncellendi (`unlimited_energy_until` sütunu eklendi).
     - [x] Deep Link Entegrasyonu: Ödeme sonrası `wordlenge://` şeması ile uygulamaya otomatik dönüş. `@capacitor/browser` In-App Browser ve `@capacitor/app` Deep Link dinleyicisi eklendi. (04.03.2026)
     - [x] Footer linkleri (Kullanım Şartları / Gizlilik Politikası) landing page'e yönlendiriliyor.
@@ -290,3 +292,9 @@
     - [x] Altın, XP ve Araç manipülasyonunu engelleyen RPC'ler (`update_profile_secure`, `update_mode_stats_secure`) oluşturuldu ve `SupabaseService.js` entegre edildi.
     - [x] `security_hardening.sql` ile veritabanı RLS ve Storage politikaları sertleştirildi.
     - [x] Uygulama sürümü Google Play Store yayını için `1.0.0` olarak güncellendi.
+
+- **Yazar Modu (Writer Mode) (v14.0.0)** (08.03.2026):
+    - **Hibrit Tetikleme:** Seviye 5+ oyuncular için oyun sonunda (5 adet 4+ harfli kelime bulunması şartıyla) tetiklenen hikaye yazma sistemi.
+    - **Kelime Seçimi:** Kullanıcının hikayede geçmesini istediği kelimeleri listeden seçebileceği veya seçimi yapay zekaya (AI) bırakabileceği interaktif UI.
+    - **Ekonomi:** Kısa hikayeler ücretsiz, uzun hikayeler 50 Altın (PRO üyeler için ücretsiz).
+    - **Teknik:** `useGame.js` üzerinde kelime takibi, `App.jsx` üzerinde modal yönetimi ve `stories` veritabanı şeması tamamlandı.

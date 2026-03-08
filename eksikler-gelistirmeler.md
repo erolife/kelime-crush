@@ -48,7 +48,14 @@ Farklı kelime bazlı oyunlar oluşturulabilir mi?
    - Oyuncunun oyun içerisinde bulduğu en özel/uzun kelimeler kullanılarak oyun sonunda AI yardımıyla absürt, fantastik veya komik mikro hikayeler (2-3 cümlelik) oluşturulması.
    - Örn: "Bugün Karanlık **ORMAN**da yürürken aniden bir **KAPLAN** belirdi. Cebimdeki **AYNA**yı çıkarıp ona tuttuğumda..."
    - Bu hikayenin şık bir "Polaroid / Kitap Sayfası" kartında gösterilip sosyal medyada (Instagram, Twitter) direkt paylaşılabilmesinin sağlanması.
-   - Bu sayede organik bir viral büyüme döngüsü oluşturulabilir. Bu fikir detaylandırılmak üzere bekletiliyor.
+   - **Yeni Oyun Modu (Hibrit Sistem):** Bu özellik hem oyun içi organik bir ödül, hem de ayrı bir oyun modu olarak kurgulanacaktır.
+     - **Dashboard Modu:** Ana menüde sürekli görünen ancak sadece 5. seviye ve üzeri oyuncuların erişebileceği (kilitli) özel bir "Yazar Modu" kartı eklenecektir.
+     - **Oyun İçi Sürpriz:** Oyuncu 5. seviye ve üzerindeyse, normal oyunlardan (Arcade, Zen vb.) herhangi birinde **en az 5 tane, 4 veya daha fazla harften oluşan kelime** üretirse ekranda bir bildirim belirecek ("Yazar Modu tetiklendi!") ve oyun bitiminde hikaye seçim ekranı otomatik olarak açılacaktır. Öğrenci bu ekranda hikaye temasını (romantik, komik, gerilim vb.) seçecek ve yapay zeka bu kelimelerle ona özel bir hikaye oluşturacaktır.
+     - **Hikaye Özellikleri ve Ekonomisi:** Oyuncu açılan ekranda hikayenin uzunluğunu (Kısa/Uzun) seçebilecek. Uzun hikayeler için altın harcanacak (Pro üyeler için ücretsiz/sınırsız). Hikayelerde oyuncunun adı/profili başrolde olacak şekilde özelleştirilmiş *prompt* kullanılacak. Çıktı formatı JSON olacak (başlık, içerik, emoji, hashtag).
+     - **Sosyal Etkileşim:** Üretilen hikayeler landing page'de veya oyun içi topluluk sekmesinde yayınlandığında oyuncular tarafından **beğenilebilecek (Like mekanizması)**. Yapay zeka kalitesi için OpenAI (GPT-4o-Mini) veya Google Gemini (1.5 Flash) gibi hem kaliteli hem de yapılandırılmış (JSON) çıktı verebilen modeller kullanılacak.
+
+3. **[YAPILDI] OYUN MODU TANITIMLARI**
+   - [ENTEGRASYON BAŞLANDI] Dashboarddaki oyun mod kartlarının köşelerine birer info iconu eklenir. bu ikona basıldığında bir modal içerisinde oyunun nasıl oynandığı ve amacı oyuncuya sunulabilir.
 
 
 
