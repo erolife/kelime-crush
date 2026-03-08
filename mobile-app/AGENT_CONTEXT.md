@@ -26,4 +26,11 @@
 - **Önemli Notlar:** 
     - Periyodik etkinlikler haftalık döngüye göre (start_day, end_day) dinamik olarak hesaplanır.
     - Etkinliklerde hamle sınırı standart olarak 30 olarak belirlendi.
-    - **Gelecek Planı:** Bildirim sistemi (Push & Local) ve Navigasyon iyileştirmesi (kalıcı footer) entegrasyonu için hazırlıklar başladı.
+### 08.03.2026 - Alt Navigasyon Refaktörü ve Yazar Modu Geliştirmeleri (v15.0.0)
+- **Alt Navigasyon (Footer) Refaktörü:** Mobil navigasyon barı `App.jsx` seviyesinde kalıcı (persistent) hale getirildi. `z-[1000]` ve `fixed` pozisyonu ile modal görünümlerin üzerinde kalması sağlandı.
+- **Redundant Buton Temizliği:** Mobil cihazlarda Footer kalıcı olduğu için Market, Profil, Sıralama, Envanter ve Ayarlar ekranındaki gereksiz "X" kapatma butonları gizlendi.
+- **Yazar Modu & Enerji (v14.x):** 
+    - Merkezi enerji tüketim sistemi (`consumeEnergy`) kuruldu.
+    - AI Hikaye oluşturma süreci Gemini 1.5 Flash ile güncellendi ve hata yakalama mekanizmaları güçlendirildi.
+    - Yazar modu oyun seansı hedefleri (4, 5, 6+ harfli kelime sayıları) ve bitiş animasyonları eklendi.
+- **Neden Yapıldı:** Navigasyonun dashboard genelinde tutarsız olması ve kullanıcıların alt görünümlerden çıkmakta zorlanması nedeniyle refaktör yapıldı. Yazar modu ve enerji hataları ise oyun ekonomisi ve stabilite için giderildi.

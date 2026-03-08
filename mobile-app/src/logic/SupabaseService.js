@@ -314,19 +314,31 @@ score,
     // AI Hikaye Üretme (Edge Function Çağrısı)
     async generateStory(options) {
         try {
-            const { data, error } = await supabase.functions.invoke('generate-story', {
+            const result = await supabase.functions.invoke('generate-story', {
                 body: options
             });
 
-            if (error) {
-                console.error('Edge Function Error:', error);
-                // Edge Function'dan dönen detaylı hatayı UI'a pasla
-                return { error: error.message || 'Hikaye oluşturma servisi hata verdi.' };
+            if (result.error) {
+                console.error('Edge Function Error:', result.error);
+
+                // Edge Function'dan dönen detaylı hatayı bulmaya çalış (FunctionsHttpError body)
+                let detailedMessage = result.error.message;
+                try {
+                    // Supabase invoke hatasında gövdeye erişmek için context.json() gerekebilir
+                    if (result.error.context && typeof result.error.context.json === 'function') {
+                        const errorBody = await result.error.context.json();
+                        if (errorBody && errorBody.error) detailedMessage = errorBody.error;
+                    }
+                } catch (e) {
+                    console.warn("Could not parse error body", e);
+                }
+
+                return { error: detailedMessage || 'Hikaye oluşturma servisi hata verdi.' };
             }
-            return data;
+            return result.data;
         } catch (error) {
-            console.error('Hikaye üretilirken catch hata oluştu:', error.message);
-            return { error: error.message };
+            console.error('Hikaye üretilirken catch hata oluştu:', error);
+            return { error: error.message || 'Bağlantı hatası oluştu.' };
         }
     },
 

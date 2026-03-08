@@ -1116,7 +1116,6 @@ export const useGame = (initialDifficulty = 'normal') => {
         setGamesPlayed(prev => prev + 1);
 
         // Reset Writer Mode Specific Progress
-        setWriterWords4([]);
         setWriterWords5([]);
         setWriterWords6Plus([]);
         setWriterModeWords([]);
@@ -1124,11 +1123,27 @@ export const useGame = (initialDifficulty = 'normal') => {
         setIsWriterModeTriggered(false);
     }, [engine, difficulty, gameMode, startTimeBattle, language, tools, activeEvents]);
 
-    // Game Over / Victory: Update highScore based on final session score
+    // Enerji Tüketimi (v14.2.0)
+    const consumeEnergy = useCallback(() => {
+        if (isPro || isEnergyUnlimited) return true;
+        if (energy <= 0) return false;
+
+        setEnergy(prev => {
+            const next = prev - 1;
+            // Eğer 5'ten (max) düşüyorsa yenileme zamanlayıcısını başlat
+            if (prev === 5) {
+                setLastEnergyRefill(Date.now());
+            }
+            return next;
+        });
+        return true;
+    }, [isPro, isEnergyUnlimited, energy]);
+    // Oyun Durumu Kontrolü ve Ödüllendirme (v14.2.1)
     useEffect(() => {
         if (score > 0 && gameMode !== 'zen') {
             setHighScore(prev => Math.max(prev, score));
         }
+
         if (gameState === 'playing') {
             // Check Victory for Event
             const activeEvent = currentEventId ? activeEvents?.find(e => e.id === currentEventId) : null;
@@ -1227,7 +1242,7 @@ export const useGame = (initialDifficulty = 'normal') => {
         user, profile, isLoadingProfile, fetchProfile, completedLevels,
         isPro, isEnergyUnlimited,
         language, setLanguage, t,
-        energy, nextEnergyIn, setEnergy, setLastEnergyRefill,
+        energy, nextEnergyIn, setEnergy, setLastEnergyRefill, consumeEnergy,
         totalScore, wordsFoundCount, gamesPlayed, highScore, avatarId, setAvatarId,
         arcadeSubMode, arcadeValue, timeLeft, totalMovesMade, zenDuration,
         gardenState, setGameState,

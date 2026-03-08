@@ -10,7 +10,9 @@
     2. **Dashboard Harmonizasyonu:** Tüm oyun modlarının font boyutları (Desktop: 3xl, Mobile: lg) ve kart yapıları Zen moduyla eşitlendi.
     3. **Görsel Birleştirme:** Zen Serüveni ve Yazar Modu kartları dikey düzlemde birleştirildi (Rounding & Gapless design).
     4. **Güvenlik & Ekonomi:** `update_profile_secure` RPC fonksiyonu ile hile korumalı altın düşümü ve profil güncelleme altyapısı kuruldu.
-    5. **Hata Düzeltme:** `App.jsx` üzerindeki state tanım hataları ve SQL idempotency sorunları giderildi.
+    5. **Enerji Yönetimi (v14.2.0):** `useGame.js` içinde `consumeEnergy` merkezi fonksiyonu kurularak tüm modlarda (Arcade, Zen, Writer, Time Battle) tutarlı enerji tüketimi sağlandı.
+    6. **Edge Function & AI (v14.3.0):** Story Generation servisi `gemini-1.5-flash` modeline geçirildi. JSON ayrıştırma regex ile güçlendirildi ve istemci tarafında detaylı hata raporlama altyapısı kuruldu.
+    7. **Hata Düzeltme:** `App.jsx` üzerindeki state tanım hataları ve SQL idempotency sorunları giderildi.
 
 ## Güncel Görevler & Sorunlar
 - [x] Günlük çark hilesinin engellenmesi.

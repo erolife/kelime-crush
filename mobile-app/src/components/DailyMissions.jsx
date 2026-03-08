@@ -51,12 +51,14 @@ export default function DailyMissions({ onClose, dailyMissions, claimMissionRewa
 
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6 shrink-0">
-                    <button
-                        onClick={onClose}
-                        className="w-10 h-10 bg-slate-800/50 border border-white/5 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-95"
-                    >
-                        <X size={20} />
-                    </button>
+                    {!isMobile && (
+                        <button
+                            onClick={onClose}
+                            className="w-10 h-10 bg-slate-800/50 border border-white/5 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-95"
+                        >
+                            <X size={20} />
+                        </button>
+                    )}
                     <div className="flex-1 px-4 text-center">
                         <h2 className="text-base md:text-xl font-black text-white uppercase italic tracking-tighter leading-none">
                             {t('daily_missions_title') || (language === 'tr' ? 'GÜNLÜK GÖREVLER' : 'DAILY MISSIONS')}

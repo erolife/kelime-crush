@@ -330,9 +330,11 @@ const Dashboard = ({
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto flex flex-col h-full items-stretch px-4 landscape:px-3">
             <div className="flex items-center gap-4 mb-4 landscape:mb-3 md:mb-8 shrink-0">
-              <button onClick={() => setDashboardView('modes')} className="p-2 landscape:p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
-                <X size={20} className="md:w-6 md:h-6" />
-              </button>
+              {!isMobile && (
+                <button onClick={() => setDashboardView('modes')} className="p-2 landscape:p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
+                  <X size={20} className="md:w-6 md:h-6" />
+                </button>
+              )}
               <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase">{t('active_events') || (language === 'tr' ? 'AKTİF ETKİNLİKLER' : 'ACTIVE EVENTS')}</h2>
             </div>
 
@@ -407,9 +409,11 @@ const Dashboard = ({
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full min-h-0 pt-2 lg:pt-0 pb-4">
             <div className="flex items-center justify-between gap-2 md:gap-4 mb-2 landscape:mb-1 md:mb-6 shrink-0 pt-2 md:pt-0">
               <div className="flex items-center gap-2 md:gap-4 min-w-0">
-                <button onClick={() => setDashboardView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
-                  <X size={20} className="md:w-6 md:h-6" />
-                </button>
+                {!isMobile && (
+                  <button onClick={() => setDashboardView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
+                    <X size={20} className="md:w-6 md:h-6" />
+                  </button>
+                )}
                 <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase truncate">{t('time_battle')}</h2>
               </div>
               <p className="hidden landscape:block text-[7px] md:text-[9px] font-black text-slate-500 italic tracking-wider uppercase text-right max-w-[200px] leading-tight shrink-0">
@@ -503,9 +507,11 @@ const Dashboard = ({
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full min-h-0 pt-2 lg:pt-0 pb-4">
             <div className="flex items-center justify-between gap-2 md:gap-4 mb-2 landscape:mb-1 md:mb-6 shrink-0 pt-2 md:pt-0">
               <div className="flex items-center gap-2 md:gap-4 min-w-0">
-                <button onClick={() => setDashboardView(isArcade ? 'modes' : 'levels')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
-                  <X size={20} className="md:w-6 md:h-6" />
-                </button>
+                {!isMobile && (
+                  <button onClick={() => setDashboardView(isArcade ? 'modes' : 'levels')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
+                    <X size={20} className="md:w-6 md:h-6" />
+                  </button>
+                )}
                 <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase truncate">{isArcade ? t('arcade') : `${t('level')} ${selectedLevelIdx + 1}`}</h2>
               </div>
               {/* Description in header - landscape only */}
@@ -694,12 +700,14 @@ const Dashboard = ({
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex flex-col h-full px-4 landscape:px-3">
             <div className="flex items-center gap-3 md:gap-4 mb-2 md:mb-8 shrink-0">
-              <button
-                onClick={() => setDashboardView('modes')}
-                className="p-1.5 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
-              >
-                <X size={18} className="md:w-6 md:h-6" />
-              </button>
+              {!isMobile && (
+                <button
+                  onClick={() => setDashboardView('modes')}
+                  className="p-1.5 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
+                >
+                  <X size={18} className="md:w-6 md:h-6" />
+                </button>
+              )}
               <h2 className="text-base md:text-2xl font-black text-white italic tracking-tighter uppercase leading-none mr-auto">{t('inventory')}</h2>
 
               <button
@@ -745,12 +753,14 @@ const Dashboard = ({
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full flex flex-col p-2 md:p-0">
             <div className="flex items-center gap-4 mb-2 md:mb-6 shrink-0">
-              <button
-                onClick={() => setDashboardView('modes')}
-                className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
-              >
-                <X size={20} className="md:w-6 md:h-6" />
-              </button>
+              {!isMobile && (
+                <button
+                  onClick={() => setDashboardView('modes')}
+                  className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-lg md:rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
+                >
+                  <X size={20} className="md:w-6 md:h-6" />
+                </button>
+              )}
               <h2 className="text-lg md:text-2xl font-black text-white italic tracking-tighter uppercase leading-none">{t('global_rank')}</h2>
             </div>
             <div className="flex-1 min-h-0">
@@ -763,12 +773,14 @@ const Dashboard = ({
         return (
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-2xl mx-auto flex-1 flex flex-col justify-center p-4">
             <div className="flex items-center gap-4 mb-4 landscape:mb-3 md:mb-8 shrink-0">
-              <button
-                onClick={() => setDashboardView('modes')}
-                className="p-2 landscape:p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
-              >
-                <X size={20} className="md:w-6 md:h-6" />
-              </button>
+              {!isMobile && (
+                <button
+                  onClick={() => setDashboardView('modes')}
+                  className="p-2 landscape:p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl"
+                >
+                  <X size={20} className="md:w-6 md:h-6" />
+                </button>
+              )}
               <h2 className="text-xl landscape:text-lg md:text-3xl font-black text-white italic tracking-tighter uppercase leading-none">{t('settings')}</h2>
             </div>
 
@@ -841,9 +853,11 @@ const Dashboard = ({
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto h-full flex flex-col p-2 md:p-0">
             <div className="flex items-center justify-between mb-4 md:mb-6 shrink-0 pt-2 md:pt-0">
               <div className="flex items-center gap-4 min-w-0">
-                <button onClick={() => setDashboardView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
-                  <X size={20} className="md:w-6 md:h-6" />
-                </button>
+                {!isMobile && (
+                  <button onClick={() => setDashboardView('modes')} className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl shrink-0">
+                    <X size={20} className="md:w-6 md:h-6" />
+                  </button>
+                )}
                 <h2 className="text-xl md:text-3xl font-black bg-gradient-to-r from-emerald-400 to-teal-500 bg-clip-text text-transparent italic tracking-tighter uppercase leading-none pr-2">{t('market')}</h2>
               </div>
               <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-1.5 md:px-4 md:py-2 shadow-inner">
@@ -877,6 +891,7 @@ const Dashboard = ({
             addTool={addTool}
             t={t}
             soundManager={soundManager}
+            isMobile={isMobile}
           />
         );
       }
@@ -937,9 +952,11 @@ const Dashboard = ({
           <div className="animate-in slide-in-from-right fade-in duration-500 w-full max-w-4xl mx-auto flex flex-col h-full px-4 landscape:px-3">
             <div className="flex items-center justify-between mb-4 md:mb-8 shrink-0">
               <div className="flex items-center gap-4">
-                <button onClick={() => setDashboardView('modes')} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
-                  <X size={20} className="md:w-6 md:h-6" />
-                </button>
+                {!isMobile && (
+                  <button onClick={() => setDashboardView('modes')} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-xl">
+                    <X size={20} className="md:w-6 md:h-6" />
+                  </button>
+                )}
                 <h2 className="text-xl md:text-3xl font-black text-white italic tracking-tighter uppercase">{t('profile')}</h2>
               </div>
               {user && !isEditingProfile && (
@@ -2842,7 +2859,7 @@ function App() {
     user, profile, isLoadingProfile, fetchProfile, completedLevels,
     language, setLanguage, t,
     isDictionaryLoaded,
-    energy, nextEnergyIn, setEnergy, setLastEnergyRefill,
+    energy, nextEnergyIn, setEnergy, setLastEnergyRefill, consumeEnergy,
     totalScore, wordsFoundCount, gamesPlayed, highScore,
     arcadeSubMode, arcadeValue, timeLeft, totalMovesMade, zenDuration,
     gardenState, setGameState,
@@ -3164,7 +3181,7 @@ function App() {
 
       {console.log('--- APP MAIN RENDER ---', { showDashboard })}
       {showDashboard ? (
-        <div className="flex flex-col h-[100dvh] overflow-hidden bg-slate-950 relative">
+        <div className={`flex flex-col h-[100dvh] overflow-hidden bg-slate-950 relative ${isMobile ? 'pb-[max(80px,env(safe-area-inset-bottom)+60px)]' : ''}`}>
           <div className="flex-1 min-h-0 relative">
             <Dashboard
               levels={cloudLevels}
@@ -3197,41 +3214,25 @@ function App() {
               lowPerformance={lowPerformance}
               setLowPerformance={setLowPerformance}
               onSelectArcade={(boosters, subMode, subValue) => {
-                if (isPro || isEnergyUnlimited || energy > 0) {
-                  if (!isPro && !isEnergyUnlimited) {
-                    setEnergy(prev => prev - 1);
-                    if (energy === 5) setLastEnergyRefill(Date.now());
-                  }
+                if (consumeEnergy()) {
                   setShowDashboard(false);
                   resetGame(boosters, 'arcade', subMode, subValue, difficulty);
                 }
               }}
               onSelectTimeBattle={(duration, boosters) => {
-                if (isPro || isEnergyUnlimited || energy > 0) {
-                  if (!isPro && !isEnergyUnlimited) {
-                    setEnergy(prev => prev - 1);
-                    if (energy === 5) setLastEnergyRefill(Date.now());
-                  }
+                if (consumeEnergy()) {
                   startTimeBattle(duration, boosters);
                   setShowDashboard(false);
                 }
               }}
               onSelectZen={() => {
-                if (isPro || isEnergyUnlimited || energy > 0) {
-                  if (!isPro && !isEnergyUnlimited) {
-                    setEnergy(prev => prev - 1);
-                    if (energy === 5) setLastEnergyRefill(Date.now());
-                  }
+                if (consumeEnergy()) {
                   setShowDashboard(false);
                   resetGame({}, 'zen', 'moves', 999, difficulty);
                 }
               }}
               onSelectWriter={() => {
-                if (isPro || isEnergyUnlimited || energy > 0) {
-                  if (!isPro && !isEnergyUnlimited) {
-                    setEnergy(prev => prev - 1);
-                    if (energy === 5) setLastEnergyRefill(Date.now());
-                  }
+                if (consumeEnergy()) {
                   setShowDashboard(false);
                   resetGame({}, 'writer', 'moves', 999, difficulty);
                 }
@@ -3264,7 +3265,7 @@ function App() {
             {renderAppView()}
           </div>
           {isMobile && (
-            <div className="shrink-0 bg-slate-950/80 backdrop-blur-2xl border-t border-white/10 px-4 py-4 pb-[max(env(safe-area-inset-bottom),1rem)] flex justify-between items-center shadow-[0_-15px_40px_rgba(0,0,0,0.5)]">
+            <div className="fixed bottom-0 left-0 right-0 z-[1000] bg-slate-950/90 backdrop-blur-2xl border-t border-white/10 px-4 py-3 pb-[max(env(safe-area-inset-bottom),1rem)] flex justify-between items-center shadow-[0_-15px_40px_rgba(0,0,0,0.6)] animate-in slide-in-from-bottom duration-500">
 
               <button
                 onClick={() => setDashboardView('modes')}

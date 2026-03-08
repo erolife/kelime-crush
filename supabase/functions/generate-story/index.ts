@@ -99,9 +99,22 @@ serve(async (req) => {
         const response = await result.response;
         const text = response.text();
 
-        // JSON temizleme (AI bazen ```json ... ``` ekleyebiliyor)
-        const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
-        const storyJson = JSON.parse(jsonStr);
+        console.log("AI Raw Text:", text); // Log for debugging in Supabase dashboard
+
+        // JSON temizleme (regex ile daha güvenli)
+        let storyJson;
+        try {
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) throw new Error("AI geçerli bir JSON formatı döndürmedi.");
+            storyJson = JSON.parse(jsonMatch[0]);
+        } catch (parseError) {
+            console.error("JSON Parse Error:", parseError, "Original Text:", text);
+            throw new Error("Hikaye formatı ayrıştırılamadı. Lütfen tekrar deneyin.");
+        }
+
+        if (!storyJson.title || !storyJson.content) {
+            throw new Error("Hikaye içeriği eksik oluşturuldu. Lütfen tekrar deneyin.");
+        }
 
         // 3. Veritabanına Kaydet (Service Role yetkisiyle)
         const { data: savedStory, error: insertError } = await supabaseClient

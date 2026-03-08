@@ -14,7 +14,7 @@ const SPIN_WHEEL_SLICES = [
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-export default function DailySpin({ onClose, user, profile, updateProfile, addCoins, addTool, t, soundManager }) {
+export default function DailySpin({ onClose, user, profile, updateProfile, addCoins, addTool, t, soundManager, isMobile }) {
     const [isSpinning, setIsSpinning] = useState(false);
     const [rotation, setRotation] = useState(0);
     const [reward, setReward] = useState(null);
@@ -176,12 +176,14 @@ export default function DailySpin({ onClose, user, profile, updateProfile, addCo
 
                 {/* Header */}
                 <div className="w-full flex items-center justify-between mb-8">
-                    <button
-                        onClick={onClose}
-                        className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-colors"
-                    >
-                        <X size={24} />
-                    </button>
+                    {!isMobile && (
+                        <button
+                            onClick={onClose}
+                            className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+                        >
+                            <X size={24} />
+                        </button>
+                    )}
                     <div className="flex-1 px-4 text-center">
                         <h2 className="text-xl md:text-3xl font-black text-white uppercase italic tracking-tighter">
                             {t('daily_spin_title') || 'GÜNLÜK ŞANS ÇARKI'}
@@ -209,15 +211,15 @@ export default function DailySpin({ onClose, user, profile, updateProfile, addCo
                                     // 8 Dilimli renkli Pizza katmanını CSS conic-gradient ile oluşturuyoruz:
                                     // İlk dilim ortada (0 deg) olsun diye -22.5 dereceden başlatıyoruz.
                                     background: `conic-gradient(from -22.5deg,
-                                        ${SPIN_WHEEL_SLICES[0].color} 0deg 45deg,
-                                        ${SPIN_WHEEL_SLICES[1].color} 45deg 90deg,
-                                        ${SPIN_WHEEL_SLICES[2].color} 90deg 135deg,
-                                        ${SPIN_WHEEL_SLICES[3].color} 135deg 180deg,
-                                        ${SPIN_WHEEL_SLICES[4].color} 180deg 225deg,
-                                        ${SPIN_WHEEL_SLICES[5].color} 225deg 270deg,
-                                        ${SPIN_WHEEL_SLICES[6].color} 270deg 315deg,
-                                        ${SPIN_WHEEL_SLICES[7].color} 315deg 360deg
-                                    )`
+                            ${SPIN_WHEEL_SLICES[0].color} 0deg 45deg,
+                            ${SPIN_WHEEL_SLICES[1].color} 45deg 90deg,
+                            ${SPIN_WHEEL_SLICES[2].color} 90deg 135deg,
+                            ${SPIN_WHEEL_SLICES[3].color} 135deg 180deg,
+                            ${SPIN_WHEEL_SLICES[4].color} 180deg 225deg,
+                            ${SPIN_WHEEL_SLICES[5].color} 225deg 270deg,
+                            ${SPIN_WHEEL_SLICES[6].color} 270deg 315deg,
+                            ${SPIN_WHEEL_SLICES[7].color} 315deg 360deg
+                            )`
                                 }}
                             >
                                 {/* Çark içi sınırları yumuşatmak için CSS gölgesi */}
@@ -291,61 +293,65 @@ export default function DailySpin({ onClose, user, profile, updateProfile, addCo
             </div>
 
             {/* Reward Modal Overlays */}
-            {reward && (
-                <div className="absolute inset-0 z-[100] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
-                    <div className="bg-slate-900 rounded-3xl p-8 max-w-sm w-full text-center border border-white/10 shadow-2xl relative overflow-hidden transform animate-in zoom-in duration-500 scale-100">
-                        {/* Celebrate Glow bg */}
-                        <div className="absolute inset-0 bg-gradient-to-b opacity-20 pointer-events-none" style={{ backgroundImage: `linear-gradient(to bottom, ${reward.color}, transparent)` }} />
+            {
+                reward && (
+                    <div className="absolute inset-0 z-[100] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+                        <div className="bg-slate-900 rounded-3xl p-8 max-w-sm w-full text-center border border-white/10 shadow-2xl relative overflow-hidden transform animate-in zoom-in duration-500 scale-100">
+                            {/* Celebrate Glow bg */}
+                            <div className="absolute inset-0 bg-gradient-to-b opacity-20 pointer-events-none" style={{ backgroundImage: `linear-gradient(to bottom, ${reward.color}, transparent)` }} />
 
-                        <div className="relative">
-                            <Sparkles className="w-16 h-16 mx-auto mb-4 animate-pulse" style={{ color: reward.color }} />
-                            <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase mb-2">
-                                {t('you_won') || 'KAZANDIN!'}
-                            </h3>
+                            <div className="relative">
+                                <Sparkles className="w-16 h-16 mx-auto mb-4 animate-pulse" style={{ color: reward.color }} />
+                                <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase mb-2">
+                                    {t('you_won') || 'KAZANDIN!'}
+                                </h3>
 
-                            <div className="bg-slate-800/80 rounded-2xl p-6 border border-white/5 inline-flex flex-col items-center justify-center my-4 min-w-[160px] shadow-inner relative group">
-                                {profile?.is_pro && (
-                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg brightness-110">
-                                        PRO 2x BONUS
-                                    </div>
-                                )}
-                                <reward.icon size={48} className="mb-3" style={{ color: reward.color }} />
-                                <span className="text-2xl font-black" style={{ color: reward.color }}>
-                                    {reward.amount * (profile?.is_pro ? 2 : 1)} {reward.type === 'coins' ? (t('gold') || 'Altın') : (t(reward.toolId) || reward.label)}
-                                </span>
+                                <div className="bg-slate-800/80 rounded-2xl p-6 border border-white/5 inline-flex flex-col items-center justify-center my-4 min-w-[160px] shadow-inner relative group">
+                                    {profile?.is_pro && (
+                                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg brightness-110">
+                                            PRO 2x BONUS
+                                        </div>
+                                    )}
+                                    <reward.icon size={48} className="mb-3" style={{ color: reward.color }} />
+                                    <span className="text-2xl font-black" style={{ color: reward.color }}>
+                                        {reward.amount * (profile?.is_pro ? 2 : 1)} {reward.type === 'coins' ? (t('gold') || 'Altın') : (t(reward.toolId) || reward.label)}
+                                    </span>
+                                </div>
+
+                                <button
+                                    onClick={handleClaimReward}
+                                    className="w-full mt-4 py-4 rounded-xl text-white font-black uppercase tracking-widest transition-opacity hover:opacity-90 shadow-xl"
+                                    style={{ backgroundColor: reward.color }}
+                                >
+                                    {t('claim_reward') || 'ÖDÜLÜ AL'}
+                                </button>
                             </div>
-
-                            <button
-                                onClick={handleClaimReward}
-                                className="w-full mt-4 py-4 rounded-xl text-white font-black uppercase tracking-widest transition-opacity hover:opacity-90 shadow-xl"
-                                style={{ backgroundColor: reward.color }}
-                            >
-                                {t('claim_reward') || 'ÖDÜLÜ AL'}
-                            </button>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Uçan Ödül Animasyon Overlay */}
-            {flyingReward && (
-                <div
-                    className="fixed z-[999] pointer-events-none drop-shadow-2xl"
-                    style={{
-                        left: '50%',
-                        top: '50%',
-                        // Use inline animation injection
-                        animation: 'flyToCorner 1.2s cubic-bezier(0.15, -0.2, 0.25, 1) forwards'
-                    }}
-                >
-                    <div className="bg-slate-800/80 rounded-full p-4 border border-white/20 shadow-inner flex flex-col items-center justify-center">
-                        <flyingReward.icon size={48} className="drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]" style={{ color: flyingReward.color }} />
-                        <span className="text-xl font-black mt-1" style={{ color: flyingReward.color }}>
-                            +{flyingReward.amount}
-                        </span>
+            {
+                flyingReward && (
+                    <div
+                        className="fixed z-[999] pointer-events-none drop-shadow-2xl"
+                        style={{
+                            left: '50%',
+                            top: '50%',
+                            // Use inline animation injection
+                            animation: 'flyToCorner 1.2s cubic-bezier(0.15, -0.2, 0.25, 1) forwards'
+                        }}
+                    >
+                        <div className="bg-slate-800/80 rounded-full p-4 border border-white/20 shadow-inner flex flex-col items-center justify-center">
+                            <flyingReward.icon size={48} className="drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]" style={{ color: flyingReward.color }} />
+                            <span className="text-xl font-black mt-1" style={{ color: flyingReward.color }}>
+                                +{flyingReward.amount}
+                            </span>
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }
